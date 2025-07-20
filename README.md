@@ -8,7 +8,7 @@ The material includes slides with theory concepts and practical exercises.
 
 ### Programm
 
-- [**Course Programm](slides/program.pdf)
+- [**Course Programm**](slides/program.pdf)
 
 ### Set up
 
