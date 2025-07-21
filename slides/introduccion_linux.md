@@ -81,4 +81,75 @@ GNU (acrónimo de “**G**NU’s **N**ot **U**nix”) es un proyecto iniciado po
 
 Linus Torvalds publicó su kernel en 1991, y como todavía no existía un kernel funcional y libre en el proyecto GNU (el suyo, Hurd, no estaba listo), los desarrolladores unieron el kernel de Linux con las herramientas del proyecto GNU y crearon un sistema operativo funcional: lo que hoy se llama popularmente "Linux", aunque el nombre completo sería más correcto como GNU/Linux.
 
+## 1.2. Código abierto
 
+Linux es un **software libre y de código abierto**, de forma que cualquiera puede acceder al código fuente, modificarlo y redistribuirlo según las condiciones de la licencia GPL (General Public License).
+
+Gracias a esta licencia, Linux no es solo un producto tecnológico, sino también el resultado de una colaboración global entre desarrolladores y comunidades que contribuyen de forma abierta, sin una coordinación central estricta pero con objetivos comunes.
+
+Para que un software sea considerado verdaderamente de código abierto, su licencia debe cumplir una serie de principios fundamentales:
+
+1. **Libre redistribución**: El software puede compartirse libremente. No se puede tomar un programa gratuito, cambiar su nombre y venderlo con restricciones.
+2. **Acceso al código fuente**: El código fuente debe estar incluido o ser fácilmente accesible, permitiendo su estudio y modificación por parte de los usuarios.
+3. **Permiso para trabajos derivados**: Se pueden crear versiones modificadas y distribuirlas bajo los mismos términos que el original.
+4. **Integridad del autor**: Las licencias pueden exigir que los trabajos derivados tengan nombres distintos o números de versión diferentes. Esto protege tanto a los usuarios (que saben qué están usando) como a los autores originales.
+5. **No discriminación de personas o grupos**: Cualquier persona, sin importar su origen, tiene derecho a usar el software.
+6. **No discriminación por áreas de uso**: El software puede usarse en cualquier ámbito, incluyendo negocios, educación, investigación, etc.
+7. **Distribución automática de derechos**: Todos los usuarios reciben los mismos derechos al redistribuir el software, sin necesidad de nuevas licencias.
+8. **Neutralidad respecto a productos**: El uso del software no puede estar condicionado a formar parte de un paquete o producto específico.
+9. **Sin restricciones a otros programas**: El software puede distribuirse junto a otros programas (libres o propietarios) sin imponer restricciones adicionales.
+10. **Neutralidad tecnológica**: La licencia no debe depender de tecnologías o interfaces particulares.
+
+## 1.3. Distribuciones
+
+Gracias a los principios del software de código abierto, especialmente la libre redistribución, el acceso al código fuente y la posibilidad de crear trabajos derivados, es posible que múltiples comunidades y organizaciones desarrollen sus propias distribuciones de Linux.
+
+Una distribución (coloquialmente llamada distro) es una distribución de software basada en el kernel de Linux que incluye determinados paquetes de software para satisfacer las necesidades de un grupo específico de usuarios, dando así origen a ediciones domésticas, empresariales y para servidores. 
+
+Además del núcleo o kernel de Linux, las distribuciones incluyen habitualmente las librerías y herramientas del proyecto GNU, software adicional, documentación, un sistema de ventanas, un gestor de ventanas y un entorno de escritorio. Dependiendo del tipo de usuarios a los que la distribución esté dirigida se incluye también otro tipo de software como procesadores de texto, hoja de cálculo, reproductores multimedia, herramientas administrativas, etc. 
+
+Por lo general están compuestas, total o mayoritariamente, de software libre, aunque a menudo incorporan aplicaciones o controladores propietarios.
+
+Algunas de las distribuciones más populares son:
+
+- Ubuntu: Amigable para principiantes, muy utilizada en escritorios y entornos educativos.
+- Debian: Base de muchas otras distribuciones, conocida por su estabilidad.
+- Fedora: Promovida por Red Hat, orientada a usuarios que buscan tecnología de vanguardia.
+- Arch Linux: Enfocada a usuarios avanzados, ofrece control total sobre la configuración del sistema.
+- CentOS / Rocky Linux / AlmaLinux: Alternativas comunitarias a Red Hat Enterprise Linux (RHEL), orientadas a servidores.
+
+La distribución que tiene el HPC del ISCIII es CentOS Stream release 8
+
+## 1.4. Multi-tarea
+
+Linux es multi-tarea, por lo que permite ejecutar múltiples tareas simultáneamente.
+
+Un sistema operativo multitarea es aquel que permite ejecutar varios programas o procesos al mismo tiempo. Esto no significa que el procesador realmente haga muchas cosas a la vez, sino que gestiona el tiempo de manera tan eficiente que da la impresión de simultaneidad.
+
+Enn un ordenador tienes PowerPoint abierto, el navegador Firefox y el calendario. Aparentemente, los tres programas están activos a la vez. Pero lo que realmente ocurre es que el procesador cambia rápidamente de una tarea a otra, dedicando lapsos de tiempo muy breves a cada una. Es tan rápido (a veces miles de veces por segundo) que tú no notas las pausas. Este sistema se llama "planificador de procesos", y lo organiza el sistema operativo.
+
+Imagina una película antigua: no es un vídeo continuo, sino una sucesión de fotogramas estáticos. Al pasar muy rápido de uno a otro, nuestro cerebro interpreta movimiento. Con la multitarea pasa lo mismo: el sistema operativo va alternando entre tareas, pero lo hace tan velozmente que parece que todo funciona al mismo tiempo.
+
+El sistema operativo:
+
+- **Mantiene el estado de cada tarea**: Sabe en qué punto estábamos en PowerPoint, Firefox o el calendario, y retoma desde ahí al volver a activarla.
+- **Administra recursos**: Decide qué proceso usa el procesador, cuál accede al disco o qué ventana está activa.
+- **Evita conflictos**: Se asegura de que las tareas no interfieran entre sí ni se "pisen" datos.
+
+La multitarea es aún más crucial en entornos HPC donde el sistema operativo debe gestionar cientos de procesos de diferentes usuarios y aplicaciones, optimizando recursos de forma eficiente y segura.
+
+## 1.5. Multi-usuario
+
+Linux es multi-usuario, es decir, soporta varios usuarios conectados al mismo tiempo, con distintos permisos y configuraciones
+
+Un sistema operativo multiusuario es un tipo de software que permite que varias personas accedan y utilicen un mismo sistema informático, ya sea de forma simultánea o secuencial, sin interferencias entre ellas.
+
+- Tiene su propio nombre de usuario (login) y una contraseña.
+- Dispone de permisos específicos sobre archivos, programas o recursos del sistema.
+- Puede ejecutar tareas sin afectar directamente a las de otros.
+
+En sistemas de computación de alto rendimiento (HPC), la capacidad multiusuario es esencial:
+
+- Decenas o cientos de usuarios trabajan simultáneamente en el mismo clúster.
+- Cada usuario ejecuta procesos, analiza datos y accede a software especializado.
+- El sistema operativo garantiza que cada sesión, archivo o proceso esté aislado y protegido, sin interferir con otros usuarios.
