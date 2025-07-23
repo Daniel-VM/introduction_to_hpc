@@ -158,7 +158,7 @@ En sistemas de computación de alto rendimiento (HPC), la capacidad multiusuario
 
 El File System o Sistema de Archivos es uno de los tres componente que configuran el sistema operativo, como vimos anteriormente.
 
-## 2.1. Características
+### 2.1. Características
 
 Un sistema de archivos es el componente del sistema operativo que organiza, almacena y recupera datos en un dispositivo de almacenamiento como un disco duro, SSD, pendrive o servidor.
 
@@ -192,7 +192,7 @@ Otras características:
   - Permite que tuberías y redirecciones funcionen de forma uniforme (por ejemplo: redirigir la salida de un programa a un fichero, a otro programa o a un dispositivo).
 - Además, no existe el concepto de extensiones y existen los archivos ocultos.
 
-## 2.2 Estructura
+### 2.2 Estructura
 
 Como mencionabamos antes, el sistema de archivos de Linux está organizado en forma de árbol jerárquico invertido, comenzando en la parte superior con el directorio raíz, representado por `/`.
 
@@ -220,7 +220,7 @@ Desde este punto se ramifican todos los demás directorios y archivos del sistem
 - `/mnt` y `/media`:  Es el directorio que contiene todas las unidades físicas que tenemos montadas: discos duros, unidades de DVD, pen drives, etc.
 - `/opt`: se utiliza para instalar software adicional que no forma parte del sistema base. En nuestro caso es donde se realiza la instalación del software bioinformático.
 
-## 2.3. Comparción con windows
+### 2.3. Comparción con windows
 
 Organización:
 
@@ -234,7 +234,7 @@ Otro punto importante es cómo se gestionan los dispositivos externos, como un C
 
 Esta diferencia refleja filosofías distintas: Linux apuesta por una organización unificada y coherente, mientras que Windows se basa en una estructura modular por unidades, más intuitiva para el usuario general pero menos flexible para administradores y servidores.
 
-## 2.4. Rutas
+### 2.4. Rutas
 
 En los sistemas operativos como Linux, cada archivo o carpeta tiene una “dirección” que indica dónde se encuentra dentro del sistema. Esta dirección se llama ruta (o path, en inglés), y se expresa como una secuencia de directorios separados por barras (/) que debemos recorrer para llegar hasta el archivo deseado.
 
@@ -254,3 +254,20 @@ Como veniamos viendo, Linux organiza su sistema de archivos como un árbol jerá
     - Si estamos ya dentro de `dir1`: `libro.txt` o `./libro.txt`
 
 Comprender cómo funcionan las rutas en Linux es fundamental para poder navegar por el sistema de archivos, ejecutar comandos correctamente y trabajar de forma eficiente desde la terminal.
+
+## 3. Comandos básicos de linux
+
+## 3.1. Shell
+
+La shell es el programa que interpreta los comandos que escribimos. Es como un "intérprete" entre nosotros y el sistema operativo. Hay varios tipos de shell, pero una de las más comunes en Linux es Bash.
+
+En Linux, la forma de comunicarse con el sistema operativo es a través de la línea de comandos. A diferencia de los entornos gráficos, que permiten hacer clic en iconos o menús, la línea de comandos nos permite dar instrucciones precisas y controlar el sistema a un nivel más profundo. Esta interacción se realiza en un entorno llamado terminal. La terminal es la aplicación gráfica que permite acceder a esta shell, y es especialmente importante en entornos como servidores, sistemas sin interfaz gráfica o infraestructuras HPC, donde la línea de comandos es la herramienta principal de trabajo. Aunque hoy en día existen entornos gráficos (ventanas, menús, botones), la terminal sigue siendo una herramienta muy poderosa y flexible, especialmente en entornos de alta computación y servidores.
+
+En Linux, una de las shells más comunes es Bash. A través de ella, se pueden:
+- Navegar por el sistema de archivos.
+- Ejecutar programas y scripts.
+- Gestionar procesos.
+- Administrar usuarios y permisos.
+- Automatizar tareas repetitivas.
+
+Más adelante en el [apartado 3](#comandos-basicos) desarrollaremos un poco más de información acerca de la Shell de Linux.
