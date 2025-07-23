@@ -153,3 +153,104 @@ En sistemas de computación de alto rendimiento (HPC), la capacidad multiusuario
 - Decenas o cientos de usuarios trabajan simultáneamente en el mismo clúster.
 - Cada usuario ejecuta procesos, analiza datos y accede a software especializado.
 - El sistema operativo garantiza que cada sesión, archivo o proceso esté aislado y protegido, sin interferir con otros usuarios.
+
+## 2. File system
+
+El File System o Sistema de Archivos es uno de los tres componente que configuran el sistema operativo, como vimos anteriormente.
+
+## 2.1. Características
+
+Un sistema de archivos es el componente del sistema operativo que organiza, almacena y recupera datos en un dispositivo de almacenamiento como un disco duro, SSD, pendrive o servidor.
+
+El sistema de archivos es lo que le da estructura a los datos. Permite:
+
+- Guardar archivos y carpetas de forma organizada.
+- Acceder a ellos por su nombre, ruta y permisos.
+- Controlar quién puede leer, modificar o ejecutar cada archivo.
+
+Cuando guardas un archivo (por ejemplo, un documento de texto), el sistema de archivos:
+
+- Lo divide en bloques físicos que se almacenan en el disco.
+- Asocia metadatos (nombre, fecha, permisos, tamaño, propietario).
+- Lo ubica en una jerarquía de carpetas para facilitar su localización.
+
+También gestiona:
+
+- Permisos y propiedad
+- Tiempos de acceso/modificación
+- Espacio libre y ocupado
+- Integridad y recuperación ante errores
+
+Otras características: 
+
+- La estructura de ficheros de Linux es una estructura jerárquica en forma de árbol invertido, donde el directorio principal (directorio raíz) es el directorio `/`, del que cuelga toda la estructura del sistema. 
+- Todo tiene rutas, que hay que especificar
+- En Linux, todo son archivos, tanto los archivos de texto, como los directorios o carpetas, como los dispositivos que están conectados al ordenador, todo está representado como si fueran archivos. ¿Por qué se hace esto?
+  - Porque tratarlo todo como ficheros simplifica la programación y el uso del sistema:
+  - Se puede usar el mismo conjunto de comandos y funciones para trabajar con todo tipo de recursos.
+  - Un desarrollador o administrador puede leer datos de un dispositivo igual que leería de un archivo de texto.
+  - Permite que tuberías y redirecciones funcionen de forma uniforme (por ejemplo: redirigir la salida de un programa a un fichero, a otro programa o a un dispositivo).
+- Además, no existe el concepto de extensiones y existen los archivos ocultos.
+
+## 2.2 Estructura
+
+Como mencionabamos antes, el sistema de archivos de Linux está organizado en forma de árbol jerárquico invertido, comenzando en la parte superior con el directorio raíz, representado por `/`.
+
+Desde este punto se ramifican todos los demás directorios y archivos del sistema. Esta estructura permite una organización lógica, eficiente y modular de todos los componentes del sistema operativo, así como los archivos de los usuarios.
+
+- `/` (Root (Raíz)): Es el punto de partida del sistema de archivos. Todos los demás archivos y carpetas están contenidos o enlazados desde aquí. Es el núcleo de la jerarquía.
+- `/bin` (Binary): Contiene programas ejecutables esenciales, necesarios tanto para el sistema como para todos los usuarios. Son comandos básicos que se deben poder ejecutar incluso en modo de rescate o sin montar otras particiones.
+- `/usr` (User system resources): Contiene programas y utilidades de uso general para los usuarios. Dentro de `/usr` también hay subdirectorios como:
+    - `/usr/bin`: comandos no esenciales para todos los usuarios.
+    - `/usr/sbin`: herramientas administrativas.
+    - `/usr/lib`: bibliotecas compartidas.
+- `/var` (Variable): Contiene archivos cuyo contenido cambia con el tiempo:
+    - Logs del sistema (/var/log)
+    - Bases de datos temporales
+    - Correos electrónicos del sistema
+    - Cachés
+    - Archivos de spool (como colas de impresión o correos)
+- `/etc`: Configuraciones del sistema y servicios.
+- `/root`: Directorio personal del superusuario (root).
+- `/sbin`: Comandos del sistema usados por el administrador.
+- `/tmp`: Archivos temporales (borrados al reiniciar).
+- `/dev`: Archivos especiales que representan dispositivos del sistema.
+- `/lib`: Bibliotecas compartidas necesarias para ejecutar comandos de /bin y /sbin.
+- `/home`: Es un directorio donde se encuentran los directorios personales de los usuarios del sistema. Donde están las carpetas de cada usuario del ordenador con su escritorio.
+- `/mnt` y `/media`:  Es el directorio que contiene todas las unidades físicas que tenemos montadas: discos duros, unidades de DVD, pen drives, etc.
+- `/opt`: se utiliza para instalar software adicional que no forma parte del sistema base. En nuestro caso es donde se realiza la instalación del software bioinformático.
+
+## 2.3. Comparción con windows
+
+Organización:
+
+- En Linux, todo el sistema de archivos se organiza como un único árbol jerárquico que parte desde un directorio raíz, representado por la barra `/`. Esto significa que no importa cuántas particiones o discos tenga el equipo, todos los elementos (discos, carpetas, archivos, dispositivos externos) se integran en ese único árbol de directorios bajo `/`. Por ejemplo, la carpeta `/home`, que es donde residen los archivos personales de los usuarios (similar a "Usuarios" en Windows), siempre cuelga del directorio raíz. Esto da una estructura más uniforme y predecible.
+- En cambio, en Windows, los sistemas de archivos se organizan por unidades de disco, asignando una letra a cada partición o dispositivo (como C:\, D:\, E:\, etc.). Por eso, una carpeta como "Usuarios" puede estar en C:\ o en D:\, según cómo se haya configurado el sistema.
+
+Otro punto importante es cómo se gestionan los dispositivos externos, como un CD, una memoria USB o un disco duro externo:
+
+- En Linux, cuando conectas un dispositivo, este se “monta” dentro del sistema de archivos, lo que significa que se le asigna un punto de acceso dentro del árbol. Por convención, los dispositivos suelen montarse en el directorio `/mnt` (de mount, montar) o en `/media`. Esto permite acceder al contenido del dispositivo como si fuese parte del mismo sistema de archivos.
+- En Windows, cuando conectas un dispositivo, el sistema le asigna una nueva letra de unidad (por ejemplo, E:\), y lo muestra en el explorador de archivos bajo “Este equipo” (antes “Mi PC”), como si fuera un disco independiente.
+
+Esta diferencia refleja filosofías distintas: Linux apuesta por una organización unificada y coherente, mientras que Windows se basa en una estructura modular por unidades, más intuitiva para el usuario general pero menos flexible para administradores y servidores.
+
+## 2.4. Rutas
+
+En los sistemas operativos como Linux, cada archivo o carpeta tiene una “dirección” que indica dónde se encuentra dentro del sistema. Esta dirección se llama ruta (o path, en inglés), y se expresa como una secuencia de directorios separados por barras (/) que debemos recorrer para llegar hasta el archivo deseado.
+
+Como veniamos viendo, Linux organiza su sistema de archivos como un árbol jerárquico que comienza en el directorio raíz, representado por `/`. A partir de ahí, se ramifican todas las carpetas y archivos del sistema. Esta estructura nos permite acceder a los archivos utilizando dos tipos de rutas:
+
+- **Ruta absoluta**:
+  - La ruta absoluta comienza siempre desde el directorio raíz (/) y describe el camino completo hasta un archivo, sin importar en qué carpeta estemos actualmente. Siempre es la misma, porque parte desde la base del sistema.
+  - Ejemplo: `/home/alumno1/dir1/libro.txt`
+    - Esta ruta va desde el directorio raíz, entra en home, luego en alumno1, luego en dir1, y finalmente llega al archivo libro.txt.
+- **Ruta relativa**:
+  - La ruta relativa parte desde el directorio en el que nos encontramos actualmente. Por eso, cambia según nuestra ubicación dentro del sistema de archivos.
+    - `.` (punto) representa el directorio actual.
+    - `..` (dos puntos) representa el directorio padre (el nivel superior).
+  - Ejemplos:
+    - Si estamos en `/home`, la ruta relativa sería: `./alumno1/dir1/libro.txt` o `alumno1/dir1/libro.txt`
+    - Si estamos en `/home/alumno1`, podemos escribir simplemente: `dir1/libro.txt` o `./dir1/libro.txt`
+    - Si estamos ya dentro de `dir1`: `libro.txt` o `./libro.txt`
+
+Comprender cómo funcionan las rutas en Linux es fundamental para poder navegar por el sistema de archivos, ejecutar comandos correctamente y trabajar de forma eficiente desde la terminal.
