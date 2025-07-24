@@ -44,7 +44,7 @@ Es el componente que siempre está en funcionamiento, desde que el sistema se in
 
 El sistema de ficheros se encarga de organizar, almacenar y recuperar datos en los dispositivos de almacenamiento (como discos duros o memorias USB). Define cómo se estructuran las carpetas y archivos, cómo se accede a ellos y qué permisos tiene cada usuario o proceso.
 
-Más adelante en el apartado 2 [File System](#file-system) exploraremos con detalle cómo funciona este sistema en Linux.
+Más adelante en el apartado 2 [File System](#2-file-system) exploraremos con detalle cómo funciona este sistema en Linux.
 
 #### La shell
 
