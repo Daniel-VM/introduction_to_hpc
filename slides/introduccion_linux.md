@@ -257,7 +257,7 @@ Comprender cómo funcionan las rutas en Linux es fundamental para poder navegar 
 
 ## 3. Comandos básicos de linux
 
-## 3.1. Shell
+### 3.1. Shell
 
 La shell es el programa que interpreta los comandos que escribimos. Es como un "intérprete" entre nosotros y el sistema operativo. Hay varios tipos de shell, pero una de las más comunes en Linux es Bash.
 
@@ -270,7 +270,7 @@ En Linux, una de las shells más comunes es Bash. A través de ella, se pueden:
 - Administrar usuarios y permisos.
 - Automatizar tareas repetitivas.
 
-## 3.2. Prompt
+### 3.2. Prompt
 
 El prompt es el mensaje que aparece en la línea de comandos cuando abrimos una terminal. Es la señal visual que nos indica que el sistema está listo para recibir instrucciones. En otras palabras, es el punto de entrada entre el usuario y el sistema operativo a través de la shell.
 
@@ -288,7 +288,7 @@ Este ejemplo nos da información importante:
 
 Cada vez que escribimos un comando, lo hacemos después del prompt.
 
-## 3.3. Comandos básicos
+### 3.3. Comandos básicos
 
 Para interactuar con el sistema operativo desde la terminal, utilizamos comandos: instrucciones que escribimos y que la shell interpreta para que el sistema las ejecute. Estos comandos permiten navegar por el sistema de archivos, manipular archivos y carpetas, ejecutar programas, gestionar usuarios y procesos, y automatizar tareas repetitivas.
 
@@ -424,14 +424,261 @@ echo "Hola mundo"
 [user@machine ~]$ nano script.sh
 ```
 
-> Se abre una interfaz de edición dentro del terminal. Para guardar, pulsa Ctrl+O y luego Ctrl+X para salir.
+> Se abre una interfaz de edición dentro del terminal. Para guardar, pulsa Ctrl+o y luego intro. Para salir puls Ctrl+x.
 
-- man (Manual): Muestra el manual de ayuda de cualquier comando.
+## 4. Sintaxis de la linea de comandos
+
+### 4.1. Sintaxis
+
+Usar la terminal no es solo escribir comandos al azar. Como cualquier lenguaje, tiene una sintaxis (unas reglas) que debemos seguir para que el sistema entienda lo que queremos hacer.
+
+La estructura general de un comando es:
 
 ```bash
-[user@machine ~]$ man ls
-
+comando [opciones o parámetros] [argumentos]
 ```
 
-> Accederás al manual del comando `ls`, donde podrás consultar todas sus opciones y ejemplos. Pulsa q para salir
+- Comando: La instrucción principal que le damos al sistema.
+- Parámetro (opción): Modifica el comportamiento del comando. Suele empezar con - o --. Los parámetros se indican con guiones:
+  - Cortos: -l, -a, -h
+  - Largos: --help, --version
+- Argumento: Es el objeto sobre el que actúa el comando. Por ejemplo, un archivo, una carpeta o una ruta.
+  - Para algunos comandos el argumento de archivo es obligatorio (como el de mover o leer un archivo)
 
+Ejemplos:
+- `ls -l -a`: Tiene dos parámetros
+  - `-l`: Indica que se haga el listado en formato largo
+  - `-a`: Indica que se haga el listado incluyendo archivos ocultos
+- `cp archivo1.txt copia.txt`: Tiene dos argumentos, donde **el orden importa**:
+  - archivo1.txt: El archivo de origen, siempre va primero
+  - copia.txt: El archivo de destino siempre va segundo
+
+
+### 4.2. Input/Output
+
+Cuando usamos comandos en la terminal, siempre hay una entrada (input) y una salida (output). Esta comunicación entre el usuario, el sistema operativo y los comandos se basa en un modelo de entrada/salida muy flexible.
+
+- **Entrada estándar** (Standard Input - stdin): Es la información que el comando recibe. Por defecto, es el teclado (lo que tú escribes).
+
+Por ejemplo:
+
+```bash
+cat
+```
+
+> Al ejecutar cat sin argumentos, el comando espera que escribas algo. Cada línea que introduces se convierte en la entrada. Para salir, puedes usar Ctrl + D.
+
+- **Salida estándar** (Standard Output - stdout): Es la información que el comando devuelve. Por defecto, se muestra en la pantalla.
+
+```
+echo "Hola mundo"
+```
+
+> El comando echo imprime la salida Hola mundo en pantalla.
+
+### 4.3. Redirigir
+
+En Linux, puedes redirigir estas salidas y entradas para controlar mejor lo que hacen los comandos.
+
+- Redirigir **la salida estándar a un archivo**:
+
+```bash
+echo "Hola mundo" > saludo.txt
+```
+> Crea un archivo llamado saludo.txt con el contenido Hola mundo.
+
+- **Añadir** (en vez de sobrescribir) a un archivo:
+
+```bash
+echo "Otra línea" >> saludo.txt
+
+```
+> Añade una línea al final del archivo sin borrar lo anterior.
+
+- Redirigir **la entrada estándar desde un archivo**
+
+```bash
+cat < saludo.txt
+```
+> Lee el contenido de saludo.txt como si lo estuvieras escribiendo tú.
+
+- **Redirigir errores**: Puedes redirigir la salida de error (stderr) con 2>:
+
+```
+cat archivo_que_no_existe.txt 2> error.txt
+```
+
+> El mensaje de error (si lo hubiera) se guarda en error.txt en lugar de mostrarse en pantalla.
+
+- Redirigir **salida y error al mismo archivo**
+
+```bash
+cat archivo_que_no_existe.txt > salida.txt 2>&1
+```
+
+> Esto guarda tanto stdout como stderr en el mismo archivo.
+
+
+### 4.4. Pipes
+
+Un pipe (símbolo |) en Linux es una herramienta que permite conectar la salida de un comando con la entrada de otro. Esto nos permite encadenar comandos para realizar operaciones más complejas de forma sencilla. Piensa en un pipe como un tubo que transporta datos de un comando a otro:
+
+```bash
+[Comando A] --salida--> | --entrada--> [Comando B]
+```
+
+En lugar de mostrar la salida en pantalla, se la pasa directamente al siguiente comando.
+
+_Por ejemplo_:
+
+```bash
+ls | sort
+```
+
+> ls lista los archivos del directorio actual.
+> sort ordena esa lista alfabéticamente.
+> El resultado es la lista de archivos ordenada.
+
+_Otro ejemplo_: filtrar con grep
+
+```
+cat archivo.txt | grep "palabra"
+```
+
+> cat muestra el contenido de archivo.txt.
+> grep filtra las líneas que contienen "palabra".
+> Se muestran solo las líneas coincidentes.
+
+_Otro ejemplo_: contar con wc
+
+```
+ls | wc -l
+```
+
+> ls lista los archivos.
+> wc -l cuenta el número de líneas (es decir, cuántos archivos hay).
+Z Devuelve el número total de archivos.
+
+Los pipes solo conectan la salida estándar (stdout) con la entrada estándar (stdin).
+
+# 5. Usuarios y privilegios
+
+## 5.1. Usuarios
+
+Un usuario en Linux es una entidad con acceso a recursos del sistema: archivos, programas, dispositivos, etc. Cada usuario tiene:
+
+- Un nombre de usuario (username)
+- Un identificador de usuario (UID)
+- Un grupo principal (GID)
+- Un directorio personal (por ejemplo, /home/user)
+- Un intérprete de comandos (shell, como /bin/bash)
+
+Existen dos tipos de usuarios:
+
+- Los usuarios normales:
+  - Tienen acceso limitado.
+  - Solo pueden modificar archivos de su propio directorio.
+  - No pueden cambiar configuraciones del sistema.
+- Usuario root:
+  - Es el administrador del sistema.
+  - Tiene acceso total a todos los archivos y comandos.
+  - Puede instalar programas, borrar cualquier archivo, crear usuarios, etc.
+ 
+Un grupo es un conjunto de usuarios. Se usan para gestionar permisos colectivos. Ejemplo: si varios usuarios necesitan acceder a un proyecto común, puedes añadirlos al mismo grupo.
+
+Algunas caracteristicas:
+- Los usuarios están asociados a una persona o proceso de computación
+- Todos los usuarios pueden pertenecer a uno o más grupos
+- Todos los usuarios tienen una carpeta propia dentro de la carpeta home
+- Los usuarios son los dueños (es decir tienen permisos de owner) en todos los archivos que creados por ellos, directa o indirectamente
+- Los usuarios pueden cambiar los permisos de los archivos que son suyos.
+- Los usuarios poseen permisos sobre los procesos que ejecutan
+- El super usuario root tiene permiso sobre todo. Esto es como los permisos de administrador, cuando queréis instalar algo en el ordenador windows del ISCIII y no os deja, es porque no sois el root del ordenador, es decir el administrador.
+- Como todo usuario, root también tiene una carpeta home, pero la carpeta home del super usuario root esta en /root, no en /home
+
+## 5.2. Permisos
+
+Para ver los permisos y quien es el dueño de los archivos, tendremos que usar los comandos `ls –l` en la linea de comandos. Por ejemplo el resultado para la carpeta `Documentos` del home es:
+
+```bash
+drwxrwxr-x 2 s.varona s.varona 4096 Jul 24 19:58 Documentos
+```
+
+- Primero nos dice que es un directorio
+- Después nos indica los permisos
+- Luego nos indica un número que es el número de archivos que contiene es directorio. En el caso de que el fichero sea un archivo pondrá un 1.
+- Nos indica el usuario propietario de la carpeta
+- Nos indica el grupo de la carpeta
+- Después te dice el tamaño del archivo que son 4096 bytes.
+- Después te dice la fecha de la última modificación
+- Por último te dice el nombre del directorio que es Documentos
+
+Los permisos como su propio nombre indica son los derechos de los usuarios para actuar sobre los archivos o directorios. Existen tres tipos de permisos de actuación sobre los ficheros:
+
+- **Permiso de lectura (r)**:
+  - Estos permisos permiten a la persona que tiene permisos de lectura ver el contenido de los archivos.
+  - En el caso de directorios, el permiso de lectura permite listar el contenido de los directorios.
+- **Permisos de escritura (w)**:
+  - Permite a los usuarios con este permiso modificar el contenido del archivo.
+  - En el caso de los directorios, este permiso permite editar el contenido (los archivos del directorio)
+- **Permisos de ejecución (x)**:
+  - Permiten ejecutar o correr un archivo que contiene un programa o script.
+  - Para el caso de los directorios, el permiso de ejecución permite moverte dentro del directorio y convertirlo en tu directorio actual (pwd).
+
+La información de los permisos se almacena en el sistema como una secuencia de 9 bits en una estructura de tres grupos:
+
+- La primera es para el propietario del fichero 
+- La segunda secuencia es para el grupo del fichero
+- Y la tercera es para los demás usuarios que no sean ni el propietario ni pertenezcan al grupo
+
+Cada uno de los grupos tiene un apartado para los permisos de lectura, para los permisos de escritura y para los de ejecución.
+
+Después de la secuencia de información de permisos te proporciona información sobre el propietario del fichero, el grupo al que pertenece el fichero y el nombre del fichero.
+
+## 5.3. Cambiar permisos
+
+Los permisos de un fichero solo pueden ser alterados por su propietario, los usuarios que pertenezcan al grupo y por el administrador. El super usuario puede cambiar los permisos de cualquier fichero del sistema.
+
+Comandos para cambiar permisos: 
+- `chmod` (change mode): Sirve para cambiar los permisos de acceso de un archivo o directorio.
+
+```bash
+chmod 755 archivo.sh
+```
+Este ejemplo le da:
+- `rwx` al usuario (7 = 4 + 2 + 1)
+- `rx` al grupo (5 = 4 + 0 + 1)
+- `rx` a los demás (5 = 4 + 0 + 1)
+
+- `chown` (change owner): Sirve para cambiar el propietario o el grupo asociado a un archivo.
+
+```
+chown s.vaorna:bi informe.txt
+```
+
+Este comando asigna el archivo informe.txt al usuario s.vaorna y al grupo bi.
+
+Permisos en formato octal
+
+Los permisos se representan en grupos de tres letras:
+
+| Letra | Significado         | Valor |
+|-------|---------------------|--------|
+| r     | read (leer)         | 4      |
+| w     | write (escribir)    | 2      |
+| x     | execute (ejecutar)  | 1      |
+| -     | sin permiso         | 0      |
+
+Cada grupo (usuario, grupo, otros) se traduce a un número del 0 al 7, sumando los valores.
+
+Por ejemplo:
+
+- rwx = 4 + 2 + 1 = 7
+- rw- = 4 + 2 + 0 = 6
+- r-- = 4 + 0 + 0 = 4
+
+Entonces, los permisos rwxr-xr-x se representan como:
+
+```bash
+chmod 755 archivo.txt
+```
