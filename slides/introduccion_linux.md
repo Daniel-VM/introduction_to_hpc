@@ -303,7 +303,7 @@ Los comandos que le podemos dar a la terminal para que nos ofrezca resultados y 
 /home/user
 ```
 
->> Esto indica que estamos en el directorio personal del usuario s.varona.
+> Esto indica que estamos en el directorio personal del usuario s.varona.
 
 - `ls` (List): Muestra una lista del contenido de un directorio.
 
@@ -312,7 +312,7 @@ Los comandos que le podemos dar a la terminal para que nos ofrezca resultados y 
 Documentos  Descargas  imagen.png  script.sh
 ```
 
->> Vemos los archivos y carpetas que hay en nuestro directorio actual.
+> Vemos los archivos y carpetas que hay en nuestro directorio actual.
 
 - `cd` (Change Directory): Nos permite movernos entre directorios
 
@@ -320,8 +320,11 @@ Documentos  Descargas  imagen.png  script.sh
 [user@machine ~]$ cd Documentos
 [user@machine ~/Documentos]$ pwd
 /home/user/Documentos
+[user@machine ~/Documentos]$ cd ..
+[user@machine ~]$ pwd
+/home/user/
 ```
->>  Ahora estamos dentro de la carpeta Documentos
+>  Primero estamos dentro de la carpeta Documentos y después nos movemos al directorio anterior con `..`
 
 - `mkdir` (Make Directory): Sirve para crear nuevos directorios (si tenemos permisos).
 
@@ -333,7 +336,7 @@ Documentos  Descargas  imagen.png  script.sh
 Carpeta_Prueba Documentos  Descargas  imagen.png  script.sh
 ```
 
->> Hemos creado una carpeta llamada `Carpeta_prueba`.
+> Hemos creado una carpeta llamada `Carpeta_prueba`.
 
 - `rm` (Remove): Borra archivos. ⚠️ ¡Cuidado! No pide confirmación por defecto.
 
@@ -345,6 +348,8 @@ Carpeta_Prueba Documentos  Descargas  imagen.png  script.sh
 Carpeta_Prueba Documentos  Descargas  script.sh
 ```
 
+> Hemos borrado el archivo `imagen.png`
+
 - `rmdir` (Remove Directory): Permite borrar directorios vacíos.
 
 ```bash
@@ -355,10 +360,51 @@ Carpeta_Prueba Documentos  Descargas   script.sh
 Documentos  Descargas  script.sh
 ```
 
+> Hemos borrado la carpeta `Carpeta_Prueba`
 
-##########Seguir aqui
+- `cp` (Copy): Permite copiar archivos o carpetas de un lugar a otro.
 
+```bash
+[user@machine ~]$ ls
+Documentos  Descargas   script.sh
+[user@machine ~]$ cp script.sh copia_script.sh
+[user@machine ~]$ ls
+copia_script.sh  Documentos  Descargas  script.sh
+```
 
+>  Aquí hemos copiado el archivo `script.sh` a `copia_script.sh`
+
+- `mv` (Mover): Sirve tanto para mover archivos a otra ubicación como para cambiarles el nombre.
+
+```bash
+[user@machine ~]$ ls
+copia_script.sh  Documentos  Descargas  script.sh
+[user@machine ~]$ mv copia_script.sh script_de_pruebas.sh
+[user@machine ~]$ ls
+Documentos  Descargas  script.sh script_de_pruebas.sh
+[user@machine ~]$ mv script_de_pruebas.sh Documentos/
+[user@machine ~]$ ls
+Documentos  Descargas  script.sh
+[user@machine ~]$ ls Documentos
+script_de_pruebas.sh
+```
+
+> Primero hemos renombrado `copia_script.sh` a `script_de_pruebas.sh` y luego lo hemos movido a la carpeta `Documentos`
+
+- `history` (Historial): Muestra los últimos comandos ejecutados por el usuario en esa sesión (o anteriores).
+
+```bash
+[user@machine ~]$ history
+1 ls
+2 mv copia_script.sh script_de_pruebas.sh
+3 ls
+4 mv script_de_pruebas.sh Documentos/
+5 ls
+6 ls Documentos
+7 history
+```
+
+> Muy útil para repetir comandos anteriores o para revisar qué hiciste.
 
 - `less` (Menos): Ver el contenido de un archivo
 
@@ -370,7 +416,7 @@ Carpeta_Prueba Documentos  Descargas   script.sh
 echo "Hola mundo"
 ```
 
->> Puedes moverte con las flechas o q para salir.
+> Puedes moverte con las flechas o q para salir.
 
 - `nano` (Editor de texto simple): Nos permite editar archivos desde la terminal.
 
@@ -378,7 +424,7 @@ echo "Hola mundo"
 [user@machine ~]$ nano script.sh
 ```
 
->> Se abre una interfaz de edición dentro del terminal. Para guardar, pulsa Ctrl+O y luego Ctrl+X para salir.
+> Se abre una interfaz de edición dentro del terminal. Para guardar, pulsa Ctrl+O y luego Ctrl+X para salir.
 
 - man (Manual): Muestra el manual de ayuda de cualquier comando.
 
@@ -387,4 +433,5 @@ echo "Hola mundo"
 
 ```
 
->> Accederás al manual del comando `ls`, donde podrás consultar todas sus opciones y ejemplos. Pulsa q para salir
+> Accederás al manual del comando `ls`, donde podrás consultar todas sus opciones y ejemplos. Pulsa q para salir
+
