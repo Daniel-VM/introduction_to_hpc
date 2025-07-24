@@ -270,4 +270,121 @@ En Linux, una de las shells más comunes es Bash. A través de ella, se pueden:
 - Administrar usuarios y permisos.
 - Automatizar tareas repetitivas.
 
-Más adelante en el [apartado 3](#comandos-basicos) desarrollaremos un poco más de información acerca de la Shell de Linux.
+## 3.2. Prompt
+
+El prompt es el mensaje que aparece en la línea de comandos cuando abrimos una terminal. Es la señal visual que nos indica que el sistema está listo para recibir instrucciones. En otras palabras, es el punto de entrada entre el usuario y el sistema operativo a través de la shell.
+
+Un prompt típico puede tener este aspecto:
+
+```bash
+[user@machine ~]$
+```
+Este ejemplo nos da información importante:
+
+- user → es el nombre del usuario que ha iniciado sesión.
+- machine → es el nombre del equipo o host.
+- ~ → representa el directorio personal del usuario (también llamado home).
+- $ → indica que estamos usando un usuario normal (si fuese el usuario root, veríamos #).
+
+Cada vez que escribimos un comando, lo hacemos después del prompt.
+
+## 3.3. Comandos básicos
+
+Para interactuar con el sistema operativo desde la terminal, utilizamos comandos: instrucciones que escribimos y que la shell interpreta para que el sistema las ejecute. Estos comandos permiten navegar por el sistema de archivos, manipular archivos y carpetas, ejecutar programas, gestionar usuarios y procesos, y automatizar tareas repetitivas.
+
+Conocer los comandos básicos es fundamental para cualquier persona que utilice Linux, especialmente si trabaja en servidores remotos o sistemas sin entorno gráfico.
+
+Los comandos que le podemos dar a la terminal para que nos ofrezca resultados y que siempre tenéis que recordar son:
+
+- `pwd` (Print Working Directory): Nos muestra en qué directorio estamos actualmente.
+
+```bash
+[user@machine ~]$ pwd
+/home/user
+```
+
+>> Esto indica que estamos en el directorio personal del usuario s.varona.
+
+- `ls` (List): Muestra una lista del contenido de un directorio.
+
+```bash
+[user@machine ~]$ ls
+Documentos  Descargas  imagen.png  script.sh
+```
+
+>> Vemos los archivos y carpetas que hay en nuestro directorio actual.
+
+- `cd` (Change Directory): Nos permite movernos entre directorios
+
+```bash
+[user@machine ~]$ cd Documentos
+[user@machine ~/Documentos]$ pwd
+/home/user/Documentos
+```
+>>  Ahora estamos dentro de la carpeta Documentos
+
+- `mkdir` (Make Directory): Sirve para crear nuevos directorios (si tenemos permisos).
+
+```bash
+[user@machine ~]$ ls
+Documentos  Descargas  imagen.png  script.sh
+[user@machine ~]$ mkdir Carpeta_Prueba
+[user@machine ~]$ ls
+Carpeta_Prueba Documentos  Descargas  imagen.png  script.sh
+```
+
+>> Hemos creado una carpeta llamada `Carpeta_prueba`.
+
+- `rm` (Remove): Borra archivos. ⚠️ ¡Cuidado! No pide confirmación por defecto.
+
+```bash
+[user@machine ~]$ ls
+Carpeta_Prueba Documentos  Descargas  imagen.png  script.sh
+[user@machine ~]$ rm imagen.png
+[user@machine ~]$ ls
+Carpeta_Prueba Documentos  Descargas  script.sh
+```
+
+- `rmdir` (Remove Directory): Permite borrar directorios vacíos.
+
+```bash
+[user@machine ~]$ ls
+Carpeta_Prueba Documentos  Descargas   script.sh
+[user@machine ~]$ rmdir Carpeta_Prueba
+[user@machine ~]$ ls
+Documentos  Descargas  script.sh
+```
+
+
+##########Seguir aqui
+
+
+
+- `less` (Menos): Ver el contenido de un archivo
+
+```bash
+[user@machine ~]$ ls
+Carpeta_Prueba Documentos  Descargas   script.sh
+[user@machine ~]$ less script.sh
+#!/bin/bash
+echo "Hola mundo"
+```
+
+>> Puedes moverte con las flechas o q para salir.
+
+- `nano` (Editor de texto simple): Nos permite editar archivos desde la terminal.
+
+```bash
+[user@machine ~]$ nano script.sh
+```
+
+>> Se abre una interfaz de edición dentro del terminal. Para guardar, pulsa Ctrl+O y luego Ctrl+X para salir.
+
+- man (Manual): Muestra el manual de ayuda de cualquier comando.
+
+```bash
+[user@machine ~]$ man ls
+
+```
+
+>> Accederás al manual del comando `ls`, donde podrás consultar todas sus opciones y ejemplos. Pulsa q para salir
