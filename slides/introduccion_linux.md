@@ -59,7 +59,7 @@ En Linux, una de las shells más comunes es Bash. A través de ella, se pueden:
 
 La terminal es la aplicación gráfica que permite acceder a esta shell. Aunque hoy en día existen entornos gráficos (ventanas, menús, botones), la terminal sigue siendo una herramienta muy poderosa y flexible, especialmente en entornos de alta computación y servidores.
 
-Más adelante en el [apartado 3](#comandos-basicos) desarrollaremos un poco más de información acerca de la Shell de Linux.
+Más adelante en el [apartado 3](#3-comandos-básicos-de-linux) desarrollaremos un poco más de información acerca de la Shell de Linux.
 
 ### Sistemas operativos
 
