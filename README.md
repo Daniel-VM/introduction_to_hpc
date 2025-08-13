@@ -18,7 +18,7 @@ The material includes slides with theory concepts and practical exercises.
 
 - **Talk 1:** [Introduction to High-Performance Computing and its components. Identifying problems that can be addressed using a computing cluster](slides/xxx.pdf)
 - **Talk 2:** [Introduction to the Linux environment. Using the shell and basic commands](slides/linux_intro.pdf).
-- **Exercise 1:** [Linux basic commands](exercises/xxx.md) -- [Download pdf](exercises/xxx.pdf)
+- **Exercise 1:** [Linux basic commands](exercises/01_handson_linux/handson_linux1_BasicCommands.md) -- [Download pdf](exercises/01_handson_linux/handson_linux1_BasicCommands.pdf)
 
 ### Day 2
 
