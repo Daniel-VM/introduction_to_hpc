@@ -547,7 +547,6 @@ history
 
 #### 16. Usuarios
 
-
 ```bash
 who
 whoami
@@ -590,9 +589,7 @@ Muestra información del sistema: kernel, nombre de host, arquitectura y más.
 - Sistema base
 </details>
 
-
 #### 17. Super usuario
-
 
 ```bash
 sudo su
