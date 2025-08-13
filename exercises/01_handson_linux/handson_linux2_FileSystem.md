@@ -39,7 +39,7 @@ pwd
 ls
 mkdir practica_ficheros
 cd practica_ficheros
-wget xxxx
+wget https://bioinf.comav.upv.es/courses/linux/_downloads/9bce0e4eba7e74591baab487df7ca394/microarray_adenoma_hk69.csv
 ```
 
 `wget` es un comando que nos permite obtener un archivo a partir de una URL de internet y nos lo descarga.
@@ -123,7 +123,7 @@ wc -l microarray_adenoma_hk69.csv
 <details>
 <summary>PREGUNTA: ¿Cuántas lineas tiene el archivo <code class="code-inline">microarray_adenoma_hk69.csv</code>?</summary>
 
-xxxxx
+24212
 </details>
 
 #### 5. Seleccionar campos de una tabla
@@ -155,6 +155,14 @@ Vamos a coger las 10 primeras lineas del archivo y a ordenarlas por orden alfab�
 
 ```bash
 head microarray_adenoma_hk69.csv | sort -k1 -r
+```
+
+#### 7. Reemplazar caracteres
+
+También podemos eliminásemos algunos caracteres commo las comillas que rodean los campos. Esta tarea podemos realizarla con el comando `sed` (stream editor). `sed` toma las líneas de una en una, les aplica la transformación que le indiquemos y devuelve las líneas modificadas. Por ejemplo, eliminemos los punto y coma del resultado anterior:
+
+```bash
+head microarray_adenoma_hk69.csv | sort -k1 -r | sed "s/;//g"
 ```
 
 #### Ejercicios finales
@@ -204,6 +212,9 @@ grep leukemia microarray_adenoma_hk69.csv | cut -f 3,4 | sort
 #8
 grep leukemia microarray_adenoma_hk69.csv | cut -f 3,4 | sort -u | wc -l
 ```
+
+> **PODEMOS ELIMINAR EL ARCHIVO DE MICROARRAY PARA EVITAR ALMACENAR ARCHIVOS INNECESARIAMENTE**
+> `rm microarray_adenoma_hk69.csv`
 
 ### Nota final
 
