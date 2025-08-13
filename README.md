@@ -23,7 +23,7 @@ The material includes slides with theory concepts and practical exercises.
 ### Day 2
 
 - **Exercise 2:** [Filesystem](exercises/01_handson_linux/handson_linux2_FileSystem.md) -- [Download pdf](exercises/01_handson_linux/handson_linux2_FileSystem.pdf)
-- **Exercise 3:** [Users and privileges](exercises/xxxx.md) -- [Download pdf](exercises/xxxx.pdf)
+- **Exercise 3:** [Users and privileges](exercises/01_handson_linux/handson_linux3_Privileges.md) -- [Download pdf](exercises/01_handson_linux/handson_linux3_Privileges.pdf)
 - **Talk 3:** [Accessing, connecting to, and transferring data to an HPC environment](slides/xxxx.pdf)
 - **Exercise 4:** [Accessing, connecting to, and transferring data to an HPC environment](exercisesxxx.md) -- [Download pdf](exercises/xxx.pdf)
 
