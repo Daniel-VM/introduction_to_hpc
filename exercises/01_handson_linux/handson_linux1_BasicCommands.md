@@ -395,7 +395,7 @@ clear
 El comando `clear` permite limpiar (aclarar) la pantalla de la terminal para poder ver todo más limpio.
 </details>
 
-#### 11. Expresiones regulares
+#### 11. WildCards
 
 1. Lista todos los archvios que empiecen por la palabra archivo
 2. Lista todos los archivos que terminen por la palabra .txt
@@ -604,7 +604,7 @@ sudo su
 En el HPC no tenemos permisos de root / sudo, por lo que no podemos conectarnos como administrador. Esto supone un "problema" de cara a instalar software, pero veremos como trabajar con ello a lo largo del curso.
 </details>
 
-#### Nota final
+### Nota final
 
 * Podéis practicar estos ejercicios en cualquier ordenador, ya que estos comandos son universales y funcionan en toda máquina linux y similares, incluyendo macs y WSL.
 
