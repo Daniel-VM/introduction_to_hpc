@@ -34,6 +34,8 @@ El objetivo es realizar, desde la línea de comandos, aquellas tareas cotidianas
 
 ### Ejercicios
 
+> Nota: En [este archivo](./esquema_practica_comandos.pdf) hay un esquema con los cambios en las rutas que se van ralizando a lo largo de la práctica.
+
 Abrimos una terminal en nuestro ordenador. En Linux se puede pulsar `Ctrl + Alt + T` para abrir una terminal.
 
 <details>
