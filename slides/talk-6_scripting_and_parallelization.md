@@ -1,7 +1,3 @@
-Perfecto. Investigaré a fondo cada apartado del temario sobre `sbatch` y job arrays en Slurm, buscando una explicación clara y didáctica orientada a estudiantes con conocimientos muy básicos. Incluiré analogías, ejemplos accesibles y sugerencias pedagógicas para enriquecer tus apuntes manteniendo tu estilo cercano.
-
-Te avisaré en cuanto tenga una versión mejorada para tu revisión.
-
 
 # Talk 6: Scripting and parallelization
 
@@ -222,3 +218,137 @@ Como ves, todas las tareas comparten la misma definición de recursos (`--cpus-p
 * **Combina arrays con dependencias:** Puedes lanzar un array que procese muestras y luego un job que agregue resultados una vez *todas* las tareas del array hayan terminado. Para esto, puedes usar `--dependency=afterok:<JobID_padre>` en un job separado, o incluso `--dependency=afterok:45679_3` para depender de una tarea específica. Otra opción es la dependencia *singleton* o *afterok:<JobID>* (sin índice, refiriéndose al array completo). Consulta la documentación de Slurm para casos avanzados.
 * **Uso de archivos temporales separados:** Si todas tus tareas escriben a un mismo archivo (caso raro, pero podría ser), podrías tener conflictos. Intenta que cada tarea use archivos separados, idealmente etiquetados con su ID. Las variables `%A`/`%a` y `$SLURM_ARRAY_TASK_ID` son tus aliadas para eso.
 * **Depuración de arrays:** Si una de las tareas falla, a veces querrás recrear solo esa. Puedes lanzar otro job (no array) usando la misma entrada para investigar el fallo, o volver a lanzar el array limitado a ese índice (`--array=7` por ejemplo). También fíjate en `sacct` cuál fue el error de esa tarea fallida (te mostrará el código de salida o señal que causó el fallo).
+
+
+## Parallelization in HPC: OpenMP vs MPI
+
+En esta segunda parte vamos a ver **cómo aprovechar varios núcleos o incluso varios nodos del clúster** para acelerar nuestros análisis.
+En HPC, esto se llama *paralelización*, y puede hacerse de dos maneras principales: **OpenMP** y **MPI**. Aunque hay más tecnologías, estas dos son las más habituales y las que veremos en nuestro clúster.
+
+### ¿Qué son OpenMP y MPI?
+
+Por un lado, **OpenMP** es un modelo de paralelización para memoria compartida. Permite utilizar multiples hilos/threads dentro de un proceso que será ejecutado en un nodo (habitualmente, este último contará con varios núcleos de CPUs). Por ejemplo, un programa OpenMP lanzará un proceso y creará varios hilos que corren en paralelo dentro de ese nodo, compartiendo datos en la RAM común
+
+Por otro lado, **MPI** es un estándar de programación para memoria distribuida. Está pensado para ejecutar una aplicación en múltiples procesos separados, potencialmente en distintos nodos de un clúster, que se comunican entre sí mediante el paso de mensajes a través de la red. Es el modelo típico en supercomputación para problemas muy grandes, donde los datos no caben en la RAM de un solo nodo o se necesita más poder de cómputo del que ofrece una sola máquina.
+
+
+En el contexto de **bioinformática**, la gran mayoría de programas usan **OpenMP**:
+
+* Herramientas de alineamiento (BWA, Bowtie2, STAR, Minimap2…)
+* Ensambladores (SPAdes, MEGAHIT…)
+* Análisis de variantes (GATK, FreeBayes…)
+* Procesamiento de lecturas (Fastp, Cutadapt…)
+
+Por otro lado, **MPI** se usa poco, pero hay excepciones, sobre todo en programas de **filogenia** o análisis masivos de simulaciones, por ejemplo:
+
+* RAxML en modo MPI
+* IQ-TREE MPI
+* Algunos paquetes de modelado molecular o dinámica
+
+[TODO]: <Add image of partition -- node -- cpus>
+
+La **gran diferencia** entre ambas es **dónde y cómo se reparten las tareas**:
+
+| Tecnología | Nivel de paralelización     | Comunicación entre procesos                                        | Ejemplo de uso típico                                                        |
+| ---------- | --------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| **OpenMP** | Dentro de **un mismo nodo** | Memoria compartida: todos los hilos acceden a la misma RAM         | Alinear 200 millones de lecturas en un solo nodo usando todos sus núcleos    |
+| **MPI**    | Entre **varios nodos**      | Memoria distribuida: cada nodo tiene su RAM y se comunican por red | Construir un árbol filogenético muy grande repartiendo el trabajo en 4 nodos |
+
+---
+
+### Configuración de un trabajo OpenMP en Slurm
+
+Supongamos que queremos ejecutar un programa bioinformático que soporta paralelismo con OpenMP (por ejemplo, ensamblador de secuencias) en un clúster HPC que usa Slurm como gestor de colas. El objetivo es aprovechar, digamos, 8 núcleos de CPU en un nodo para acelerar el análisis. Cuando usamos OpenMP, la clave está en definir el parámetro de Slurm: **`--cpus-per-task`**.
+
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=spades_openmp
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=64G
+#SBATCH --time=12:00:00
+#SBATCH --partition=long
+#SBATCH --output=spades_%j.out
+#SBATCH --error=spades_%j.err
+
+module load spades/3.15.5
+spades.py --threads $SLURM_CPUS_PER_TASK -o ensamblado_resultado
+```
+
+**Parámetros relevantes del script OpenMP:**
+
+* **`--cpus-per-task`** = número de hilos/threads que el software podrá usar.
+* La memoria **`--mem`** debe ser suficiente para todos esos hilos, ya que comparten la misma RAM del nodo.
+* `$SLURM_CPUS_PER_TASK` es una variable que Slurm rellena automáticamente con el valor que pediste.
+
+**Ejecución del script OpenMP:**
+```bash
+srun --mpi=none spades_slurm.sh
+```
+> En este caso usamos srun (con --mpi=none para indicarle que no intente hacer cosas de MPI) para que Slurm inicie el programa usando los 8 cores asignados.
+
+**Debugging y control de uso:**
+
+* Durante la ejecución:
+  `sstat -j <jobid> --format=JobID,MaxRSS,AveCPU` → ver uso de RAM y CPU.
+* Después de acabar:
+  `sacct -j <jobid> --format=JobID,Elapsed,MaxRSS,TotalCPU` → comprobar si realmente usaste los hilos que pediste.
+
+---
+
+### Configuración de un trabajo MPI en Slurm
+
+Cuando usamos MPI, la clave está en **`--nodes`** y **`--ntasks`**. Supongamos un caso donde usamos una herramienta paralela con MPI – por ejemplo, el programa **RAxML** para un análisis filogenético grande, o cualquier otra aplicación HPC distribuida. En este caso queremos utilizar varios nodos, digamos 2 nodos con 4 procesos MPI en cada nodo (total 8 procesos de cómputo trabajando en paralelo). Los pasos del script SBATCH serían:
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=raxml_mpi
+#SBATCH --nodes=2
+#SBATCH --ntasks=8
+#SBATCH --ntasks-per-node=4
+#SBATCH --mem=8G
+#SBATCH --time=06:00:00
+#SBATCH --partition=long
+#SBATCH --output=raxml_%j.out
+#SBATCH --error=raxml_%j.err
+
+module load raxml/8.2.12
+mpirun -np $SLURM_NTASKS raxmlHPC-MPI -s datos.phy -n resultado -m GTRGAMMA
+```
+
+**Parámetros relevantes del script OpenMP:**
+
+* **`--nodes`** = cuántos nodos distintos se usarán.
+* **`--ntasks`** = número total de procesos MPI a lanzar (pueden estar repartidos en varios nodos).
+* **`--ntasks-per-node`** = distribución de tareas por nodo (opcional, pero recomendable).
+* `$SLURM_NTASKS` = variable con el número de tareas pedidas.
+
+**Depuración y control de uso:**
+
+* Igual que en OpenMP, `sstat` y `sacct` sirven para ver uso real.
+* Importante: en MPI, si un nodo falla o hay mala conexión de red, todo el trabajo puede detenerse.
+
+---
+
+### Pros y contras resumidos
+
+| Aspecto                | OpenMP                                         | MPI                                             |
+| ---------------------- | ---------------------------------------------- | ----------------------------------------------- |
+| **Facilidad de uso**   | Muy sencillo: solo pedir más CPUs/hilos        | Más complejo: nodos, tareas y distribución      |
+| **Velocidad**          | Escala bien dentro de un nodo                  | Escala entre nodos, ideal para trabajos enormes |
+| **Comunicación**       | Memoria compartida (rápida)                    | Red entre nodos (más lenta)                     |
+| **Uso típico bioinfo** | La mayoría de herramientas                     | Casos específicos (filogenia, simulaciones)     |
+| **Riesgos comunes**    | Pedir más hilos de los que el programa soporta | Configuración incorrecta de tareas/nodos        |
+
+---
+
+### Consejos de depuración para el alumno
+
+* **En OpenMP**:
+  Si pides 16 hilos pero `sacct` muestra `AveCPU` muy baja, es que tu software no está usando todos los hilos. Ajusta `--cpus-per-task` o revisa parámetros (`--threads` o similar).
+
+* **En MPI**:
+  Si una tarea se queda colgada, revisa los logs (`.err`) para mensajes de conexión o comunicación. A veces es un problema de nodos ocupados o incompatibilidad con el módulo cargado.
+
+* **En ambos casos**:
+  Usa trabajos cortos de prueba antes de lanzarte a un análisis de 3 días. Mejor descubrir un fallo en 5 minutos que en 72 horas.
