@@ -276,6 +276,7 @@ La **gran diferencia** entre ambas es **dónde y cómo se reparten las tareas**:
 > Como bien señalan profesionales en LinkedIn (F. Quartin de Macedo, M. Saad), OpenMP destaca por su sencillez en memoria compartida, mientras que MPI se valora por su escalabilidad en sistemas distribuidos. [Artículo aquí](https://www.linkedin.com/advice/0/what-pros-cons-using-openmp-vs-mpi-shared?lang=es&lang=es&originalSubdomain=es).
 ---
 
+[TODO]: <Still need to be tested>
 ### Configuración de un trabajo OpenMP en Slurm
 
 Supongamos que queremos ejecutar un programa bioinformático que soporta paralelismo con OpenMP (por ejemplo, ensamblador de secuencias) en un clúster HPC que usa Slurm como gestor de colas. El objetivo es aprovechar, digamos, 8 núcleos de CPU en un nodo para acelerar el análisis. Cuando usamos OpenMP, la clave está en definir el parámetro de Slurm: **`--cpus-per-task`**.
@@ -292,7 +293,7 @@ Supongamos que queremos ejecutar un programa bioinformático que soporta paralel
 #SBATCH --error=spades_%j.err
 
 module load spades/3.15.5
-spades.py --threads $SLURM_CPUS_PER_TASK -o ensamblado_resultado
+spades.py --threads $SLURM_CPUS_PER_TASK --memory $SLURM_MEM_PER_CPU sample_R1.fq.gz sample_R2.fq.gz -o ensamblado_resultado
 ```
 
 **Parámetros relevantes del script OpenMP:**
@@ -300,10 +301,11 @@ spades.py --threads $SLURM_CPUS_PER_TASK -o ensamblado_resultado
 * **`--cpus-per-task`** = número de hilos/threads que el software podrá usar.
 * La memoria **`--mem`** debe ser suficiente para todos esos hilos, ya que comparten la misma RAM del nodo.
 * `$SLURM_CPUS_PER_TASK` es una variable que Slurm rellena automáticamente con el valor que pediste.
+* `$SLURM_MEM_PER_CPU` es una variable que Slurm rellena automáticamente con el valor que pediste.
 
 **Ejecución del script OpenMP:**
 ```bash
-srun --mpi=none spades_slurm.sh
+srun --mpi=none spades_slurm.sbatch
 ```
 > En este caso usamos srun (con --mpi=none para indicarle que no intente hacer cosas de MPI) para que Slurm inicie el programa usando los 8 cores asignados.
 
@@ -315,6 +317,8 @@ srun --mpi=none spades_slurm.sh
   `sacct -j <jobid> --format=JobID,Elapsed,MaxRSS,TotalCPU` → comprobar si realmente usaste los hilos que pediste.
 
 ---
+
+[TODO]: <Still need to be tested>
 
 ### Configuración de un trabajo MPI en Slurm
 
