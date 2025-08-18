@@ -16,7 +16,7 @@ La idea principal de esta parte del curso es aprender a **delegar trabajo** en e
 
 #### ¿Para qué sirve?
 
-* **Automatización:** Puedes lanzar tareas largas o múltiples sin necesidad de permanecer conectado. Slurm se encargará de gestionar la entrada de estas tareas (comunmente conocidas como "jobs") al sistema del colas del HPC, las ejecutará y tú puedes desconectar o hacer otras cosas.
+* **Automatización:** Puedes lanzar tareas largas o múltiples sin necesidad de permanecer conectado. Slurm se encargará de gestionar la entrada de estas tareas (comúnmente conocidas como "jobs") al sistema de colas del HPC, las ejecutará y tú puedes desconectar o hacer otras cosas.
 * **Reserva de recursos:** Al enviar un trabajo, especificas cuántas CPU, cuánta memoria RAM y cuánto tiempo necesitas. El gestor reserva esos recursos para ti, garantizando que cada análisis disponga de lo necesario y no interfiera con otros. Esto previene la sobrecarga y ayuda a aprovechar el hardware equitativamente.
 * **Ejecución reproducible:** Queda un registro de la actividad y resultados de cada trabajo. La salida estándar y los errores se guardan en archivos de log, lo que facilita revisar qué ocurrió en cada paso y depurar si algo falla.
 * **Facilita reruns:** Puedes repetir un análisis con parámetros distintos editando un solo archivo en lugar de teclear de nuevo todos los comandos. Tus pasos quedan documentados en el script, reduciendo errores humanos.
@@ -34,7 +34,7 @@ Un *script* para `sbatch` es un archivo de texto con una estructura fija que com
 comando_1
 comando_2
 ```
->Llamemos a este script `myscript.sbatch`.
+> Ver ejemplos completos más abajo.
 
 
 1. **Shebang (`#!/bin/bash`)** – la primera línea indica qué intérprete de comandos se usará (normalmente Bash).
@@ -77,11 +77,11 @@ A continuación te indico una página en donde puedes encontrar la lista complet
 
 #### Cargar módulos y preparar el entorno
 
-Como hemos visto a lo largo de este curso, los nodos de cálculo suelen usar un sistema de *módulos de entorno* para gestionar el software disponible. Antes de ejecutar un programa es habitual “cargar” el módulo correspondiente. En este ejemplo vamos a utlizar el software FastQC, software ampliamente utilizado en bioinformática para el control de calidad lecturas cortas. Supongamos que estas lecturas cortas obtenidas por secuenicación han sido almacenadas en el archivo `datos.fq.gz`:
+Como hemos visto a lo largo de este curso, los nodos de cálculo suelen usar un sistema de *módulos de entorno* para gestionar el software disponible. Antes de ejecutar un programa es habitual “cargar” el módulo correspondiente. En este ejemplo vamos a utilizar el software FastQC, software ampliamente utilizado en bioinformática para el control de calidad lecturas cortas. Supongamos que estas lecturas cortas obtenidas por secuenciación han sido almacenadas en el archivo `datos.fq.gz`:
 
 ```bash
 #!/bin/bash
-#SBATCH --chdir=/ruta/al/directorio/de/trabaj
+#SBATCH --chdir=/ruta/al/directorio/de/trabajo
 #SBATCH --job-name=my_first_slurm_job
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=1G
@@ -95,7 +95,7 @@ fastqc datos.fq.gz           # Ahora ejecutamos el comando real sobre nuestro ar
 
 De esta forma garantizamos que el software correcto esté disponible en el *PATH* cuando se ejecute el trabajo. Puedes cargar todos los módulos o activar entornos (conda, etc.) necesarios antes de lanzar los comandos principales. Así, el nodo de cómputo tendrá las mismas herramientas que tú usas al probar el análisis de manera interactiva.
 
-> Si te preguntas qué módulos de entorno se encuentran disponibles en tu HPC, utiliza el comando `module avail`. Obtendrás una lista de todoso los módulos disponibles que podrás cargar en tus scripts mediante el comando `module load`
+> Si te preguntas qué módulos de entorno se encuentran disponibles en tu HPC, utiliza el comando `module avail`. Obtendrás una lista de todos los módulos disponibles que podrás cargar en tus scripts mediante el comando `module load`
 
 
 #### Lanzar el trabajo
@@ -174,6 +174,7 @@ nano fastqc_array_20.sbatch
 
 ```bash
 #!/bin/bash
+#SBATCH --chdir=/ruta/al/proyecto
 #SBATCH --job-name=fastqc_array
 #SBATCH --partition=short_idx
 #SBATCH --array=1-20%5            # 20 tareas; máx. 5 simultáneas
@@ -185,7 +186,7 @@ nano fastqc_array_20.sbatch
 
 module load fastqc/0.12.1
 
-mkdir fasqc_results
+mkdir fastqc_results
 fastqc -o fastqc_results muestra_${SLURM_ARRAY_TASK_ID}.fq.gz
 ```
 
@@ -194,7 +195,7 @@ fastqc -o fastqc_results muestra_${SLURM_ARRAY_TASK_ID}.fq.gz
 Lanzar un job array es tan sencillo como añadir `--array` al comando sbatch. Por ejemplo:
 
 ```bash
-sbatch --array=1-20 fastqc_array_20.sbatch
+sbatch fastqc_array_20.sbatch
 ```
 
 Esto enviará **20 tareas**, numeradas del 1 al 20, que ejecutarán el script `fastqc_array_20.sbatch` cada una por su lado. Slurm intentará correrlas en paralelo, ocupando tantos recursos como le hayas pedido por tarea. Es decir, si cada tarea pide 1 CPU, en teoría podrían correr hasta 20 a la vez (si el clúster tiene suficientes núcleos libres). Si pides muchas CPU o RAM por tarea, quizás sólo unas pocas puedan ejecutarse simultáneamente.
@@ -293,7 +294,14 @@ Supongamos que queremos ejecutar un programa bioinformático que soporta paralel
 #SBATCH --error=spades_%j.err
 
 module load spades/3.15.5
-spades.py --threads $SLURM_CPUS_PER_TASK --memory $SLURM_MEM_PER_CPU sample_R1.fq.gz sample_R2.fq.gz -o ensamblado_resultado
+
+R1="sample_R1.fq.gz"
+R2="sample_R2.fq.gz"
+spades.py \
+  --threads "${SLURM_CPUS_PER_TASK}" \
+  -m 64 \
+  -1 "${R1}" -2 "${R2}" \
+  -o ensamblado_resultado
 ```
 
 **Parámetros relevantes del script OpenMP:**
@@ -301,13 +309,12 @@ spades.py --threads $SLURM_CPUS_PER_TASK --memory $SLURM_MEM_PER_CPU sample_R1.f
 * **`--cpus-per-task`** = número de hilos/threads que el software podrá usar.
 * La memoria **`--mem`** debe ser suficiente para todos esos hilos, ya que comparten la misma RAM del nodo.
 * `$SLURM_CPUS_PER_TASK` es una variable que Slurm rellena automáticamente con el valor que pediste.
-* `$SLURM_MEM_PER_CPU` es una variable que Slurm rellena automáticamente con el valor que pediste.
+
 
 **Ejecución del script OpenMP:**
 ```bash
-srun --mpi=none spades_slurm.sbatch
+sbatch spades_slurm.sbatch
 ```
-> En este caso usamos srun (con --mpi=none para indicarle que no intente hacer cosas de MPI) para que Slurm inicie el programa usando los 8 cores asignados.
 
 **Debugging y control de uso:**
 
