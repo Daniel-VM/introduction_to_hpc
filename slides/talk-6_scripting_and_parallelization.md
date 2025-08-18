@@ -254,6 +254,18 @@ La **gran diferencia** entre ambas es **dónde y cómo se reparten las tareas**:
 | **OpenMP** | Dentro de **un mismo nodo** | Memoria compartida: todos los hilos acceden a la misma RAM         | Alinear 200 millones de lecturas en un solo nodo usando todos sus núcleos    |
 | **MPI**    | Entre **varios nodos**      | Memoria distribuida: cada nodo tiene su RAM y se comunican por red | Construir un árbol filogenético muy grande repartiendo el trabajo en 4 nodos |
 
+
+### Ventajas y desventajas de **OpenMP** y **MPI**:
+
+|                      | **OpenMP**                                                                                                                      | **MPI**                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **Qué es**           | Usar **varios núcleos de un mismo ordenador** al mismo tiempo.                                                                  | Usar **varios ordenadores/nodos del clúster** que se comunican entre sí.                                                               |
+| **Ventajas**         | - Fácil de usar.<br>- Casi todos los programas de bioinformática lo soportan.<br>- Ideal para análisis rápidos en un solo nodo. | - Permite trabajar con **datasets gigantes** que no caben en un nodo.<br>- Escala bien cuando se necesitan **muchos recursos**.        |
+| **Desventajas**      | - Solo funciona dentro de un nodo.<br>- Si el nodo tiene pocos núcleos, no puedes acelerar más.                                 | - Más complicado de configurar.<br>- Más sensible a errores de red o de nodos.<br>- Solo unos pocos programas bioinformáticos lo usan. |
+| **Ejemplos bioinfo** | Alineadores (BWA, Bowtie2, STAR), ensambladores (SPAdes, MEGAHIT), llamadas de variantes (GATK).                                | Filogenia con RAxML o IQ-TREE, simulaciones moleculares.                                                                               |
+
+
+> Como bien señalan profesionales en LinkedIn (F. Quartin de Macedo, M. Saad), OpenMP destaca por su sencillez en memoria compartida, mientras que MPI se valora por su escalabilidad en sistemas distribuidos. [Artículo aquí](https://www.linkedin.com/advice/0/what-pros-cons-using-openmp-vs-mpi-shared?lang=es&lang=es&originalSubdomain=es).
 ---
 
 ### Configuración de un trabajo OpenMP en Slurm
@@ -330,7 +342,7 @@ mpirun -np $SLURM_NTASKS raxmlHPC-MPI -s datos.phy -n resultado -m GTRGAMMA
 
 ---
 
-### Pros y contras resumidos
+### Extra: Pros y contras resumidos
 
 | Aspecto                | OpenMP                                         | MPI                                             |
 | ---------------------- | ---------------------------------------------- | ----------------------------------------------- |
@@ -352,3 +364,6 @@ mpirun -np $SLURM_NTASKS raxmlHPC-MPI -s datos.phy -n resultado -m GTRGAMMA
 
 * **En ambos casos**:
   Usa trabajos cortos de prueba antes de lanzarte a un análisis de 3 días. Mejor descubrir un fallo en 5 minutos que en 72 horas.
+
+
+
