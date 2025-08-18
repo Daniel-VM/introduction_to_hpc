@@ -34,7 +34,7 @@ Un *script* para `sbatch` es un archivo de texto con una estructura fija que com
 comando_1
 comando_2
 ```
->Llamemos a este script `myscript.sh`. Como puedes ver, los script sbatch son archivos tipo "sh".
+>Llamemos a este script `myscript.sbatch`.
 
 
 1. **Shebang (`#!/bin/bash`)** – la primera línea indica qué intérprete de comandos se usará (normalmente Bash).
@@ -55,6 +55,9 @@ Un ejemplo de cabecera de script con parámetros típicos sería:
 #SBATCH --partition=short_idx                   # Cola o partición en la que correr
 #SBATCH --output=slurm-%j.out                   # Archivo para la salida estándar
 #SBATCH --error=slurm-%j.err                    # Archivo para la salida de errores
+# A partir de aquí, comandos que queremos ejecutar:
+comando_1
+comando_2
 ```
 
 En este ejemplo, el trabajo **my\_first\_slurm\_job** se ejecutará en la carpeta indicada, reservando 1 CPU y 1 GB de RAM durante un máximo de diez minutos, dentro de la partición `short_idx`. Los archivos de salida `slurm-%j.out` y `slurm-%j.err` contendrán lo que normalmente veríamos en pantalla: `%j` se sustituye por el identificador del trabajo para que cada trabajo tenga sus propios logs. De este modo, después podremos abrir `slurm-<jobid>.out` para ver los mensajes normales del programa, y `slurm-<jobid>.err` para ver los errores, sin mezclarlos con otros trabajos. Ten en cuenta que **indicar un tiempo máximo es muy importante** – en algunos clústeres es obligatorio especificarlo con el formato `D-HH:MM:SS` o `HH:MM:SS`. Si no lo haces, Slurm podría asumir por defecto un valor máximo (p. ej. 2 días) y eso puede hacer que tu trabajo espere más de la cuenta para iniciar.
@@ -63,8 +66,6 @@ En este ejemplo, el trabajo **my\_first\_slurm\_job** se ejecutará en la carpet
 
 * `--mail-type=END,FAIL` y `--mail-user=tu_email@dominio` – para que Slurm te envíe un correo cuando el trabajo empiece, termine o falle, según el tipo seleccionado.
 * `--dependency=afterok:<jobid>` – hace que tu trabajo espere a que otro termine correctamente. Útil para lanzar un análisis sólo si el anterior fue bien (encadenar pasos).
-* `--array=<rango>` – crea **job arrays** o “trabajos en *array*”, es decir, envía múltiples tareas similares de una vez. Lo veremos en la siguiente sección con más detalle.
-* `--qos=<nombre>` – selecciona un Quality of Service si tu clúster ofrece varias calidades/prioridades de ejecución.
 * `--gres=gpu:2` – en clústeres con GPU, pedir por ejemplo 2 GPUs para tu trabajo (si haces cómputo acelerado).
 
 A continuación te indico una página en donde puedes encontrar la lista completa de parámetros:
@@ -76,22 +77,33 @@ A continuación te indico una página en donde puedes encontrar la lista complet
 
 #### Cargar módulos y preparar el entorno
 
-Como hemos visto a lo largo de este curso, los nodos de cálculo suelen usar un sistema de *módulos de entorno* para gestionar el software disponible. Antes de ejecutar un programa es habitual “cargar” el módulo correspondiente. Por ejemplo, si vas a usar FastQC, asegúrate de cargarlo en el script:
+Como hemos visto a lo largo de este curso, los nodos de cálculo suelen usar un sistema de *módulos de entorno* para gestionar el software disponible. Antes de ejecutar un programa es habitual “cargar” el módulo correspondiente. En este ejemplo vamos a utlizar el software FastQC, software ampliamente utilizado en bioinformática para el control de calidad lecturas cortas. Supongamos que estas lecturas cortas obtenidas por secuenicación han sido almacenadas en el archivo `datos.fq.gz`:
 
 ```bash
+#!/bin/bash
+#SBATCH --chdir=/ruta/al/directorio/de/trabaj
+#SBATCH --job-name=my_first_slurm_job
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=1G
+#SBATCH --time=00:10:00
+#SBATCH --partition=short_idx
+#SBATCH --output=slurm-%j.out
+#SBATCH --error=slurm-%j.err
 module load fastqc/0.12.1    # Activar el módulo de FastQC versión 0.12.1
-
 fastqc datos.fq.gz           # Ahora ejecutamos el comando real sobre nuestro archivo
 ```
 
 De esta forma garantizamos que el software correcto esté disponible en el *PATH* cuando se ejecute el trabajo. Puedes cargar todos los módulos o activar entornos (conda, etc.) necesarios antes de lanzar los comandos principales. Así, el nodo de cómputo tendrá las mismas herramientas que tú usas al probar el análisis de manera interactiva.
+
+> Si te preguntas qué módulos de entorno se encuentran disponibles en tu HPC, utiliza el comando `module avail`. Obtendrás una lista de todoso los módulos disponibles que podrás cargar en tus scripts mediante el comando `module load`
+
 
 #### Lanzar el trabajo
 
 Para enviar el trabajo al clúster utilizamos el comando `sbatch` seguido del nombre de nuestro script:
 
 ```bash
-sbatch mi_script.sh
+sbatch fastqc_slurm.sbatch
 ```
 
 Al enviarlo, Slurm devolverá un mensaje del estilo `Submitted batch job 12345`. Ese **12345** es el identificador único de tu trabajo (job ID). Conviene apuntarlo, ya que lo usaremos para consultar el estado y revisar la ejecución. Ten en cuenta que `sbatch` sólo coloca tu trabajo en la cola; el script no empieza a correr inmediatamente, sino cuando Slurm encuentre un hueco con los recursos que pediste. Cuantos más recursos solicites (por ejemplo, muchos núcleos o muchas horas), más podría tardar en entrar en ejecución, ya que tendrá que esperar a que estén disponibles esos recursos.
@@ -117,13 +129,13 @@ En resumen, los logs y la información de Slurm sirven para hacer un poco de “
 
 #### Consejos y buenas prácticas
 
-* **Asigna nombres descriptivos** a tus trabajos (`--job-name`). Un nombre claro (ej: `align_mouse_genome`) te permitirá identificar fácilmente para qué era cada job cuando mires la cola con `squeue` o los logs.
+* **Asigna nombres descriptivos** a tus trabajos (`--job-name`). Un nombre claro (ej: `fastqc_analysis`) te permitirá identificar fácilmente para qué era cada job cuando mires la cola con `squeue` o los logs.
 * **¡¡No pidas más recursos de los necesarios!!:** un uso responsable evita colas largas y desperdicio de cómputo. Solicitar recursos excesivos (por ejemplo, 16 CPUs si tu código sólo usa 1) hará que tu trabajo espere mucho para iniciar y estarás bloqueando recursos inútilmente. En algunos clústeres, si no indicas memoria/CPU, el planificador asume que necesitas todo el nodo y tu job **no empezará hasta tener un nodo completo libre**, lo que puede demorar horas o días. Sé específico pero realista con lo que necesitas.
-* **No ejecutes trabajos pesados en el nodo de login:** envíalos siempre a través de `sbatch` (o en modo interactivo con `salloc/srun` si corresponde). Todos los usuarios comparten el login; si tú ejecutas algo grande allí, entorpeces a los demás. La documentación de centros HPC recalca que *“todos los trabajos HPC deben ejecutarse en los nodos de cálculo mediante el envío de un script al gestor de trabajos”*.
+* **No ejecutes trabajos pesados en el nodo de login:** De hecho, nunca deberemos lanzar un comando pesado (se excluyen los comandos como: ls, cat, tree,...) en el nodo login... SIEMPRE tendremos que enviarlos a través de `sbatch` o `srun` al sistema de colas de SLURM. Todos los usuarios comparten el login; si tú ejecutas algo grande allí, entorpeces a los demás. La documentación de centros HPC recalca que *“todos los trabajos HPC deben ejecutarse en los nodos de cálculo mediante el envío de un script al gestor de trabajos”*.
 * **Incluye comentarios en tu script** explicando cada paso. Agradecerás estos comentarios cuando vuelvas a ese script meses después sin recordar por qué pusiste tal comando. Un simple `# Preprocesar los FASTQ` encima de una línea de código hace maravillas para la claridad.
 * **Prueba primero en pequeño:** antes de lanzar un análisis masivo o un job array con 100 muestras, haz una prueba con un caso o un subset de datos. Esto te ayuda a detectar rutas incorrectas, módulos que olvidaste cargar, o parámetros mal ajustados. Más vale descubrir en 2 minutos de prueba que falta instalar cierto paquete, que darse cuenta tras 5 horas de cola y un job fallido.
 * **Guarda tus scripts** (y si es posible, versionálos con Git u otro sistema). Reutilizarás muchos de estos scripts en futuros proyectos. Tener un repositorio de “scripts Slurm” te ahorra tiempo y te asegura que usas comandos probados.
-* **Usa job arrays para tareas repetitivas:** si alguna vez te ves escribiendo un bucle `for` para lanzar el mismo script con 10 archivos distintos, es señal de que deberías emplear un *array job*. Los *job arrays* son la forma que ofrece Slurm para enviar muchos trabajos similares de forma limpia y eficiente. En la siguiente sección profundizamos en cómo utilizarlos.
+* **Usa job arrays para tareas repetitivas:** si alguna vez te ves escribiendo un bucle `for` para lanzar el mismo script con 10 archivos distintos, es señal de que deberías emplear un *array job* (lo veremos en la sección [Job Arrays](#job-arrays-mismos-pasos-multiples-muestras)). Los *job arrays* son la forma que ofrece Slurm para enviar muchos trabajos similares de forma limpia y eficiente. En la siguiente sección profundizamos en cómo utilizarlos.
 * **Encadena tareas con dependencias:** para flujos de trabajo más complejos, considera lanzar jobs que empiecen cuando otros acaben (`--dependency`). Por ejemplo, primero un job que filtra datos, y al terminar, que arranque automáticamente otro job de análisis sobre esos datos filtrados. Esto te permite construir pipelines sencillos sin supervisión manual en cada paso.
 
 ---
@@ -138,11 +150,11 @@ En términos más formales, un *job array* es un conjunto de tareas (*tasks*) qu
 
 #### ¿Cuándo usarlos?
 
-* Cuando necesites repetir la **misma operación** sobre múltiples entradas. Por ejemplo, ejecutar un alineador sobre 100 archivos FASTQ, o entrenar 20 modelos con diferentes semillas aleatorias.
+* Cuando necesites repetir la **misma operación** sobre múltiples entradas. Por ejemplo, ejecutar una herramienta de control calidad,  como FastQC, sobre 100 archivos FASTQ, o entrenar 20 modelos con diferentes semillas aleatorias.
 * Cuando quieras probar un mismo código con distintos parámetros independientes (p. ej., 10 valores de una variable) sin tener que cambiar manualmente el script cada vez.
-* En general, siempre que tengas cargas de trabajo *triviales de paralelizar* (“embarrassingly parallel”), donde cada tarea puede correr por su cuenta sin comunicación con las demás.
+* En general, siempre que tengas cargas de trabajo *triviales de paralelizar*, donde cada tarea puede correr por su cuenta sin comunicación con las demás.
 
-La documentación oficial aconseja usar arrays en lugar de lanzar muchos jobs individuales en bucle. Esto aligera la carga del planificador y te facilita la vida, ya que con un solo comando controlas todo el conjunto.
+La documentación oficial aconseja usar arrays en lugar de lanzar muchos jobs individuales en bucle. Esto te facilita la vida, ya que con un solo comando controlas todo el conjunto.
 
 #### Variables de entorno para arrays
 
@@ -154,28 +166,49 @@ Slurm pone a disposición algunas variables de entorno dentro del script para qu
 
 La más útil es `$SLURM_ARRAY_TASK_ID`. Podemos usarla dentro del script para variar la entrada. Por ejemplo, si tus archivos se llaman `muestra_1.fq.gz`, `muestra_2.fq.gz`, etc., en el script puedes referirte a `muestra_${SLURM_ARRAY_TASK_ID}.fq.gz`. Cuando la tarea 1 ejecute, expandirá a `muestra_1.fq.gz`; la tarea 2 usará `muestra_2.fq.gz`, y así sucesivamente. De esta forma un único script sirve para todas las muestras.
 
-Otra forma común es usar el índice para leer de una lista. Por ejemplo, podrías tener un archivo de texto con una lista de 100 nombres de muestras y que cada tarea lea la línea N que corresponde a su `$SLURM_ARRAY_TASK_ID`. Esto permite trabajar con nombres que no son simplemente 1, 2, 3, sino, por decir, IDs de pacientes o similares. Requiere un poco más de scripting (ej. usando `sed` o `awk` para extraer la línea correspondiente), pero es muy poderoso para generalizar análisis.
+Veamos cómo construir este script:
+
+```bash
+nano fastqc_array_20.sbatch
+```
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=fastqc_array
+#SBATCH --partition=short_idx
+#SBATCH --array=1-20%5            # 20 tareas; máx. 5 simultáneas
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=5G
+#SBATCH --time=00:15:00
+#SBATCH --output=fastqc_%A_%a.out # %A: JobID del array, %a: índice de tarea
+#SBATCH --error=fastqc_%A_%a.err
+
+module load fastqc/0.12.1
+
+mkdir fasqc_results
+fastqc -o fastqc_results muestra_${SLURM_ARRAY_TASK_ID}.fq.gz
+```
 
 #### Ejecución de un job array
 
 Lanzar un job array es tan sencillo como añadir `--array` al comando sbatch. Por ejemplo:
 
 ```bash
-sbatch --array=1-20 mi_array.sh
+sbatch --array=1-20 fastqc_array_20.sbatch
 ```
 
-Esto enviará **20 tareas**, numeradas del 1 al 20, que ejecutarán el script `mi_array.sh` cada una por su lado. Slurm intentará correrlas en paralelo, ocupando tantos recursos como le hayas pedido por tarea. Es decir, si cada tarea pide 1 CPU, en teoría podrían correr hasta 20 a la vez (si el clúster tiene suficientes núcleos libres). Si pides muchas CPU o RAM por tarea, quizás sólo unas pocas puedan ejecutarse simultáneamente.
+Esto enviará **20 tareas**, numeradas del 1 al 20, que ejecutarán el script `fastqc_array_20.sbatch` cada una por su lado. Slurm intentará correrlas en paralelo, ocupando tantos recursos como le hayas pedido por tarea. Es decir, si cada tarea pide 1 CPU, en teoría podrían correr hasta 20 a la vez (si el clúster tiene suficientes núcleos libres). Si pides muchas CPU o RAM por tarea, quizás sólo unas pocas puedan ejecutarse simultáneamente.
 
 Puedes especificar rangos más complejos: `--array=1-3,7,9-12` lanzaría tareas 1,2,3,7,9,10,11,12 (saltando algunos índices). También puedes limitar cuántas corren al mismo tiempo usando `%`. Ejemplo: `--array=1-100%10` lanzará hasta 10 tareas en paralelo como máximo, aunque haya 100 en total. Esto es útil si no quieres saturar el clúster o si cada tarea ya consume muchos recursos. Ten en cuenta que esto no garantiza orden ni secuencia; Slurm seguirá gestionando la cola según prioridades y disponibilidad, simplemente no pondrá más de 10 concurrentes en este caso.
 
 Dentro del propio *script* sbatch, también puedes poner la directiva array junto con el resto de `#SBATCH`. Por ejemplo, en el encabezado del script podrías tener `#SBATCH --array=1-20` para no tener que especificarlo en la línea de comando. También es común ajustar en el script los nombres de archivo de log para que incluyan el índice, así:
 
 ```bash
-#SBATCH --output=mi_trabajo_%A_%a.out 
-#SBATCH --error=mi_trabajo_%A_%a.err
+#SBATCH --output=fastqc_%A_%a.out
+#SBATCH --error=fastqc_%A_%a.err
 ```
 
-Aquí `%A` representa el JobID principal del array y `%a` el índice de cada tarea. De este modo, cada tarea escribe en su propio log (por ejemplo `mi_trabajo_45678_3.out` para el job 45678 tarea 3). De lo contrario, si todas las tareas escribieran al mismo `slurm-45678.out` sería difícil separar la salida de cada una (Slurm por defecto ya separa los logs de arrays usando este patrón `%A_%a` si no especificas `--output`, pero conviene saberlo para personalizarlo).
+Aquí `%A` representa el JobID principal del array y `%a` el índice de cada tarea. De este modo, cada tarea escribe en su propio log (por ejemplo `fastqc_45678_3.out` para el job 45678 tarea 3). De lo contrario, si todas las tareas escribieran al mismo `slurm-45678.out` sería difícil separar la salida de cada una (Slurm por defecto ya separa los logs de arrays usando este patrón `%A_%a` si no especificas `--output`, pero conviene saberlo para personalizarlo).
 
 #### Monitorización de arrays
 
@@ -185,31 +218,6 @@ Aquí `%A` representa el JobID principal del array y `%a` el índice de cada tar
 * Herramientas personalizadas del clúster (como el mencionado `gstat`) suelen agrupar el uso por array para no saturar la vista. Revisa la documentación local para ver cómo presentan los arrays.
 
 La monitorización de arrays es muy similar a la de jobs normales, solo que tienes **muchos jobs hijitos** bajo un mismo paraguas. Recuerda que para cancelar, también puedes hacerlo en bloque: `scancel 45678` eliminaría *todo* el array, mientras que `scancel 45678_5` intentaría eliminar sólo la tarea 5. Si cancelas individualmente y todas las tareas terminan (o se cancelan), el JobID padre se marcará como completado cuando ya no queden tareas activas.
-
-#### Ejemplo completo
-
-Imagina que tienes 3 archivos FASTQ (`muestra_1.fq.gz`, `muestra_2.fq.gz`, `muestra_3.fq.gz`) y quieres correr FastQC en todas. Podrías crear un script `fastqc_array.sh` así:
-
-```bash
-#!/bin/bash
-#SBATCH --job-name=array_fastqc
-#SBATCH --output=fastqc_%A_%a.out   # logs separados por tarea
-#SBATCH --error=fastqc_%A_%a.err
-#SBATCH --partition=short_idx
-#SBATCH --time=00:05:00
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=1G
-#SBATCH --array=1-3
-
-module load fastqc/0.12.1
-
-# Usar el ID de tarea para elegir el archivo correspondiente
-fastqc muestra_${SLURM_ARRAY_TASK_ID}.fq.gz
-```
-
-Al ejecutar `sbatch fastqc_array.sh`, Slurm creará 3 tareas en paralelo (si puede). Cada una cargará FastQC y ejecutará el análisis sobre su archivo correspondiente gracias a la variable de entorno. Los resultados (archivos HTML de FastQC, etc.) aparecerán en el directorio de trabajo, y tendremos `fastqc_45679_1.out`, `_2.out`, `_3.out` con los logs de cada una (asumiendo JobID 45679).
-
-Como ves, todas las tareas comparten la misma definición de recursos (`--cpus-per-task=1`, etc.) y parámetros. Eso significa que **cada** tarea del array recibirá, en este caso, 1 CPU y 1GB de RAM y podrá usar hasta 5 minutos. En otras palabras, los recursos que pides en las directivas *se aplican por tarea*, no al conjunto completo. No necesitas, por ejemplo, multiplicar la memoria por el número de tareas. Si pides `--mem=1G` en un array de 100 tareas, estás pidiendo que **cada tarea** use hasta 1GB (no que las 100 juntas compartan 1GB, obviamente).
 
 #### Consejos rápidos
 
