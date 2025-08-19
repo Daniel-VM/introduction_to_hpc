@@ -1,87 +1,85 @@
-
-# Talk 6: Scripting and parallelization
+# Talk 6: Scripting and parallelization
 
 ## Scripting
 
-La idea principal de esta parte del curso es aprender a **delegar trabajo** en el clúster. En lugar de ejecutar cada comando manualmente, preparamos un pequeño guion (*script*) que el gestor de colas (Slurm) interpreta y ejecuta por nosotros. De este modo, podemos irnos a casa y dejar que los ordenadores hagan su trabajo sin supervisión directa. Además, trabajar así es más seguro para el sistema: los administradores recomiendan no ejecutar tareas pesadas en el nodo de acceso (*frontend*), sino enviarlas a los nodos de cálculo mediante Slurm. Slurm se encargará de asignar el trabajo a un nodo disponible, controlar su ejecución y evitar conflictos de recursos, garantizando un uso eficiente y justo del clúster.
+The main idea of this part of the course is learning to **delegate work** to the cluster. Instead of running every command by hand, we prepare a small script that the job scheduler (Slurm) reads and runs for us. This way we can log off and let the computers do the work without direct supervision. Also, working like this is safer for the system: admins recommend not running heavy tasks on the **login node** (frontend), but sending them to the compute nodes through Slurm. Slurm will assign the job to an available node, control how it runs, and avoid resource conflicts, ensuring fair and efficient use of the cluster.
 
-### SBATCH: la puerta de entrada
+### SBATCH: the entry door
 
-#### ¿Qué es `sbatch`?
+#### What is `sbatch`?
 
-* `sbatch` es un comando que podremos utilizar desde la terminal, y sirve para dar una orden a **Slurm**. 
-* Concretamente, es la orden de **Slurm** para enviar un *script* de trabajo a la cola del clúster. Equivale a dejar un paquete en correos para que lo entreguen cuando puedan: tú entregas el paquete (tu script) en la “oficina” Slurm, y el clúster lo ejecutará cuando haya recursos disponibles.
-* En bioinformática y otras áreas, resulta útil para lanzar análisis repetitivos (ej. control de calidad con `FastQC`, alineamientos, ensamblados, etc.) sobre múltiples archivos de secuenciación sin hacerlo de forma interactiva uno por uno.
-* Permite enviar trabajos al clúster para que se ejecuten en **segundo plano** (por ejemplo, en la cola `short_idx` con nodos `ideafix[01-10]`), liberando tu ordenador personal para otras tareas. En otras palabras, usas la potencia del clúster en lugar de sobrecargar tu PC.
+* `sbatch` is a command you can run in the terminal to send an order to **Slurm**.
+* More specifically, it’s the **Slurm** command to submit a job *script* to the cluster queue. It’s like dropping a parcel at the post office so they deliver it when they can: you hand in the parcel (your script) at the Slurm “office”, and the cluster runs it when resources are available.
+* In bioinformatics and other areas, it’s useful to launch repetitive analyses (e.g., quality control with `FastQC`, alignments, assemblies, etc.) over many sequencing files without doing them interactively one by one.
+* It lets you send jobs to run in the **background** (for example, in the `short_idx` queue on nodes `ideafix[01-10]`), freeing your personal computer for other tasks. In other words, you use the cluster’s power instead of overloading your PC.
 
-#### ¿Para qué sirve?
+#### What is it for?
 
-* **Automatización:** Puedes lanzar tareas largas o múltiples sin necesidad de permanecer conectado. Slurm se encargará de gestionar la entrada de estas tareas (comúnmente conocidas como "jobs") al sistema de colas del HPC, las ejecutará y tú puedes desconectar o hacer otras cosas.
-* **Reserva de recursos:** Al enviar un trabajo, especificas cuántas CPU, cuánta memoria RAM y cuánto tiempo necesitas. El gestor reserva esos recursos para ti, garantizando que cada análisis disponga de lo necesario y no interfiera con otros. Esto previene la sobrecarga y ayuda a aprovechar el hardware equitativamente.
-* **Ejecución reproducible:** Queda un registro de la actividad y resultados de cada trabajo. La salida estándar y los errores se guardan en archivos de log, lo que facilita revisar qué ocurrió en cada paso y depurar si algo falla.
-* **Facilita reruns:** Puedes repetir un análisis con parámetros distintos editando un solo archivo en lugar de teclear de nuevo todos los comandos. Tus pasos quedan documentados en el script, reduciendo errores humanos.
+* **Automation:** You can launch long or multiple tasks without staying connected. Slurm will handle the queueing of these tasks (commonly called “jobs”) in the HPC system, run them, and you can disconnect or do other things.
+* **Resource reservation:** When you submit a job, you specify how many CPUs, how much RAM, and how much time you need. The scheduler reserves those resources for you, ensuring each analysis has what it needs and doesn’t interfere with others. This prevents overload and helps use the hardware fairly.
+* **Reproducible execution:** There is a record of the activity and results of each job. Standard output and errors are saved to log files, which makes it easier to review what happened at each step and debug if something fails.
+* **Easy reruns:** You can repeat an analysis with different parameters by editing a single file instead of retyping all commands. Your steps are documented in the script, reducing human error.
 
-#### ¿Cómo se organiza un script `sbatch`?
+#### How is an `sbatch` script organized?
 
-Un *script* para `sbatch` es un archivo de texto con una estructura fija que combina **directivas de Slurm** y **órdenes de la terminal**. Por ejemplo:
+An `sbatch` script is a text file with a fixed structure that combines **Slurm directives** and **terminal commands**. For example:
 
 ```bash
-#!/bin/bash                  # 1) Shebang: intérprete que ejecutará el script
-#SBATCH --option=valor       # 2) Directivas SBATCH que solicitan recursos/configuración
-#SBATCH --option=valor       # 2) Directivas SBATCH que solicitan recursos/configuración
-#SBATCH --option=valor       # 2) Directivas SBATCH que solicitan recursos/configuración
-# A partir de aquí, comandos que queremos ejecutar:
-comando_1
-comando_2
+#!/bin/bash                  # 1) Shebang: interpreter that will run the script
+#SBATCH --option=value       # 2) SBATCH directives that request resources/settings
+#SBATCH --option=value
+#SBATCH --option=value
+# From here on, the commands we want to run:
+command_1
+command_2
 ```
-> Ver ejemplos completos más abajo.
 
+> See complete examples below.
 
-1. **Shebang (`#!/bin/bash`)** – la primera línea indica qué intérprete de comandos se usará (normalmente Bash).
-2. **Directivas `#SBATCH`** – líneas que comienzan con `#SBATCH` para pedir recursos o ajustes al gestor de colas. Estas líneas no son comandos normales, sino instrucciones para Slurm que se procesan en el momento de enviar el script.
-3. **Comandos** – tras las directivas, escribes los comandos Linux que deseas ejecutar. Cuando Slurm ejecute tu trabajo en un nodo del clúster, irá corriendo estos comandos en orden.
+1. **Shebang (`#!/bin/bash`)** – the first line tells which shell will be used (usually Bash).
+2. **`#SBATCH` directives** – lines starting with `#SBATCH` to request resources or job settings. These are not normal commands; they are instructions for Slurm processed when you submit the script.
+3. **Commands** – after the directives, you write the Linux commands you want to run. When Slurm executes your job on a compute node, it will run these commands in order.
 
-##### Parámetros habituales
+##### Common parameters
 
-Un ejemplo de cabecera de script con parámetros típicos sería:
+A typical header could be:
 
 ```bash
 #!/bin/bash
-#SBATCH --chdir=/ruta/al/directorio/de/trabajo  # Carpeta donde se ejecutará el análisis
-#SBATCH --job-name=my_first_slurm_job           # Nombre reconocible del trabajo
-#SBATCH --cpus-per-task=1                       # Número de CPU (hilos) para este trabajo
-#SBATCH --mem=1G                                # Memoria RAM a reservar
-#SBATCH --time=00:10:00                         # Tiempo máximo (HH:MM:SS)
-#SBATCH --partition=short_idx                   # Cola o partición en la que correr
-#SBATCH --output=slurm-%j.out                   # Archivo para la salida estándar
-#SBATCH --error=slurm-%j.err                    # Archivo para la salida de errores
-# A partir de aquí, comandos que queremos ejecutar:
-comando_1
-comando_2
+#SBATCH --chdir=/path/to/working/directory   # Folder where the analysis will run
+#SBATCH --job-name=my_first_slurm_job        # A recognizable job name
+#SBATCH --cpus-per-task=1                    # Number of CPU cores (threads) for this job
+#SBATCH --mem=1G                             # RAM to reserve
+#SBATCH --time=00:10:00                      # Time limit (HH:MM:SS)
+#SBATCH --partition=short_idx                # Queue/partition to run in
+#SBATCH --output=slurm-%j.out                # File for standard output
+#SBATCH --error=slurm-%j.err                 # File for standard error
+# From here on, the commands we want to run:
+command_1
+command_2
 ```
 
-En este ejemplo, el trabajo **my\_first\_slurm\_job** se ejecutará en la carpeta indicada, reservando 1 CPU y 1 GB de RAM durante un máximo de diez minutos, dentro de la partición `short_idx`. Los archivos de salida `slurm-%j.out` y `slurm-%j.err` contendrán lo que normalmente veríamos en pantalla: `%j` se sustituye por el identificador del trabajo para que cada trabajo tenga sus propios logs. De este modo, después podremos abrir `slurm-<jobid>.out` para ver los mensajes normales del programa, y `slurm-<jobid>.err` para ver los errores, sin mezclarlos con otros trabajos. Ten en cuenta que **indicar un tiempo máximo es muy importante** – en algunos clústeres es obligatorio especificarlo con el formato `D-HH:MM:SS` o `HH:MM:SS`. Si no lo haces, Slurm podría asumir por defecto un valor máximo (p. ej. 2 días) y eso puede hacer que tu trabajo espere más de la cuenta para iniciar.
+In this example, the job **my\_first\_slurm\_job** will run in the indicated folder, reserving 1 CPU and 1 GB of RAM for up to 10 minutes, in the `short_idx` partition. The output files `slurm-%j.out` and `slurm-%j.err` will contain what you would usually see on screen: `%j` is replaced by the job ID so each job has its own logs. Later, you can open `slurm-<jobid>.out` to see normal messages, and `slurm-<jobid>.err` to see errors, without mixing them with other jobs. Keep in mind that **setting a time limit is very important** – in some clusters it is mandatory to use `D-HH:MM:SS` or `HH:MM:SS`. If you don’t, Slurm might assume a default max (e.g., 2 days) and that can make your job wait longer before starting.
 
-##### Otros parámetros útiles
+##### Other useful parameters
 
-* `--mail-type=END,FAIL` y `--mail-user=tu_email@dominio` – para que Slurm te envíe un correo cuando el trabajo empiece, termine o falle, según el tipo seleccionado.
-* `--dependency=afterok:<jobid>` – hace que tu trabajo espere a que otro termine correctamente. Útil para lanzar un análisis sólo si el anterior fue bien (encadenar pasos).
-* `--gres=gpu:2` – en clústeres con GPU, pedir por ejemplo 2 GPUs para tu trabajo (si haces cómputo acelerado).
+* `--mail-type=END,FAIL` and `--mail-user=your_email@domain` – Slurm can email you when the job starts, ends, or fails, depending on what you choose.
+* `--dependency=afterok:<jobid>` – makes your job wait until another one finishes successfully. Useful to chain steps.
+* `--gres=gpu:2` – on clusters with GPUs, request, for example, 2 GPUs for your job (if you do accelerated computing).
 
-A continuación te indico una página en donde puedes encontrar la lista completa de parámetros:
+Here is a page where you can find the full list of parameters:
 
-- https://slurm.schedmd.com/sbatch.html#SECTION_OPTIONS
+* [https://slurm.schedmd.com/sbatch.html#SECTION\_OPTIONS](https://slurm.schedmd.com/sbatch.html#SECTION_OPTIONS)
 
+> **Note:** Each cluster can have extra parameters or defaults. Check your local documentation for specifics.
 
-> **Nota:** Cada clúster puede tener parámetros adicionales o ciertos valores por defecto. Consulta la documentación local para opciones específicas.
+#### Load modules and prepare the environment
 
-#### Cargar módulos y preparar el entorno
-
-Como hemos visto a lo largo de este curso, los nodos de cálculo suelen usar un sistema de *módulos de entorno* para gestionar el software disponible. Antes de ejecutar un programa es habitual “cargar” el módulo correspondiente. En este ejemplo vamos a utilizar el software FastQC, software ampliamente utilizado en bioinformática para el control de calidad lecturas cortas. Supongamos que estas lecturas cortas obtenidas por secuenciación han sido almacenadas en el archivo `datos.fq.gz`:
+As we saw in the course, compute nodes often use **environment modules** to manage available software. Before running a program, it’s common to “load” the corresponding module. In this example we will use FastQC, widely used in bioinformatics for short-read quality control. Suppose these short reads from sequencing are stored in the file `datos.fq.gz`:
 
 ```bash
 #!/bin/bash
-#SBATCH --chdir=/ruta/al/directorio/de/trabajo
+#SBATCH --chdir=/path/to/working/directory
 #SBATCH --job-name=my_first_slurm_job
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=1G
@@ -89,84 +87,82 @@ Como hemos visto a lo largo de este curso, los nodos de cálculo suelen usar un 
 #SBATCH --partition=short_idx
 #SBATCH --output=slurm-%j.out
 #SBATCH --error=slurm-%j.err
-module load fastqc/0.12.1    # Activar el módulo de FastQC versión 0.12.1
-fastqc datos.fq.gz           # Ahora ejecutamos el comando real sobre nuestro archivo
+module load fastqc/0.12.1    # Load FastQC module version 0.12.1
+fastqc datos.fq.gz           # Run the actual command on our file
 ```
 
-De esta forma garantizamos que el software correcto esté disponible en el *PATH* cuando se ejecute el trabajo. Puedes cargar todos los módulos o activar entornos (conda, etc.) necesarios antes de lanzar los comandos principales. Así, el nodo de cómputo tendrá las mismas herramientas que tú usas al probar el análisis de manera interactiva.
+This guarantees the right software is on the *PATH* when the job runs. You can load all modules or activate environments (conda, etc.) needed before the main commands. This way, the compute node will have the same tools you use when testing the analysis interactively.
 
-> Si te preguntas qué módulos de entorno se encuentran disponibles en tu HPC, utiliza el comando `module avail`. Obtendrás una lista de todos los módulos disponibles que podrás cargar en tus scripts mediante el comando `module load`
+> If you want to see which modules are available on your HPC, use `module avail`. You’ll get a list of all modules you can load in your scripts with `module load`.
 
+#### Submit the job
 
-#### Lanzar el trabajo
-
-Para enviar el trabajo al clúster utilizamos el comando `sbatch` seguido del nombre de nuestro script:
+To send the job to the cluster we use `sbatch` followed by the script name:
 
 ```bash
 sbatch fastqc_slurm.sbatch
 ```
 
-Al enviarlo, Slurm devolverá un mensaje del estilo `Submitted batch job 12345`. Ese **12345** es el identificador único de tu trabajo (job ID). Conviene apuntarlo, ya que lo usaremos para consultar el estado y revisar la ejecución. Ten en cuenta que `sbatch` sólo coloca tu trabajo en la cola; el script no empieza a correr inmediatamente, sino cuando Slurm encuentre un hueco con los recursos que pediste. Cuantos más recursos solicites (por ejemplo, muchos núcleos o muchas horas), más podría tardar en entrar en ejecución, ya que tendrá que esperar a que estén disponibles esos recursos.
+When you submit, Slurm prints something like `Submitted batch job 12345`. That **12345** is the unique job ID. It’s good to note it down, because we will use it to check status and review execution. Remember that `sbatch` only puts your job in the queue; it doesn’t start immediately, but when Slurm finds a slot with the resources you requested. The more resources you request (e.g., many cores or many hours), the longer it might wait, because it needs to find those resources free.
 
-#### Explorar la ejecución en Slurm
+#### Check the job in Slurm
 
-Una vez enviado el trabajo, dispones de varias herramientas para monitorear y obtener información:
+Once submitted, you have several tools to monitor and get information:
 
-* `squeue --me` – muestra tus trabajos en cola o en ejecución (según la configuración, `--me` puede filtrar por tu usuario). Verás columnas como JOBID (ID del trabajo), PARTITION (cola), NAME (nombre que le diste), ST (estado), TIME (tiempo transcurrido) y NODES (nodos utilizados). Un trabajo recién enviado suele aparecer en **PD (Pending)** mientras espera turno, y pasará a **R (Running)** cuando esté ejecutándose. Si no ves tu job en `squeue`, posiblemente ya terminó (¡o quizá nunca se envió correctamente!).
-* `scontrol show job <jobid>` – brinda información **detallada** de un trabajo concreto. Este comando te mostrará todos los parámetros y el estado actual del job: en qué nodo(s) está corriendo o por qué está pendiente (a veces indica *Reason=* con la razón de espera), cuánta memoria pidió, cuándo se envió, etc. Es útil para diagnosticar por qué un trabajo sigue en cola (por ejemplo, si está esperando porque pediste más tiempo del permitido en esa partición, aparecerá un Reason). *Tip:* Sólo podrás ver detalles de **tus** trabajos, no los de otros usuarios.
-* `sacct -j <jobid> --format=JobID,State,Elapsed,MaxRSS` – consulta el **histórico** de un trabajo (funciona una vez ha **terminado**, no para los activos). Este comando forma parte de las herramientas de *accounting* de Slurm. Por ejemplo, `sacct -j 12345 -o JobID,State,Elapsed,MaxRSS` te dirá si el job 12345 acabó exitosamente (State=COMPLETED) o hubo problemas (FAILED, TIMEOUT, etc.), cuánto tiempo ejecutó efectivamente (Elapsed) y el máximo de memoria RAM que llegó a usar (MaxRSS). `sacct` es muy útil para revisar a posteriori los recursos consumidos y así ajustar mejor las peticiones en futuros lanzamientos.
+* `squeue --me` – shows your jobs in the queue or running (depending on configuration, `--me` filters by your user). You will see columns like JOBID, PARTITION, NAME, ST (state), TIME, and NODES. A freshly submitted job often appears as **PD (Pending)** while it waits, and then **R (Running)** when it starts. If you don’t see your job in `squeue`, it probably finished (or maybe it was never submitted correctly!).
+* `scontrol show job <jobid>` – gives **detailed** information about a specific job. It shows all parameters and the current state: which node(s) it is running on or why it is pending (sometimes a *Reason=* field), how much memory it requested, when it was submitted, etc. It’s useful to diagnose why a job remains in the queue (e.g., if you asked for more time than allowed in that partition, you’ll see a Reason). *Tip:* You can only see details of **your** jobs, not other users’.
+* `sacct -j <jobid> --format=JobID,State,Elapsed,MaxRSS` – shows the **history** of a job (works once it has **finished**, not for active jobs). This is part of Slurm accounting tools. For example, `sacct -j 12345 -o JobID,State,Elapsed,MaxRSS` will tell you if job 12345 completed successfully (State=COMPLETED) or had problems (FAILED, TIMEOUT, etc.), how long it actually ran (Elapsed), and the maximum RAM it used (MaxRSS). `sacct` is very useful to review resource usage after the fact and tune future requests.
 
+#### Review the results
 
-#### Revisar los resultados
+Once the job finishes (or even during execution), we should **validate the results**:
 
-Una vez el trabajo finaliza (o incluso durante su ejecución), debemos **validar los resultados**:
+* Open the output files you set in the script. For example, if you used `--output=slurm-%j.out` and the job ID was 12345, there will be a file `slurm-12345.out`. That is the standard output of your program (what you’d normally see on screen). Also check `slurm-12345.err` for error messages. If your script did not define `--output`/`--error`, Slurm still creates one by default (often `slurm-<jobid>.out` or, for *array jobs*, `slurm-<jobid>_<taskid>.out` by default).
+* If the job generated result files (e.g., a FastQC HTML report, a BAM file, etc.), look for them in the working directory you set with `--chdir`. Check they exist and make sense (size, expected format, etc.).
+* Check the final status with `sacct`. If it shows **COMPLETED**, it likely finished well. If it shows **FAILED**, **CANCELLED**, or **TIMEOUT**, something happened: maybe the program exited with an error, ran out of memory, or exceeded the time limit. In that case, inspect `.err` for clues (e.g., “Killed” often means it used too much memory).
 
-* Abre los archivos de salida que indicamos en el script. Por ejemplo, si usamos `--output=slurm-%j.out` y el job ID era 12345, habrá un fichero `slurm-12345.out`. Ahí estará la salida estándar de tu programa (lo que normalmente verías en pantalla al ejecutarlo). Del mismo modo, revisa `slurm-12345.err` para ver si hubo mensajes de error. Si tu script no definió archivos `--output`/`--error`, Slurm igualmente habrá generado uno por defecto (suele llamarse `slurm-<jobid>.out` o, en caso de *array jobs* (los veremos a continuación), `slurm-<jobid>_<taskid>.out` por defecto).
-* Si el trabajo generó archivos de resultado (por ejemplo, un informe HTML de FastQC, un archivo de alineamiento BAM, etc.), búscalos en el directorio de trabajo que estableciste (`--chdir`). Verifica que existen y que tienen sentido (tamaño, formato esperado, etc.).
-* Comprueba en `sacct` el estado final del job. Si aparece como **COMPLETED**, en principio terminó bien. Si pone **FAILED**, **CANCELLED** o **TIMEOUT**, algo ocurrió: quizá el programa devolvió error, o se quedó sin memoria, o excedió el tiempo límite. En ese caso, inspecciona el `.err` en busca de pistas (p.ej. mensajes de “Killed” suelen indicar que sobrepasó memoria).
+In short, logs and Slurm information help you do a little “CSI” on your jobs: understand what happened and fine-tune the configuration for next runs.
 
-En resumen, los logs y la información de Slurm sirven para hacer un poco de “CSI” de tus trabajos: entender qué pasó y afinar la configuración para futuras corridas.
+#### Tips and good practices
 
-#### Consejos y buenas prácticas
-
-* **Asigna nombres descriptivos** a tus trabajos (`--job-name`). Un nombre claro (ej: `fastqc_analysis`) te permitirá identificar fácilmente para qué era cada job cuando mires la cola con `squeue` o los logs.
-* **¡¡No pidas más recursos de los necesarios!!:** un uso responsable evita colas largas y desperdicio de cómputo. Solicitar recursos excesivos (por ejemplo, 16 CPUs si tu código sólo usa 1) hará que tu trabajo espere mucho para iniciar y estarás bloqueando recursos inútilmente. En algunos clústeres, si no indicas memoria/CPU, el planificador asume que necesitas todo el nodo y tu job **no empezará hasta tener un nodo completo libre**, lo que puede demorar horas o días. Sé específico pero realista con lo que necesitas.
-* **No ejecutes trabajos pesados en el nodo de login:** De hecho, nunca deberemos lanzar un comando pesado (se excluyen los comandos como: ls, cat, tree,...) en el nodo login... SIEMPRE tendremos que enviarlos a través de `sbatch` o `srun` al sistema de colas de SLURM. Todos los usuarios comparten el login; si tú ejecutas algo grande allí, entorpeces a los demás. La documentación de centros HPC recalca que *“todos los trabajos HPC deben ejecutarse en los nodos de cálculo mediante el envío de un script al gestor de trabajos”*.
-* **Incluye comentarios en tu script** explicando cada paso. Agradecerás estos comentarios cuando vuelvas a ese script meses después sin recordar por qué pusiste tal comando. Un simple `# Preprocesar los FASTQ` encima de una línea de código hace maravillas para la claridad.
-* **Prueba primero en pequeño:** antes de lanzar un análisis masivo o un job array con 100 muestras, haz una prueba con un caso o un subset de datos. Esto te ayuda a detectar rutas incorrectas, módulos que olvidaste cargar, o parámetros mal ajustados. Más vale descubrir en 2 minutos de prueba que falta instalar cierto paquete, que darse cuenta tras 5 horas de cola y un job fallido.
-* **Guarda tus scripts** (y si es posible, versionálos con Git u otro sistema). Reutilizarás muchos de estos scripts en futuros proyectos. Tener un repositorio de “scripts Slurm” te ahorra tiempo y te asegura que usas comandos probados.
-* **Usa job arrays para tareas repetitivas:** si alguna vez te ves escribiendo un bucle `for` para lanzar el mismo script con 10 archivos distintos, es señal de que deberías emplear un *array job* (lo veremos en la sección [Job Arrays](#job-arrays-mismos-pasos-multiples-muestras)). Los *job arrays* son la forma que ofrece Slurm para enviar muchos trabajos similares de forma limpia y eficiente. En la siguiente sección profundizamos en cómo utilizarlos.
-* **Encadena tareas con dependencias:** para flujos de trabajo más complejos, considera lanzar jobs que empiecen cuando otros acaben (`--dependency`). Por ejemplo, primero un job que filtra datos, y al terminar, que arranque automáticamente otro job de análisis sobre esos datos filtrados. Esto te permite construir pipelines sencillos sin supervisión manual en cada paso.
+* **Use descriptive job names** (`--job-name`). A clear name (e.g., `fastqc_analysis`) helps you identify each job in `squeue` and in logs.
+* **Do NOT request more resources than needed!** Responsible usage avoids long queues and wasted compute. Asking for too much (e.g., 16 CPUs if your code only uses 1) will make your job wait longer to start and block resources. In some clusters, if you don’t request memory/CPU, the scheduler assumes you want the whole node and your job **won’t start until a full node is free**, which can mean hours or days. Be specific but realistic.
+* **Do not run heavy jobs on the login node:** In fact, never run heavy commands there (light commands like `ls`, `cat`, `tree`, … are fine). **ALWAYS** send heavy work through `sbatch` or `srun` to Slurm. Everyone shares the login node; if you run something big there, you slow down others. Many centers state that *“all HPC jobs must run on compute nodes by submitting a script to the job scheduler.”*
+* **Comment your script** to explain each step. You’ll thank yourself when you come back months later. A simple `# Preprocess FASTQs` above a line helps a lot.
+* **Test small first:** before launching a massive analysis or a 100-task job array, try a single case or a small subset. This helps you catch wrong paths, missing modules, or bad parameters. Better to discover a missing package in a 2-minute test than after 5 hours in the queue and a failed job.
+* **Save your scripts** (ideally version them with Git). You’ll reuse many of them in future projects. Having a small repo of “Slurm scripts” saves time and ensures you use tested commands.
+* **Use job arrays for repetitive tasks:** if you find yourself writing a `for` loop to run the same script for 10 files, you probably want a *job array* (we cover it in the next section). Arrays are Slurm’s clean, efficient way to submit many similar jobs at once.
+* **Chain jobs with dependencies:** for small workflows, consider launching jobs that start when others finish (`--dependency`). For example, first a filtering job, and when it finishes, a second analysis job on the filtered data. This builds simple pipelines without manual supervision.
 
 ---
 
-### Job Arrays: mismos pasos, múltiples muestras
+### Job Arrays: same steps, many samples
 
-#### ¿Qué son?
+#### What are they?
 
-Son una funcionalidad de Slurm para lanzar muchos trabajos **idénticos en su estructura** (mismo script) pero con ligeras variaciones, típicamente en los datos de entrada o en algún parámetro. En lugar de crear 50 scripts para 50 muestras, creas **un solo script** y le dices a Slurm que lo ejecute N veces. Podemos imaginarlo como una flotilla de repartidores que llevan el mismo paquete a distintas direcciones: el proceso base es el mismo, sólo cambia la “dirección” (p. ej., el nombre de archivo de entrada). Slurm enviará esas tareas al clúster de forma automática y en paralelo cuando sea posible.
+This Slurm feature lets you launch many jobs with **identical structure** (same script) but small changes, usually in the input file or a parameter. Instead of creating 50 scripts for 50 samples, you create **one script** and tell Slurm to run it N times. Think of it like a fleet of couriers delivering the same package to different addresses: the process is the same, only the “address” changes (e.g., input file name). Slurm sends these tasks to the cluster automatically and in parallel when possible.
 
-En términos más formales, un *job array* es un conjunto de tareas (*tasks*) que comparten un mismo **JobID base** pero se distinguen por un índice (array index). Si envías un array de 10 tareas, Slurm te dará un JobID (digamos 45678) y a cada tarea un ID compuesto como 45678\_1, 45678\_2, ..., 45678\_10.
+More formally, a *job array* is a set of *tasks* sharing the same **base JobID** but distinguished by an index (array index). If you submit an array of 10 tasks, Slurm gives you a JobID (say 45678) and each task an ID like 45678\_1, 45678\_2, …, 45678\_10.
 
-#### ¿Cuándo usarlos?
+#### When to use them?
 
-* Cuando necesites repetir la **misma operación** sobre múltiples entradas. Por ejemplo, ejecutar una herramienta de control calidad,  como FastQC, sobre 100 archivos FASTQ, o entrenar 20 modelos con diferentes semillas aleatorias.
-* Cuando quieras probar un mismo código con distintos parámetros independientes (p. ej., 10 valores de una variable) sin tener que cambiar manualmente el script cada vez.
-* En general, siempre que tengas cargas de trabajo *triviales de paralelizar*, donde cada tarea puede correr por su cuenta sin comunicación con las demás.
+* When you need to repeat the **same operation** on multiple inputs. For example, run a quality control tool like FastQC on 100 FASTQ files, or train 20 models with different random seeds.
+* When you want to test the same code with different independent parameters (e.g., 10 values) without manually changing the script each time.
+* In general, for *embarrassingly parallel* workloads, where each task can run on its own without communicating with others.
 
-La documentación oficial aconseja usar arrays en lugar de lanzar muchos jobs individuales en bucle. Esto te facilita la vida, ya que con un solo comando controlas todo el conjunto.
+Official docs recommend arrays instead of launching many single jobs in a loop. It makes your life easier: one command controls the whole set.
 
-#### Variables de entorno para arrays
+#### Environment variables for arrays
 
-Slurm pone a disposición algunas variables de entorno dentro del script para que sepas qué tarea del array es cada una:
+Slurm provides some environment variables inside the script so you know which array task is which:
 
-* `$SLURM_ARRAY_JOB_ID` – ID del job array (en el ejemplo arriba, 45678). Todas las tareas comparten este ID base.
-* `$SLURM_ARRAY_TASK_ID` – índice de la tarea dentro del array. Toma valores 1, 2, 3, … según lo definido.
-* (También existe `$SLURM_ARRAY_TASK_COUNT` con el tamaño total del array, y `$SLURM_ARRAY_TASK_MAX`/`MIN` con los límites del rango, entre otras, según la versión de Slurm).
+* `$SLURM_ARRAY_JOB_ID` – the array job ID (e.g., 45678 above). All tasks share this base ID.
+* `$SLURM_ARRAY_TASK_ID` – the index of the task within the array. It takes values 1, 2, 3, … as defined.
+* (There is also `$SLURM_ARRAY_TASK_COUNT` for total tasks, and `$SLURM_ARRAY_TASK_MAX`/`MIN` for the range limits, depending on Slurm version.)
 
-La más útil es `$SLURM_ARRAY_TASK_ID`. Podemos usarla dentro del script para variar la entrada. Por ejemplo, si tus archivos se llaman `muestra_1.fq.gz`, `muestra_2.fq.gz`, etc., en el script puedes referirte a `muestra_${SLURM_ARRAY_TASK_ID}.fq.gz`. Cuando la tarea 1 ejecute, expandirá a `muestra_1.fq.gz`; la tarea 2 usará `muestra_2.fq.gz`, y así sucesivamente. De esta forma un único script sirve para todas las muestras.
+The most useful is `$SLURM_ARRAY_TASK_ID`. You can use it to change input. For example, if your files are named `muestra_1.fq.gz`, `muestra_2.fq.gz`, etc., in the script you can refer to `muestra_${SLURM_ARRAY_TASK_ID}.fq.gz`. Task 1 uses `muestra_1.fq.gz`; task 2 uses `muestra_2.fq.gz`, and so on. One script serves all samples.
 
-Veamos cómo construir este script:
+Let’s build this script:
 
 ```bash
 nano fastqc_array_20.sbatch
@@ -174,14 +170,14 @@ nano fastqc_array_20.sbatch
 
 ```bash
 #!/bin/bash
-#SBATCH --chdir=/ruta/al/proyecto
+#SBATCH --chdir=/path/to/project
 #SBATCH --job-name=fastqc_array
 #SBATCH --partition=short_idx
-#SBATCH --array=1-20%5            # 20 tareas; máx. 5 simultáneas
+#SBATCH --array=1-20%5            # 20 tasks; max 5 at the same time
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=5G
 #SBATCH --time=00:15:00
-#SBATCH --output=fastqc_%A_%a.out # %A: JobID del array, %a: índice de tarea
+#SBATCH --output=fastqc_%A_%a.out # %A: array JobID, %a: task index
 #SBATCH --error=fastqc_%A_%a.err
 
 module load fastqc/0.12.1
@@ -190,98 +186,94 @@ mkdir fastqc_results
 fastqc -o fastqc_results muestra_${SLURM_ARRAY_TASK_ID}.fq.gz
 ```
 
-#### Ejecución de un job array
+#### Running a job array
 
-Lanzar un job array es tan sencillo como añadir `--array` al comando sbatch. Por ejemplo:
+Launching an array is as simple as using `--array` with `sbatch`. For example:
 
 ```bash
 sbatch fastqc_array_20.sbatch
 ```
 
-Esto enviará **20 tareas**, numeradas del 1 al 20, que ejecutarán el script `fastqc_array_20.sbatch` cada una por su lado. Slurm intentará correrlas en paralelo, ocupando tantos recursos como le hayas pedido por tarea. Es decir, si cada tarea pide 1 CPU, en teoría podrían correr hasta 20 a la vez (si el clúster tiene suficientes núcleos libres). Si pides muchas CPU o RAM por tarea, quizás sólo unas pocas puedan ejecutarse simultáneamente.
+This will submit **20 tasks**, numbered 1 to 20, each running the script `fastqc_array_20.sbatch` on its own. Slurm will try to run them in parallel, using as many resources as requested per task. If each task requests 1 CPU, up to 20 could run at once (if the cluster has enough free cores). If each task requests a lot of CPU or RAM, fewer will run at the same time.
 
-Puedes especificar rangos más complejos: `--array=1-3,7,9-12` lanzaría tareas 1,2,3,7,9,10,11,12 (saltando algunos índices). También puedes limitar cuántas corren al mismo tiempo usando `%`. Ejemplo: `--array=1-100%10` lanzará hasta 10 tareas en paralelo como máximo, aunque haya 100 en total. Esto es útil si no quieres saturar el clúster o si cada tarea ya consume muchos recursos. Ten en cuenta que esto no garantiza orden ni secuencia; Slurm seguirá gestionando la cola según prioridades y disponibilidad, simplemente no pondrá más de 10 concurrentes en este caso.
+You can set more complex ranges: `--array=1-3,7,9-12` would run tasks 1,2,3,7,9,10,11,12 (skipping some). You can also limit how many run concurrently using `%`. Example: `--array=1-100%10` runs at most 10 in parallel, although there are 100 total. This is useful if you don’t want to saturate the cluster or if each task is heavy. Note this does not guarantee order; Slurm manages the queue by priorities and availability—it just won’t start more than the set number at once.
 
-Dentro del propio *script* sbatch, también puedes poner la directiva array junto con el resto de `#SBATCH`. Por ejemplo, en el encabezado del script podrías tener `#SBATCH --array=1-20` para no tener que especificarlo en la línea de comando. También es común ajustar en el script los nombres de archivo de log para que incluyan el índice, así:
+Inside the script, it’s also common to customize log filenames to include the index:
 
 ```bash
 #SBATCH --output=fastqc_%A_%a.out
 #SBATCH --error=fastqc_%A_%a.err
 ```
 
-Aquí `%A` representa el JobID principal del array y `%a` el índice de cada tarea. De este modo, cada tarea escribe en su propio log (por ejemplo `fastqc_45678_3.out` para el job 45678 tarea 3). De lo contrario, si todas las tareas escribieran al mismo `slurm-45678.out` sería difícil separar la salida de cada una (Slurm por defecto ya separa los logs de arrays usando este patrón `%A_%a` si no especificas `--output`, pero conviene saberlo para personalizarlo).
+Here `%A` is the array’s main JobID and `%a` the task index. Each task writes to its own log (e.g., `fastqc_45678_3.out` for job 45678 task 3). Otherwise, if all tasks wrote to the same `slurm-45678.out`, it would be hard to separate outputs (by default, Slurm already separates array logs using `%A_%a` if you don’t set `--output`, but it’s good to know how to customize).
 
-#### Monitorización de arrays
+#### Monitoring arrays
 
-* `squeue --me` mostrará cada tarea del array como una entrada separada, con el formato `<JobID>_<Task>` en la columna JOBID. Por ejemplo, podrías ver `45678_5` en estado R y `45678_6` en PD, etc., indicando qué índices van corriendo y cuáles esperan.
-* `scontrol show job <JobID>` con el ID principal listará información del array completo, pero también puedes consultar una tarea específica añadiendo el índice (a veces requiere el flag `-d` para ver subtareas detalladas). En general, para info rápida es más cómodo `squeue` o `sacct`.
-* `sacct -j 45678` listará el histórico de todas las tareas del array 45678. Podrás ver cada una con su State (COMPLETED/FAILED) y recursos usados. Esto es genial para, por ejemplo, detectar si de 100 tareas, 2 fallaron por alguna razón.
-* Herramientas personalizadas del clúster (como el mencionado `gstat`) suelen agrupar el uso por array para no saturar la vista. Revisa la documentación local para ver cómo presentan los arrays.
+* `squeue --me` will show each array task as a separate entry, with format `<JobID>_<Task>` in the JOBID column. For example, you might see `45678_5` in R and `45678_6` in PD, showing which indices are running or pending.
+* `scontrol show job <JobID>` with the main ID lists information for the whole array, but you can also query a specific task by adding the index (sometimes `-d` helps to see subtasks). For quick info, `squeue` or `sacct` is usually easier.
+* `sacct -j 45678` lists the history of all tasks in array 45678. You can see State (COMPLETED/FAILED) and resources used. This is great to detect, for example, if 2 out of 100 tasks failed and why.
+* Custom cluster tools (like `gstat`, if available) may group array usage so the view isn’t flooded. Check local docs for how arrays are presented.
 
-La monitorización de arrays es muy similar a la de jobs normales, solo que tienes **muchos jobs hijitos** bajo un mismo paraguas. Recuerda que para cancelar, también puedes hacerlo en bloque: `scancel 45678` eliminaría *todo* el array, mientras que `scancel 45678_5` intentaría eliminar sólo la tarea 5. Si cancelas individualmente y todas las tareas terminan (o se cancelan), el JobID padre se marcará como completado cuando ya no queden tareas activas.
+Monitoring arrays is similar to normal jobs, but you have **many child jobs** under one umbrella. To cancel, you can also do it in bulk: `scancel 45678` removes the **whole** array, while `scancel 45678_5` tries to remove just task 5. Once all tasks finish (or are cancelled), the parent JobID is marked as completed.
 
-#### Consejos rápidos
+#### Quick tips
 
-* **Rangos con paso:** Puedes lanzar arrays con un incremento distinto de 1 usando el formato `start-end:step`. Ejemplo: `--array=0-9:2` ejecuta las tareas 0, 2, 4, 6, 8 (si tu lógica usa índices pares, por ejemplo).
-* **Evita enormes cantidades sin control:** Aunque Slurm soporta hasta millones de tareas en un array, no siempre es buena idea lanzar 100k jobs de golpe. Si vas a procesar cientos de miles de elementos, asegúrate de que el clúster puede con ello (a veces hay límites como `%1000` concurrentes, etc.). Divide en lotes si es necesario.
-* **Combina arrays con dependencias:** Puedes lanzar un array que procese muestras y luego un job que agregue resultados una vez *todas* las tareas del array hayan terminado. Para esto, puedes usar `--dependency=afterok:<JobID_padre>` en un job separado, o incluso `--dependency=afterok:45679_3` para depender de una tarea específica. Otra opción es la dependencia *singleton* o *afterok:<JobID>* (sin índice, refiriéndose al array completo). Consulta la documentación de Slurm para casos avanzados.
-* **Uso de archivos temporales separados:** Si todas tus tareas escriben a un mismo archivo (caso raro, pero podría ser), podrías tener conflictos. Intenta que cada tarea use archivos separados, idealmente etiquetados con su ID. Las variables `%A`/`%a` y `$SLURM_ARRAY_TASK_ID` son tus aliadas para eso.
-* **Depuración de arrays:** Si una de las tareas falla, a veces querrás recrear solo esa. Puedes lanzar otro job (no array) usando la misma entrada para investigar el fallo, o volver a lanzar el array limitado a ese índice (`--array=7` por ejemplo). También fíjate en `sacct` cuál fue el error de esa tarea fallida (te mostrará el código de salida o señal que causó el fallo).
-
+* **Step ranges:** You can launch arrays with a step using `start-end:step`. Example: `--array=0-9:2` runs tasks 0, 2, 4, 6, 8.
+* **Avoid huge bursts without control:** While Slurm supports very large arrays, launching 100k tasks at once is not always a good idea. If you process hundreds of thousands of items, confirm the cluster can handle it (there may be limits like `%1000` concurrent, etc.). Split into batches if needed.
+* **Combine arrays with dependencies:** You can run an array to process samples and then a single job to aggregate results after *all* tasks finish. Use `--dependency=afterok:<parentJobID>` on the aggregation job. There are other modes; check the docs for advanced cases.
+* **Separate temporary files:** If all tasks write to the same file (rare, but possible), conflicts may happen. Try to give each task its own files, ideally tagged with its ID. The `%A`/`%a` placeholders and `$SLURM_ARRAY_TASK_ID` help here.
+* **Debugging arrays:** If one task fails, you may want to re-run just that one. You can submit the same script limited to that index (`--array=7`, for example). Also check `sacct` for the exit code or signal that caused the failure.
 
 ## Parallelization in HPC: OpenMP vs MPI
 
-En esta segunda parte vamos a ver **cómo aprovechar varios núcleos o incluso varios nodos del clúster** para acelerar nuestros análisis.
-En HPC, esto se llama *paralelización*, y puede hacerse de dos maneras principales: **OpenMP** y **MPI**. Aunque hay más tecnologías, estas dos son las más habituales y las que veremos en nuestro clúster.
+In this second part we will see **how to use several cores or even several nodes** to speed up our analyses. In HPC, this is called *parallelization*, and there are two main approaches: **OpenMP** and **MPI**. There are more technologies, but these two are the most common and the ones we will see in our cluster.
 
-### ¿Qué son OpenMP y MPI?
+### What are OpenMP and MPI?
 
-Por un lado, **OpenMP** es un modelo de paralelización para memoria compartida. Permite utilizar multiples hilos/threads dentro de un proceso que será ejecutado en un nodo (habitualmente, este último contará con varios núcleos de CPUs). Por ejemplo, un programa OpenMP lanzará un proceso y creará varios hilos que corren en paralelo dentro de ese nodo, compartiendo datos en la RAM común
+**OpenMP** is a shared-memory parallel model. It lets a program use multiple threads inside a single process running on one node (which usually has several CPU cores). For example, an OpenMP program launches one process and creates several threads that run in parallel on that node, sharing data in common RAM.
 
-Por otro lado, **MPI** es un estándar de programación para memoria distribuida. Está pensado para ejecutar una aplicación en múltiples procesos separados, potencialmente en distintos nodos de un clúster, que se comunican entre sí mediante el paso de mensajes a través de la red. Es el modelo típico en supercomputación para problemas muy grandes, donde los datos no caben en la RAM de un solo nodo o se necesita más poder de cómputo del que ofrece una sola máquina.
+**MPI** is a standard for distributed memory. It is designed to run an application using multiple separate processes, possibly on different nodes of a cluster, that communicate by passing messages over the network. It’s the typical model in supercomputing for very large problems, when data doesn’t fit in one node’s RAM or you need more compute power than a single machine can provide.
 
+In **bioinformatics**, most programs use **OpenMP**:
 
-En el contexto de **bioinformática**, la gran mayoría de programas usan **OpenMP**:
+* Aligners (BWA, Bowtie2, STAR, Minimap2…)
+* Assemblers (SPAdes, MEGAHIT…)
+* Variant analysis (GATK, FreeBayes…)
+* Read processing (Fastp, Cutadapt…)
 
-* Herramientas de alineamiento (BWA, Bowtie2, STAR, Minimap2…)
-* Ensambladores (SPAdes, MEGAHIT…)
-* Análisis de variantes (GATK, FreeBayes…)
-* Procesamiento de lecturas (Fastp, Cutadapt…)
+On the other hand, **MPI** is less common, with exceptions mainly in **phylogenetics** or massive simulations, for example:
 
-Por otro lado, **MPI** se usa poco, pero hay excepciones, sobre todo en programas de **filogenia** o análisis masivos de simulaciones, por ejemplo:
-
-* RAxML en modo MPI
+* RAxML in MPI mode
 * IQ-TREE MPI
-* Algunos paquetes de modelado molecular o dinámica
+* Some molecular modeling or dynamics packages
 
-[TODO]: <Add image of partition -- node -- cpus>
+[TODO]: <Add image of partition — node — CPUs>
 
-La **gran diferencia** entre ambas es **dónde y cómo se reparten las tareas**:
+The **key difference** is **where and how tasks are split**:
 
-| Tecnología | Nivel de paralelización     | Comunicación entre procesos                                        | Ejemplo de uso típico                                                        |
-| ---------- | --------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| **OpenMP** | Dentro de **un mismo nodo** | Memoria compartida: todos los hilos acceden a la misma RAM         | Alinear 200 millones de lecturas en un solo nodo usando todos sus núcleos    |
-| **MPI**    | Entre **varios nodos**      | Memoria distribuida: cada nodo tiene su RAM y se comunican por red | Construir un árbol filogenético muy grande repartiendo el trabajo en 4 nodos |
+| Technology | Parallelization level     | Communication between processes                                         | Typical use case                                                        |
+| ---------- | ------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **OpenMP** | Within **one node**       | Shared memory: all threads access the same RAM                          | Align 200 million reads on one node using all its cores                 |
+| **MPI**    | Across **multiple nodes** | Distributed memory: each node has its own RAM; communication by network | Build a very large phylogenetic tree by splitting the work over 4 nodes |
 
+### Pros and cons of **OpenMP** and **MPI**
 
-### Ventajas y desventajas de **OpenMP** y **MPI**:
+|                      | **OpenMP**                                                                                           | **MPI**                                                                                                           |
+| -------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **What it is**       | Use **several cores of one machine** at the same time.                                               | Use **several machines/nodes** in the cluster that communicate with each other.                                   |
+| **Pros**             | - Easy to use.<br>- Most bioinformatics tools support it.<br>- Ideal for quick analyses on one node. | - Works with **huge datasets** that don’t fit in one node.<br>- Scales well when you need **a lot** of resources. |
+| **Cons**             | - Only works within a single node.<br>- If the node has few cores, you can’t speed up more.          | - More complex to configure.<br>- More sensitive to network/node issues.<br>- Few bioinformatics tools use it.    |
+| **Bioinfo examples** | Aligners (BWA, Bowtie2, STAR), assemblers (SPAdes, MEGAHIT), variant callers (GATK).                 | Phylogeny with RAxML or IQ-TREE, molecular simulations.                                                           |
 
-|                      | **OpenMP**                                                                                                                      | **MPI**                                                                                                                                |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **Qué es**           | Usar **varios núcleos de un mismo ordenador** al mismo tiempo.                                                                  | Usar **varios ordenadores/nodos del clúster** que se comunican entre sí.                                                               |
-| **Ventajas**         | - Fácil de usar.<br>- Casi todos los programas de bioinformática lo soportan.<br>- Ideal para análisis rápidos en un solo nodo. | - Permite trabajar con **datasets gigantes** que no caben en un nodo.<br>- Escala bien cuando se necesitan **muchos recursos**.        |
-| **Desventajas**      | - Solo funciona dentro de un nodo.<br>- Si el nodo tiene pocos núcleos, no puedes acelerar más.                                 | - Más complicado de configurar.<br>- Más sensible a errores de red o de nodos.<br>- Solo unos pocos programas bioinformáticos lo usan. |
-| **Ejemplos bioinfo** | Alineadores (BWA, Bowtie2, STAR), ensambladores (SPAdes, MEGAHIT), llamadas de variantes (GATK).                                | Filogenia con RAxML o IQ-TREE, simulaciones moleculares.                                                                               |
+> As noted by professionals on LinkedIn (F. Quartin de Macedo, M. Saad), OpenMP stands out for simplicity in shared memory, while MPI is valued for scalability on distributed systems. [Article here](https://www.linkedin.com/advice/0/what-pros-cons-using-openmp-vs-mpi-shared?lang=es&lang=es&originalSubdomain=es).
 
-
-> Como bien señalan profesionales en LinkedIn (F. Quartin de Macedo, M. Saad), OpenMP destaca por su sencillez en memoria compartida, mientras que MPI se valora por su escalabilidad en sistemas distribuidos. [Artículo aquí](https://www.linkedin.com/advice/0/what-pros-cons-using-openmp-vs-mpi-shared?lang=es&lang=es&originalSubdomain=es).
 ---
 
 [TODO]: <Still need to be tested>
-### Configuración de un trabajo OpenMP en Slurm
 
-Supongamos que queremos ejecutar un programa bioinformático que soporta paralelismo con OpenMP (por ejemplo, ensamblador de secuencias) en un clúster HPC que usa Slurm como gestor de colas. El objetivo es aprovechar, digamos, 8 núcleos de CPU en un nodo para acelerar el análisis. Cuando usamos OpenMP, la clave está en definir el parámetro de Slurm: **`--cpus-per-task`**.
+### Setting up an OpenMP job in Slurm
 
+Let’s say we want to run a bioinformatics program that supports OpenMP (for example, a sequence assembler) on a Slurm cluster. The goal is to use, say, 8 CPU cores on one node to speed up the analysis. With OpenMP, the key Slurm parameter is **`--cpus-per-task`**.
 
 ```bash
 #!/bin/bash
@@ -304,32 +296,32 @@ spades.py \
   -o ensamblado_resultado
 ```
 
-**Parámetros relevantes del script OpenMP:**
+**Relevant OpenMP script parameters:**
 
-* **`--cpus-per-task`** = número de hilos/threads que el software podrá usar.
-* La memoria **`--mem`** debe ser suficiente para todos esos hilos, ya que comparten la misma RAM del nodo.
-* `$SLURM_CPUS_PER_TASK` es una variable que Slurm rellena automáticamente con el valor que pediste.
+* **`--cpus-per-task`** = number of threads the software can use.
+* **`--mem`** must be enough for all those threads, since they share the node’s RAM.
+* `$SLURM_CPUS_PER_TASK` is a variable Slurm fills with the value you requested.
 
+**Run the OpenMP script:**
 
-**Ejecución del script OpenMP:**
 ```bash
 sbatch spades_slurm.sbatch
 ```
 
-**Debugging y control de uso:**
+**Debugging and usage checks:**
 
-* Durante la ejecución:
-  `sstat -j <jobid> --format=JobID,MaxRSS,AveCPU` → ver uso de RAM y CPU.
-* Después de acabar:
-  `sacct -j <jobid> --format=JobID,Elapsed,MaxRSS,TotalCPU` → comprobar si realmente usaste los hilos que pediste.
+* During execution:
+  `sstat -j <jobid> --format=JobID,MaxRSS,AveCPU` → see RAM and CPU usage.
+* After it finishes:
+  `sacct -j <jobid> --format=JobID,Elapsed,MaxRSS,TotalCPU` → check if you really used the threads you asked for.
 
 ---
 
 [TODO]: <Still need to be tested>
 
-### Configuración de un trabajo MPI en Slurm
+### Setting up an MPI job in Slurm
 
-Cuando usamos MPI, la clave está en **`--nodes`** y **`--ntasks`**. Supongamos un caso donde usamos una herramienta paralela con MPI – por ejemplo, el programa **RAxML** para un análisis filogenético grande, o cualquier otra aplicación HPC distribuida. En este caso queremos utilizar varios nodos, digamos 2 nodos con 4 procesos MPI en cada nodo (total 8 procesos de cómputo trabajando en paralelo). Los pasos del script SBATCH serían:
+With MPI, the key parameters are **`--nodes`** and **`--ntasks`**. Imagine using an MPI-enabled tool—e.g., **RAxML** for a large phylogenetic analysis. We want 2 nodes with 4 MPI processes on each (8 processes in total). The SBATCH script would be:
 
 ```bash
 #!/bin/bash
@@ -347,42 +339,39 @@ module load raxml/8.2.12
 mpirun -np $SLURM_NTASKS raxmlHPC-MPI -s datos.phy -n resultado -m GTRGAMMA
 ```
 
-**Parámetros relevantes del script OpenMP:**
+**Relevant MPI script parameters:**
 
-* **`--nodes`** = cuántos nodos distintos se usarán.
-* **`--ntasks`** = número total de procesos MPI a lanzar (pueden estar repartidos en varios nodos).
-* **`--ntasks-per-node`** = distribución de tareas por nodo (opcional, pero recomendable).
-* `$SLURM_NTASKS` = variable con el número de tareas pedidas.
+* **`--nodes`** = how many different nodes to use.
+* **`--ntasks`** = total number of MPI processes to launch (they can be split across nodes).
+* **`--ntasks-per-node`** = how many processes per node (optional but recommended).
+* `$SLURM_NTASKS` = variable with the total number of tasks requested.
 
-**Depuración y control de uso:**
+**Debugging and usage checks:**
 
-* Igual que en OpenMP, `sstat` y `sacct` sirven para ver uso real.
-* Importante: en MPI, si un nodo falla o hay mala conexión de red, todo el trabajo puede detenerse.
-
----
-
-### Extra: Pros y contras resumidos
-
-| Aspecto                | OpenMP                                         | MPI                                             |
-| ---------------------- | ---------------------------------------------- | ----------------------------------------------- |
-| **Facilidad de uso**   | Muy sencillo: solo pedir más CPUs/hilos        | Más complejo: nodos, tareas y distribución      |
-| **Velocidad**          | Escala bien dentro de un nodo                  | Escala entre nodos, ideal para trabajos enormes |
-| **Comunicación**       | Memoria compartida (rápida)                    | Red entre nodos (más lenta)                     |
-| **Uso típico bioinfo** | La mayoría de herramientas                     | Casos específicos (filogenia, simulaciones)     |
-| **Riesgos comunes**    | Pedir más hilos de los que el programa soporta | Configuración incorrecta de tareas/nodos        |
+* Same tools as OpenMP: `sstat` and `sacct` to see real usage.
+* Important: with MPI, if a node fails or there is a network problem, the whole job can stop.
 
 ---
 
-### Consejos de depuración para el alumno
+### Extra: quick pros and cons
 
-* **En OpenMP**:
-  Si pides 16 hilos pero `sacct` muestra `AveCPU` muy baja, es que tu software no está usando todos los hilos. Ajusta `--cpus-per-task` o revisa parámetros (`--threads` o similar).
+| Aspect              | OpenMP                                      | MPI                                           |
+| ------------------- | ------------------------------------------- | --------------------------------------------- |
+| **Ease of use**     | Very simple: just request more CPUs/threads | More complex: nodes, tasks, distribution      |
+| **Speed**           | Scales well inside one node                 | Scales across nodes; ideal for huge workloads |
+| **Communication**   | Shared memory (fast)                        | Network between nodes (slower)                |
+| **Typical bioinfo** | Most tools                                  | Specific cases (phylogeny, simulations)       |
+| **Common risks**    | Asking for more threads than the tool uses  | Wrong node/task configuration                 |
 
-* **En MPI**:
-  Si una tarea se queda colgada, revisa los logs (`.err`) para mensajes de conexión o comunicación. A veces es un problema de nodos ocupados o incompatibilidad con el módulo cargado.
+---
 
-* **En ambos casos**:
-  Usa trabajos cortos de prueba antes de lanzarte a un análisis de 3 días. Mejor descubrir un fallo en 5 minutos que en 72 horas.
+### Debugging tips for students
 
+* **OpenMP:**
+  If you request 16 threads but `sacct` shows very low `AveCPU`, your tool is not using all threads. Adjust `--cpus-per-task` or check the tool’s parameter (`--threads` or similar).
 
+* **MPI:**
+  If a task hangs, check the `.err` logs for network or communication messages. Sometimes it’s a busy node or an incompatible module.
 
+* **Both:**
+  Use short test runs before starting a 3-day analysis. It’s better to find a problem in 5 minutes than after 72 hours.
