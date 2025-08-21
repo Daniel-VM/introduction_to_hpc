@@ -43,6 +43,7 @@ tmp_idx       up   infinite     24   idle ideafix[02-03,05-07,09,14-15,17-32]
 Podemos ver que tenemos un máximo de 32 cpus y un máximo de memoria de 385000Mb, además tenemos 4 tipos de colas, las long, con un tiempo límite de 10 días, las middle con un tiempo limite de 2 días, las short con un tiempo límite de 12h y las tmp que no tienen tiempo límite.
 
 Para ver el estado de mis trabajos en la cola con información útil:
+
 ```bash
 squeue -o "%7i %75j %8T %10u %5a %10P %8Q %5D %11l %8M %7C %7m %R"
 ```
@@ -55,14 +56,14 @@ Más CPUs:
 srun --cpus-per-task 33 --output MORE_CPUS.%j.log --job-name MORE_CPUS sleep 1
 ```
 
-Observamos: 
+Observamos:
 
 ```bash
 srun: error: CPU count per node can not be satisfied
 srun: error: Unable to allocate resources: Requested node configuration is not available
 ```
 
-Más memoria: 
+Más memoria:
 
 ```bash
 # Más memoria
@@ -102,8 +103,8 @@ Recomendaciones:
 
 - Revisar siempre el numero máximo de recursos disponibles
 - Reservar siempre lo que creamos que va a necesitar un proceso:
-    - Reservar más recursos hará que tengamos menos prioridad en la cola
-    - Reservar menos recursos hará que el proceso se pare y tengamos que volver a empezar
+  - Reservar más recursos hará que tengamos menos prioridad en la cola
+  - Reservar menos recursos hará que el proceso se pare y tengamos que volver a empezar
 
 #### 2. Un trabajo utiliza más memoria de la solicitada
 
@@ -135,7 +136,7 @@ Ejecutamos:
 
 Observamos:
 
-```
+```bash
 
 ```
 
@@ -153,7 +154,7 @@ Ejecutamos:
 
 Observamos:
 
-```
+```bash
 
 ```
 
@@ -170,7 +171,7 @@ Vamos a ver como se puede emplear [**Ganglia**](http://ganglia.isciii.es/) como 
 
 Observamos:
 
-```
+```bash
 
 ```
 
@@ -188,7 +189,7 @@ Ejecutamos:
 
 Observamos:
 
-```
+```bash
 
 ```
 
@@ -207,7 +208,7 @@ touch test_file.txt
 
 Observamos:
 
-```
+```bash
 touch: cannot touch 'test_file.txt': Read-only file system
 ```
 
@@ -234,7 +235,7 @@ srun --output SCRATCH_TMP.%j.log --job-name SCRATCH_TMP cat test_file.txt &
 
 Observamos:
 
-```
+```bash
 srun: error: ideafix09: task 0: Exited with exit code 1
 ```
 
@@ -272,7 +273,7 @@ Ejecutamos:
 
 Observamos:
 
-```
+```bash
 
 ```
 
@@ -280,7 +281,7 @@ Recomendaciones:
 
 #### 9. Lanzar un pipeline de Nextflow: Ejecución, revisión e interpretación
 
-En este ejercicio vamos a ejecutar el pipeline de [**nf-core/bacass**]() indicando todos los pasos a seguir:
+En este ejercicio vamos a ejecutar el pipeline de [**nf-core/bacass**](https://github.com/nf-core/bacass) indicando todos los pasos a seguir:
 
 - Crear la carpeta de trabajo
 - Preparar los archivos necesarios
@@ -296,7 +297,7 @@ Ejecutamos:
 
 Observamos:
 
-```
+```bash
 
 ```
 
