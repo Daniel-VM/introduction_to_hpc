@@ -198,19 +198,67 @@ Recomendaciones:
 
 Como todos sabemos en este punto, par partición de `/scratch/` tiene permisos de lectura, pero no permisos de escritura. Si no trabajamos con las rutas correctas nos vamos a encontrar con problemas de permisos cuando estemos trabajando en el HPC.
 
-Ejecutamos:
+Vamos a ver que pasa si intentamos crear un archivo en `/scratch/bi`:
 
 ```bash
-
+cd /scratch/bi/
+touch test_file.txt
 ```
 
 Observamos:
 
 ```
-
+touch: cannot touch 'test_file.txt': Read-only file system
 ```
 
-Recomendaciones:
+Nos dice que es un directorio solo de lectura, por lo que no podemos crear un archivo
+
+Vamos a ver que pasa si intentamos crear un archivo en `/data/ucct/bi/scratch_tmp/bi`:
+
+```bash
+cd /data/ucct/bi/scratch_tmp/bi/
+touch test_file.txt
+ls
+```
+
+Observamos que el fichero se ha creado correctamente.
+
+¿Por qué trabajar en `/scratch/bi` si no tenemos permisos de escritura, si en `/data/ucct/bi/scratch_tmp/bi` si que los tenemos? Porque `/data/ucct/bi/scratch_tmp/bi` es la carpeta `/scratch/bi` montada y `/data/ucct/bi/scratch_tmp/bi` no existe en los nodos de computo.
+
+Que pasa si lanzo un trabajo desde `/data/ucct/bi/scratch_tmp/bi`?
+
+```bash
+cd /data/ucct/bi/scratch_tmp/bi/
+srun --output SCRATCH_TMP.%j.log --job-name SCRATCH_TMP cat test_file.txt &
+```
+
+Observamos:
+
+```
+srun: error: ideafix09: task 0: Exited with exit code 1
+```
+
+Tenemos que leer el archivo .log para ver que está ocurriendo:
+
+```bash
+cat SCRATCH_TMP.log 
+slurmstepd-ideafix09: error: couldn't chdir to `/data/ucct/bi/scratch_tmp/bi': No such file or directory: going to /tmp instead
+slurmstepd-ideafix09: error: couldn't chdir to `/data/ucct/bi/scratch_tmp/bi': No such file or directory: going to /tmp instead
+/usr/bin/cat: test_file.txt: No such file or directory
+```
+
+Como `/data/ucct/bi/scratch_tmp/bi` no existe en los nodos de computo, se mueve por defecto a `/tmp`, pero ahí no existe el archivo que hemos creado antes.
+
+Para que podamos crear archivis en `/data/ucct/bi/scratch_tmp/bi` y procesarlos en los nodos de computo en `/scratch/bi`, tenemos que emplear rutas relativas para los archivos, y usar el parámetro `chdir` en el `srun`.
+
+Primero escribimos algo dentro de `test_file.txt` como control positivo. Después ejecutamos:
+
+```bash
+cd /data/ucct/bi/scratch_tmp/bi/
+srun --output SCRATCH_TMP.%j.log --chdir /scratch/bi/ --job-name SCRATCH_TMP cat test_file.txt &
+```
+
+Al terminar el trabajo deberiamos leer el contenido del archivo .log y confirmar que sale el contenido de `test_file.txt`. Aquí lo que ha ocurrido es que en lugar de moverse a `/tmp` se ha movido a `/scratch/bi/`, donde si existe el archivo que habíamos creado a mano desde `/data/ucct/bi/scratch_tmp/bi`.
 
 #### 8. Gestión de ficheros
 
