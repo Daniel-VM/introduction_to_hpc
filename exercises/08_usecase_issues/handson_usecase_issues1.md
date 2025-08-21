@@ -179,21 +179,78 @@ Recomendaciones:
 
 #### 6. Problemas de memoria
 
-En ocasiones cuando estemos trabajando en el HPC podemos observar este error `PONER AQUI EL ERROR`. Este se debe a que la memoria de alguna de las particiones que estamos empleando está llena. Vamos a revisar el tamaño de las particiones para gestionar el almacenamiento de forma eficiente.
+En ocasiones cuando estemos trabajando en el HPC podemos observar este error `No space left on device`. Este se debe a que la memoria de alguna de las particiones que estamos empleando está llena. Vamos a revisar el tamaño de las particiones para gestionar el almacenamiento de forma eficiente.
 
 Ejecutamos:
 
 ```bash
-
+df -h
 ```
 
 Observamos:
 
 ```bash
-
+Filesystem                          Size  Used Avail Use% Mounted on
+tmpfs                                16G  4.4G   12G  29% /
+devtmpfs                             16G     0   16G   0% /dev
+tmpfs                                16G  571M   15G   4% /dev/shm
+tmpfs                                16G  746M   15G   5% /run
+tmpfs                                16G     0   16G   0% /sys/fs/cgroup
+IP:/HPC_UI_ACTIVE                    60T   54T  6.7T  89% /data
+IP:/HPC_Home                        200G  149G   52G  75% /home
+IP:/HPC_UCCT_BI_ACTIVE               30T   19T   12T  62% /data/ucct/bi
+IP:/HPC_Scratch                     7.4T  7.4T  0.0T 100% /data/ucct/bi/scratch_tmp
+IP:/HPC_Scratch                     7.4T  7.4T  0.0T 100% /scratch
+//IP7/hpc-bioinfo/                  1.0T  713G  312G  70% /data/ucct/bi/sftp
+IP:/HPC_Soft                        350G  295G   56G  85% /soft
+IP:/HPC_UCCT_ME_ARCHIVED             42T   38T  4.2T  91% /archived/ucct/me
+IP:/HPC_UCCT_BI_ARCHIVED             50T   37T   14T  74% /archived/ucct/bi
+IP:/HPC_Opt                         100G   15G   86G  15% /opt
+IP:/NGS_Data_FastQ_Active            15T  8.0T  7.1T  54% /srv/fastq_repo
+//IP7/hpc-genvigies/                1.0T  436G  589G  43% /sftp/genvigies
+tmpfs                               3.1G     0  3.1G   0% /run/user/3009
+tmpfs                               3.1G     0  3.1G   0% /run/user/3014
+tmpfs                               3.1G     0  3.1G   0% /run/user/3015
+tmpfs                               3.1G     0  3.1G   0% /run/user/3030
+tmpfs                               3.1G     0  3.1G   0% /run/user/3022
+tmpfs                               3.1G     0  3.1G   0% /run/user/3029
+tmpfs                               3.1G     0  3.1G   0% /run/user/1218
+tmpfs                               3.1G     0  3.1G   0% /run/user/1311
+tmpfs                               3.1G     0  3.1G   0% /run/user/1000
+tmpfs                               3.1G     0  3.1G   0% /run/user/3006
+tmpfs                               3.1G     0  3.1G   0% /run/user/3013
+tmpfs                               3.1G     0  3.1G   0% /run/user/1212
+tmpfs                               3.1G     0  3.1G   0% /run/user/3039
+tmpfs                               3.1G     0  3.1G   0% /run/user/3017
 ```
 
+Aquí podemos ver que el uso de `/scratch` y `/data/ucct/bi/scratch_tmp` es del 100% y que no queda espacio libre en la memoria. `/scratch` tiene 7Tb de memoria para compartir entre todos los usuarios del HPC. No es una unidad de almacenamiento sino una unidad de computo, por lo que debe permanecer nada ahí que no se vaya a computar a corto plazo (24 horas) ya que el almacenamiento es limitado.
+
+En estos casos habría que observar qué carpetas son las que más especio ocupan para borrarlas lo antes posible. Esto se realiza con el siguiente comando:
+
+```bash
+du -sh ./*
+```
+
+Observamos:
+
+```bash
+4.0K    ./00-reads
+81G     ./20250728_ANALYSIS02_METAGENOMIC_HUMAN
+78G     ./20250728_ANALYSIS05_TAXPROFILER
+4.0K    ./lablog_taxprofiler
+40K     ./lablog_viralrecon
+0       ./samples_id.txt
+0       ./samples_ref.txt
+```
+
+La primera columna es el espacio (en K, M o G) que ocupa un archivo o carpeta y la segunda es el nombre del archivo o carpeta. Es este ejemplo concreto tendríamos que revisar las carpetas `./20250728_ANALYSIS02_METAGENOMIC_HUMAN` y `./20250728_ANALYSIS05_TAXPROFILER` para ver si alguno de los archivos que tienen dentro se puede borrar. Esto solo en el caso de que siga necesitando computar con estos archivos, si no, habría que copiar la carpeta a una unidad de almacenamiento a largo plazo y borrarlo de `/scratch/bi`
+
 Recomendaciones:
+
+- Siempre que hayamos terminado un análisis, eliminar las carpetas temporales (work, tmp...)
+- Evitar almacenar archivos grandes redundantes (.bam, .sorted.bam, .sorted.trimmed.bam...)
+- Siempre que hayamos terminado con una carpeta, copiarla a una unidad de almacenamiento a largo plazo.
 
 #### 7. Permisos de las distintas particiones
 
