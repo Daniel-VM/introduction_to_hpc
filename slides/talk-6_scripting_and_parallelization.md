@@ -173,7 +173,7 @@ nano fastqc_array_20.sbatch
 #SBATCH --chdir=/path/to/project
 #SBATCH --job-name=fastqc_array
 #SBATCH --partition=short_idx
-#SBATCH --array=1-20%5            # 20 tasks; max 5 at the same time
+#SBATCH --array=1-20          
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=5G
 #SBATCH --time=00:15:00
@@ -201,8 +201,21 @@ You can set more complex ranges: `--array=1-3,7,9-12` would run tasks 1,2,3,7,9,
 Inside the script, it’s also common to customize log filenames to include the index:
 
 ```bash
-#SBATCH --output=fastqc_%A_%a.out
+#!/bin/bash
+#SBATCH --job-name=fastqc_array
+#SBATCH --partition=short_idx
+#SBATCH --array=1-20              # 20 tareas (1..20). Opcional: limita concurrencia con %N, p.ej. 1-20%5
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=1G
+#SBATCH --time=00:15:00
+#SBATCH --chdir=/path/to/project   # <- cambia a tu carpeta de trabajo
+#SBATCH --output=fastqc_%A_%a.out  # %A = JobID del array, %a = índice de tarea
 #SBATCH --error=fastqc_%A_%a.err
+
+module load fastqc/0.12.1
+
+mkdir -p fastqc_results
+fastqc -o fastqc_results muestra_${SLURM_ARRAY_TASK_ID}.fq.gz
 ```
 
 Here `%A` is the array’s main JobID and `%a` the task index. Each task writes to its own log (e.g., `fastqc_45678_3.out` for job 45678 task 3). Otherwise, if all tasks wrote to the same `slurm-45678.out`, it would be hard to separate outputs (by default, Slurm already separates array logs using `%A_%a` if you don’t set `--output`, but it’s good to know how to customize).
@@ -375,3 +388,6 @@ mpirun -np $SLURM_NTASKS raxmlHPC-MPI -s datos.phy -n resultado -m GTRGAMMA
 
 * **Both:**
   Use short test runs before starting a 3-day analysis. It’s better to find a problem in 5 minutes than after 72 hours.
+
+[TODO]: <Scirentific workflow with Nextflow>
+
