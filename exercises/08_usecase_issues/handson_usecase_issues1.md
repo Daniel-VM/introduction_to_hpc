@@ -14,20 +14,96 @@ En esta práctica se trabajará con situaciones reales y problemas comunes que p
 
 Vamos a intentar reservar más recursos de los disponibles para comprobar cómo el trabajo no entra en cola.
 
-Ejecutamos:
+Para ver los recursos límite de los nodos de los que disponemos podemos ejecutar: `sinfo -o "%25N  %10c  %20m  %30G"`:
 
 ```bash
-
+NODELIST                                            CPUS        MEMORY                GRES                           
+ideafix[01-32]                                      32          385000+               local_scratch:880G
 ```
 
-Observamos
+Para ver las la información de las particiones ejecutamos `sinfo`:
 
 ```bash
-
+$ sinfo 
+PARTITION  AVAIL  TIMELIMIT  NODES  STATE NODELIST
+long_idx      up 10-00:00:0      7  drain ideafix[01,04,08,10-13]
+long_idx      up 10-00:00:0      1    mix ideafix16
+long_idx      up 10-00:00:0     24   idle ideafix[02-03,05-07,09,14-15,17-32]
+middle_idx    up 2-00:00:00      7  drain ideafix[01,04,08,10-13]
+middle_idx    up 2-00:00:00      1    mix ideafix16
+middle_idx    up 2-00:00:00     24   idle ideafix[02-03,05-07,09,14-15,17-32]
+short_idx*    up   12:00:00      7  drain ideafix[01,04,08,10-13]
+short_idx*    up   12:00:00      1    mix ideafix16
+short_idx*    up   12:00:00     24   idle ideafix[02-03,05-07,09,14-15,17-32]
+tmp_idx       up   infinite      7  drain ideafix[01,04,08,10-13]
+tmp_idx       up   infinite      1    mix ideafix16
+tmp_idx       up   infinite     24   idle ideafix[02-03,05-07,09,14-15,17-32]
 ```
+
+Podemos ver que tenemos un máximo de 32 cpus y un máximo de memoria de 385000Mb, además tenemos 4 tipos de colas, las long, con un tiempo límite de 10 días, las middle con un tiempo limite de 2 días, las short con un tiempo límite de 12h y las tmp que no tienen tiempo límite.
+
+Para ver el estado de mis trabajos en la cola con información útil:
+```bash
+squeue -o "%7i %75j %8T %10u %5a %10P %8Q %5D %11l %8M %7C %7m %R"
+```
+
+Si lanzamos un trabajo reservando más recursos de los que disponemos ejecutando:
+
+Más CPUs:
+
+```bash
+srun --cpus-per-task 33 --output MORE_CPUS.%j.log --job-name MORE_CPUS sleep 1
+```
+
+Observamos: 
+
+```bash
+srun: error: CPU count per node can not be satisfied
+srun: error: Unable to allocate resources: Requested node configuration is not available
+```
+
+Más memoria: 
+
+```bash
+# Más memoria
+srun --output MORE_MEM.%j.log --mem 3850000M --job-name MORE_MEM sleep 1
+```
+
+Observamos:
+
+```bash
+srun: error: Memory specification can not be satisfied
+srun: error: Unable to allocate resources: Requested node configuration is not available
+```
+
+Más tiempo:
+
+```bash
+# Más memoria
+srun --output MORE_TIME.%j.log --partition short_idx --time 2-00:00:00 --job-name MORE_TIME sleep 1 &
+```
+
+Observamos:
+
+```bash
+srun: Requested partition configuration not available now
+srun: job 4787287 queued and waiting for resources
+```
+
+Pero si observamos nuestra cola veremos:
+
+```bash
+4787287 MORE_TIME                                                                   PENDING  s.varona   bi    short_idx  17928    1     2-00:00:00  0:00     1       4G      (PartitionTimeLimit)
+```
+
+Nos sale `PartitionTimeLimit` y nunca va a ejecutarse. Hay que matar el trabajo con `scancel 4787287`. El numero es el JOB_ID del gestor de colas.
 
 Recomendaciones:
 
+- Revisar siempre el numero máximo de recursos disponibles
+- Reservar siempre lo que creamos que va a necesitar un proceso:
+    - Reservar más recursos hará que tengamos menos prioridad en la cola
+    - Reservar menos recursos hará que el proceso se pare y tengamos que volver a empezar
 
 #### 2. Un trabajo utiliza más memoria de la solicitada
 
