@@ -4,6 +4,34 @@ BU-ISCIII
 
 ## Práctica 1: Comandos básicos de Linux
 
+### Índice
+
+- [Curso Práctico de Iniciación al uso del Entorno de Alta Computación](#curso-práctico-de-iniciación-al-uso-del-entorno-de-alta-computación)
+  - [Práctica 1: Comandos básicos de Linux](#práctica-1-comandos-básicos-de-linux)
+    - [Índice](#índice)
+    - [Descripción](#descripción)
+    - [Notas importantes](#notas-importantes)
+    - [Cheats](#cheats)
+    - [Ejercicios](#ejercicios)
+      - [1. Muestra tu directorio de trabajo actual](#1-muestra-tu-directorio-de-trabajo-actual)
+      - [2. Listar los archivos de tu carpeta actual.](#2-listar-los-archivos-de-tu-carpeta-actual)
+      - [3. Crear directorios](#3-crear-directorios)
+      - [4. Moverte entre directorios](#4-moverte-entre-directorios)
+      - [5. Crear directorios, moverse y crear archivos vacíos dentro.](#5-crear-directorios-moverse-y-crear-archivos-vacíos-dentro)
+      - [6. Modificar y visualizar el contenido de los archivos](#6-modificar-y-visualizar-el-contenido-de-los-archivos)
+      - [7. Parámetros de un mismo comando](#7-parámetros-de-un-mismo-comando)
+      - [8. Copiar archivos y directorios](#8-copiar-archivos-y-directorios)
+      - [9. Mover y renombrar archivos](#9-mover-y-renombrar-archivos)
+      - [10. Limpiar pantalla](#10-limpiar-pantalla)
+      - [11. WildCards](#11-wildcards)
+      - [12. Leer archivos](#12-leer-archivos)
+      - [13. Eliminar archivos](#13-eliminar-archivos)
+      - [14. Eliminar directorios](#14-eliminar-directorios)
+      - [15. Historial](#15-historial)
+      - [16. Usuarios](#16-usuarios)
+      - [17. Super usuario](#17-super-usuario)
+    - [Nota final](#nota-final)
+
 ### Descripción
 
 En esta práctica se usarán los comandos más básicos para trabajar desde la terminal.
