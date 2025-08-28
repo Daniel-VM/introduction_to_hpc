@@ -389,5 +389,4 @@ mpirun -np $SLURM_NTASKS raxmlHPC-MPI -s datos.phy -n resultado -m GTRGAMMA
 * **Both:**
   Use short test runs before starting a 3-day analysis. It’s better to find a problem in 5 minutes than after 72 hours.
 
-[TODO]: <Scirentific workflow with Nextflow>
 
