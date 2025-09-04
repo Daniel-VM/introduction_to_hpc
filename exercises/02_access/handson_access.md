@@ -2,12 +2,12 @@
 
 BU-ISCIII
 
-## Práctica 1: Acceso y transferencia de datos al clúster
+## Práctica 4: Acceso y transferencia de datos al clúster
 
 ## Índice
 
 - [Curso Práctico de Iniciación al uso del Entorno de Alta Computación](#curso-práctico-de-iniciación-al-uso-del-entorno-de-alta-computación)
-  - [Práctica 1: Acceso y transferencia de datos al clúster](#práctica-1-acceso-y-transferencia-de-datos-al-clúster)
+  - [Práctica 4: Acceso y transferencia de datos al clúster](#práctica-4-acceso-y-transferencia-de-datos-al-clúster)
   - [Índice](#índice)
     - [Descripción](#descripción)
     - [Notas importantes](#notas-importantes)
@@ -500,7 +500,7 @@ mkdir -p /data/unidad/$(date +%Y%m%d)_HPC-COURSE/{RAW,ANALYSIS,RESULTS,DOC,TMP,R
 ls -R /data/unidad/$(date +%Y%m%d)_HPC-COURSE
 ```
 
---Output esperado:--
+Output:
 
 ```bash
 /data/ucct/bi/tmp/20250902_HPC-COURSE:
@@ -513,7 +513,7 @@ ANALYSIS  DOC  RAW  REFERENCES  RESULTS  TMP
 /data/ucct/bi/tmp/20250902_HPC-COURSE/TMP:
 ```
 
-- Ahora ya podemos copiar los ficheros que hemos subido al HPC a la estructura de carpetas que hemos creado. Como son ficheros crudos de secuenciación los copiaremos en `RAW`. 
+- Ahora ya podemos copiar los ficheros que hemos subido al HPC a la estructura de carpetas que hemos creado. Como son ficheros crudos de secuenciación los copiaremos en `RAW`.
 
 ```bash
 cd /home/usuaio
