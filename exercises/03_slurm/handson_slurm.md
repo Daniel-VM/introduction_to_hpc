@@ -17,7 +17,6 @@ BU-ISCIII
     - [7. Cancelar trabajos con scancel](#7-cancelar-trabajos-con-scancel)
     - [8. Copiar datos entre /data y /scratch usando srun con rsync](#8-copiar-datos-entre-data-y-scratch-usando-srun-con-rsync)
     - [9. Ejecutar fastqc sobre datos reales en /scratch](#9-ejecutar-fastqc-sobre-datos-reales-en-scratch)
-    - [10. Copiar resultados a /data y limpiar /scratch](#10-copiar-resultados-a-data-y-limpiar-scratch)
     - [11. Solución de problemas](#11-solución-de-problemas)
 
 ### Objetivo
@@ -138,7 +137,7 @@ NUMA node1 CPU(s):   16-31
 srun --partition=short_idx --nodes=1 --ntasks=4 --time=00:10:00 bash -c 'echo Tarea $SLURM_PROCID en $(hostname)'
 ```
 
-1. Probar dos nodos con dos tareas por nodo.
+2. Probar dos nodos con dos tareas por nodo.
 
 ```bash
 srun --partition=middle_idx --nodes=2 --ntasks-per-node=1 --time=00:10:00 bash -c 'echo Nodo $(hostname) con tarea $SLURM_PROCID'
@@ -321,10 +320,25 @@ squeue -u "$USER" -o "%8i %12j %4t %10u %20P %11l %11L %50R" | grep demo_cancel 
 
 Ahora que sabemos usar srun con su parametrización, vamos a aprender a usar los filesystem de /data y /scratch. Específicamente vamos a copiar de un recuerso a otro usando un nodo de cómputo evitando cargar el nodo de acceso.
 
-1. Copiar datos que generamos en la pŕactica anterior (handson_access)[./handson_access.md] con rsync lanzado en un nodo de cómputo.
+1. Preparamos las carpetas que vamos a necesitar para el análisis real partiendo de la carpeta que creamos en la práctica anterior.
 
 ```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /data/*HPC-COURSE* /scratch/unidad
+# Nos movemos a la carpeta en nuestra carpeta compartida dentro del hpc
+cd /data/courses/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS
+# Creamos las carpetas que vamos a necesitar
+mkdir -p 00-reads 01-fastqc
+# vamos a crear un archivo con los nombres de los muestras
+ls ../RAW/*.fastq.gz | cut -d "/" -f 3 | cut -d "_" -f 1 | sort -u > samples_id.txt
+# Por último creamos enlaces simbólicos para cada muestra de forma homogéne en 00-reads para tenerlo a mano
+cd 00-reads 
+cat ../samples_id.txt | xargs -I % echo "ln -s ../../RAW/%_*1*.fastq.gz %_R1.fastq.gz" | bash
+cat ../samples_id.txt | xargs -I % echo "ln -s ../../RAW/%_*2*.fastq.gz %_R2.fastq.gz" | bash
+```
+
+1. Compiamos los datos a scratch con un rsync lanzado en un nodo de cómputo.
+
+```bash
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /data/courses/hpc_course/*HPC-COURSE*${USER}* /scratch/hpc_course
 ```
 
 ### 9. Ejecutar fastqc sobre datos reales en /scratch
@@ -334,24 +348,29 @@ Por último vamos a efectuar un ciclo de trabajo completo en scratch.
 1. Cargar el módulo o activar el entorno.
 
 ```bash
-module avail fastqc 2>/dev/null || true
-module load fastqc 2>/dev/null || true
-# o bien con mamba o conda
+cd /data/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS/01-fastqc
+# Modules y la gestión de software se desarrollará en la siguiente práctica
+module load FastQC/0.11.9-Java-11
 ```
 
 2. Ejecutar fastqc con srun guardando en RESULTS.
 
 ```bash
-srun --partition=short_idx --cpus-per-task=2 --mem=4G --time=00:15:00 fastqc -t 2 -o "$SCR"/RESULTS "$SCR"/RAW/*.fastq*
+srun --partition=short_idx --cpus-per-task=2 --mem=4G --time=00:15:00 --chdir /scratch/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS fastqc -t 2 -o 01-fastqc 00-reads/*.fastq.gz*
 ```
 
 3. Revisar salida.
 
 ```bash
-ls -lh "$SCR"/RESULTS
+ls
 ```
 
 - Deben generarse ficheros HTML y zip por cada fastq
+
+3. Para hacer este análisis hemos utilizado un único comando srun, es decir hemos analizado todas las muestras utilizando un único job, y se ha analizado una detrás de otra. Ahora vamos a lanzarlas todas a la vez en paralelo.
+
+```bash
+cat ../samples_id.txt | xargs -I % srun --partition=short_idx --cpus-per-task=2 --mem=4G --time=00:15:00 --chdir /scratch/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS fastqc -t 2 -o 01-fastqc 00-reads/%_R1.fastq.gz 00-reads/%_R2.fastq.gz
 
 ### 10. Copiar resultados a /data y limpiar /scratch
 
