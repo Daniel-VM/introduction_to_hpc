@@ -4,7 +4,7 @@
 
 ### Descripción
 
-En esta práctica aprenderás a crear un script `sbatch` y a enviarlo al sistema de colas del HPC. Además, **monitorizarás** la ejecución con Slurm y diagnosticarás el resultado usando los ficheros de log (`slurm-<jobid>.out/.err`) y los comandos `squeue`, `scontrol` y `sacct`.
+En esta práctica aprenderás a crear un script `sbatch` y a enviarlo al sistema de colas del HPC. Además, **monitorizarás** la ejecución con Slurm y diagnosticarás el resultado usando los ficheros de log (`%x-%j.out/.err`) y los comandos `squeue`, `scontrol` y `sacct`.
 Partiremos de un **script base** que ejecuta **FastQC** sobre dos FASTQ pequeños y crearemos **3 variantes** para observar:
 
 1. ejecución correcta,
@@ -28,13 +28,13 @@ Guarda como **`fastqc_demo.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_demo
-#SBATCH --chdir=/scratch/bi/TESTS/daniel_vm/intro_to_hpc
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
 #SBATCH --time=00:05:00
-#SBATCH --output=slurm-%j.out
-#SBATCH --error=slurm-%j.err
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
 
 # Carga dependencias
 module load FastQC/0.11.9-Java-11
@@ -43,8 +43,11 @@ module load FastQC/0.11.9-Java-11
 echo "[INFO] Node: $(hostname)"
 echo "[INFO] Starting FastQC at $(date)"
 
-mkdir -p fastqc_results
-fastqc data/sample_R1.fastq.gz data/sample_R2.fastq.gz -o fastqc_results
+# Crea la carpeta de resultados
+mkdir -p 02-fastqc-array-results
+
+# Ejecuta fastqc
+fastqc data/sample_R1.fastq.gz data/sample_R2.fastq.gz -o 02-fastqc-array-results
 
 echo "[INFO] Finished at $(date)"
 ```
@@ -54,13 +57,13 @@ echo "[INFO] Finished at $(date)"
 ```bash
 sbatch fastqc_demo.sbatch \
   --job-name=fastqc_demo \
-  --chdir=/scratch/bi/TESTS/daniel_vm/intro_to_hpc \
+  --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization \
   --partition=short_idx \
   --cpus-per-task=1 \
   --mem=4G \
   --time=00:05:00 \
-  --output=slurm-%j.out \
-  --error=slurm-%j.err
+  --output=%x-%j.out \
+  --error=%x-%j.err
 ```
 
 ---
@@ -100,8 +103,8 @@ sacct -j <JOBID> -o JobID,State,Elapsed,MaxRSS,TotalCPU,ExitCode
 5. Leer logs
 
 ```bash
-less slurm-<JOBID>.out
-less slurm-<JOBID>.err
+less fastqc_demo-<JOBID>.out
+less fastqc_demo-<JOBID>.err
 ```
 
 **PREGUNTA:**
@@ -122,21 +125,21 @@ En este caso modificamos el script, lo guardamos como **`fastqc_failcmd.sbatch`*
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_fail
-#SBATCH --chdir=/scratch/bi/TESTS/daniel_vm/intro_to_hpc
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
 #SBATCH --time=00:05:00
-#SBATCH --output=slurm-%j.out
-#SBATCH --error=slurm-%j.err
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
 
 module load FastQC/0.11.9-Java-11
 
 echo "[INFO] Node: $(hostname)"
 echo "[INFO] Starting FastQC at $(date)"
 
-mkdir -p fastqc_results
-fastp data/sample_R1.fastq.gz data/sample_R2.fastq.gz -o fastqc_results   # <<<< comando incorrecto
+mkdir -p 02-fastqc-array-results
+fastp data/sample_R1.fastq.gz data/sample_R2.fastq.gz -o 02-fastqc-array-results   # <<<< comando incorrecto
 
 echo "[INFO] Finished at $(date)"
 ```
@@ -146,7 +149,7 @@ Ejecuta y monitoriza:
 ```bash
 sbatch fastqc_failcmd.sbatch
 sacct -j <JOBID> -o JobID,State,Elapsed,ExitCode
-tail slurm-<JOBID>.err
+tail fastqc_fail-<JOBID>.err
 ```
 
 *Ejemplo de error esperado en `.err`:*
@@ -156,7 +159,7 @@ Failed to execute: command not found
 ```
 
 **PREGUNTA:**
-¿Qué **mensaje de error** aparece en `slurm-<jobid>.err` y qué **ExitCode** ves en `sacct`?
+¿Qué **mensaje de error** aparece en `fastqc_fail-<jobid>.err` y qué **ExitCode** ves en `sacct`?
 ¿Qué **cambio mínimo** haría que el trabajo funcione?
 
 ---
@@ -171,21 +174,21 @@ Script: **`fastqc_overask.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_overask
-#SBATCH --chdir=/scratch/bi/TESTS/daniel_vm/intro_to_hpc
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=530G                       # << imposible en este nodo
 #SBATCH --time=00:05:00
-#SBATCH --output=slurm-%j.out
-#SBATCH --error=slurm-%j.err
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
 
 module load FastQC/0.11.9-Java-11
 
 echo "[INFO] Node: $(hostname)"
 echo "[INFO] Starting FastQC at $(date)"
 
-mkdir -p fastqc_results
-fastqc data/sample_R1.fastq.gz data/sample_R2.fastq.gz -o fastqc_results
+mkdir -p 02-fastqc-array-results
+fastqc data/sample_R1.fastq.gz data/sample_R2.fastq.gz -o 02-fastqc-array-results
 
 echo "[INFO] Finished at $(date)"
 ```
@@ -225,19 +228,20 @@ Script: **`array_intro.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=array_intro
-#SBATCH --chdir=/scratch/bi/TESTS/daniel_vm/intro_to_hpc
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --array=1-9%3
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=2G
 #SBATCH --time=00:05:00
-#SBATCH --output=logs/intro_%A_%a.out
-#SBATCH --error=logs/intro_%A_%a.err
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
 
 module load FastQC/0.11.9-Java-11
 
-mkdir -p logs results/intro
-OUTDIR="results/intro"
+mkdir -p 02-fastqc-array-results
+OUTDIR="02-fastqc-array-results/intro_${SLURM_ARRAY_JOB_ID}"
+mkdir -p "$OUTDIR"
 
 fastqc -o "$OUTDIR" "data/sample0${SLURM_ARRAY_TASK_ID}_R1.fastq.gz" \
                  "data/sample0${SLURM_ARRAY_TASK_ID}_R2.fastq.gz"
@@ -267,20 +271,27 @@ Script: **`fastqc_array.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_array
-#SBATCH --chdir=/scratch/bi/TESTS/daniel_vm/intro_to_hpc
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=6G
 #SBATCH --array=1-10
-#SBATCH --output=logs/array_%A_%a.out
-#SBATCH --error=logs/array_%A_%a.err
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
 
 module load FastQC/0.11.9-Java-11
 
-INPUT=$(sed -n "${SLURM_ARRAY_TASK_ID}p" data/filelist_R1.txt)
-OUTDIR="results/fastqc_array_${SLURM_ARRAY_JOB_ID}"
-mkdir -p "$OUTDIR" logs
+# Creamos la carpeta de resultados
+mkdir -p 02-fastqc-array-results
 
+# Construimos el array input a partir del archivo filelist
+INPUT=$(sed -n "${SLURM_ARRAY_TASK_ID}p" data/filelist_R1.txt)
+
+# Creamos una carpeta de resultados para cada archivo
+OUTDIR="02-fastqc-array-results/fastqc_array_${SLURM_ARRAY_JOB_ID}"
+mkdir -p "$OUTDIR"
+
+# Ejecutamos el comando:
 fastqc -o "$OUTDIR" "$INPUT"
 echo "[INFO] Task ${SLURM_ARRAY_TASK_ID} End: $(date)"
 ```
@@ -346,22 +357,22 @@ Veamos cómo construir el script. Se muestra **`fastp_openmp.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastp_omp
-#SBATCH --chdir=/scratch/bi/TESTS/daniel_vm/intro_to_hpc
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=4           # <- nº hilos/threads OpenMP
 #SBATCH --mem=16G
 #SBATCH --time=00:30:00
-#SBATCH --output=logs/fastp_omp_%j.out
-#SBATCH --error=logs/fastp_omp_%j.err
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
 
 module load fastp/0.20.0-GCC-8.3.0
-mkdir -p results/fastp logs
+mkdir -p 01-openmp-mpi-results
 
 # Setup de variables
 R1=data/sample01_R1.fastq.gz
 R2=data/sample01_R2.fastq.gz
-OUTR1=results/fastp/sample01.clean.R1.fastq.gz
-OUTR2=results/fastp/sample01.clean.R2.fastq.gz
+OUTR1=01-openmp-mpi-results/sample01.clean.R1.fastq.gz
+OUTR2=01-openmp-mpi-results/sample01.clean.R2.fastq.gz
 
 # Ejecutamos el comando
 fastp -i "$R1" -I "$R2" -o "$OUTR1" -O "$OUTR2" \
@@ -396,19 +407,20 @@ Guarda como **`spades_openmp.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=spades_omp
-#SBATCH --chdir=/scratch/bi/TESTS/daniel_vm/intro_to_hpc
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
 #SBATCH --time=02:00:00
-#SBATCH --output=logs/spades_%j.out
-#SBATCH --error=logs/spades_%j.err
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
 
 module load SPAdes/3.15.2-GCC-10.2.0
+mkdir -p 01-openmp-mpi-results
 R1=data/sample01_R1.fastq.gz
 R2=data/sample01_R2.fastq.gz
 
-spades.py -1 "$R1" -2 "$R2" -o results/spades_sample01 \
+spades.py -1 "$R1" -2 "$R2" -o 01-openmp-mpi-results/spades_sample01 \
     --threads "$SLURM_CPUS_PER_TASK" \
     --mem 32
 ```
@@ -437,7 +449,7 @@ Guarda como **`raxml_mpi.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=raxml_mpi
-#SBATCH --chdir=/scratch/bi/TESTS/daniel_vm/intro_to_hpc
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --nodes=2                 # <-- nº de nodos
 #SBATCH --ntasks=8                # total procesos MPI
@@ -445,16 +457,17 @@ Guarda como **`raxml_mpi.sbatch`**:
 #SBATCH --cpus-per-task=1         # (MPI puro: 1 CPU por proceso)
 #SBATCH --mem=8G
 #SBATCH --time=00:30:00
-#SBATCH --output=logs/raxml_%j.out
-#SBATCH --error=logs/raxml_%j.err
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
 
 module load RAxML/8.2.12-gompi-2020a-hybrid-avx2  # el módulo puede traer varios binarios
 
 RUNNAME="ML_bootstrap"
-RESULTS_DIR="$(pwd)/results/raxml_${SLURM_JOB_ID}"
+mkdir -p 01-openmp-mpi-results
+RESULTS_DIR="01-openmp-mpi-results/raxml_${SLURM_JOB_ID}"
 mkdir -p "$RESULTS_DIR"
 
-mpirun -np "$SLURM_NTASKS" raxmlHPC-MPI \
+mpirun -np "$SLURM_NTASKS" raxmlHPC \
   -s data/datos.phy \
   -m GTRGAMMA \
   -p 12345 \
@@ -463,7 +476,7 @@ mpirun -np "$SLURM_NTASKS" raxmlHPC-MPI \
   -w "$RESULTS_DIR"
 ```
 
-> Se han definido 8 procesos MPI (`--ntasks=8`). Con `--nodes=2` y `--ntasks-per-node=4`, Slurm colocará 4 procesos en cada nodo. Los resultados se guardan **ordenados** en `results/raxml_<JobID>`.
+> Se han definido 8 procesos MPI (`--ntasks=8`). Con `--nodes=2` y `--ntasks-per-node=4`, Slurm colocará 4 procesos en cada nodo. Los resultados se guardan **ordenados** en `01-openmp-mpi-results/raxml_<JobID>`.
 
 **Parámetros clave de RAxML**
 `-s` (alineamiento PHYLIP), `-m` (modelo, p.ej. GTRGAMMA), `-p` (semilla), `-#` (nº de réplicas/árboles), `-n` (prefijo de salida), `-w` (directorio de trabajo/salida).

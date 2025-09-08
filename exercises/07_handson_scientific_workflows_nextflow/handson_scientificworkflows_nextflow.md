@@ -86,23 +86,26 @@ Vamos a crear un script `sbatch` con el comando de Nextflow a ejecutar. Hay que 
 ```bash
 #!/bin/bash
 #SBATCH --job-name=nf_demo
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scientific-workflows-nextflow
 #SBATCH --partition=short_idx
 #SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=1                 # Recursos SOLO para el controlador de Nextflow
 #SBATCH --mem=2G
-#SBATCH --output=nextflow_stdout.log
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
 
 # Carga las dependencias para ejecutar Nextflow
 module purge
 module load Nextflow/23.10.0
 module load singularity/3.7.1
 
+mkdir -p 01-nextflow-demo-results
 # Ejecuta nf-core/demo (workflow preparado)
 # Importante: le indicamos que lea el archivo de configuración
 nextflow run nf-core/demo \
   -profile test,singularity \
   -c nextflow.config \
-  --outdir results \
+  --outdir 01-nextflow-demo-results \
   -resume
 ```
 
@@ -119,10 +122,10 @@ sbatch nextflow_demo.sbatch
 
 Ahora es el momento de monitorizar las tareas. En Nextflow tenemos que visualizar los siguientes puntos para el monitoreo:
 
-* El *standard output* se guardará en el archivo que hayamos definido en `--output` (en este ejemplo: `nextflow_stdout.log`). Ejemplo de un *standard output* de Nextflow.:
+* El *standard output* se guardará en el archivo que hayamos definido en `--output` (en este ejemplo: `%x-%j.out`). Ejemplo de un *standard output* de Nextflow.:
 
 ```bash
-tail -f nextflow_stdout.log
+tail -f nf_demo-<JOBID>.out
 ```
 
 ```bash
@@ -143,13 +146,13 @@ Succeeded   : 8
 
 * Comando `watch squeue --me` para ver las tareas que van entrando al sistema de colas del HPC.
 
-* Por último tendrás que explorar los resultados. Como podrás observar, se habrá creado una carpeta `results/` (corresponde con los resultados finales del workflow) y `work/` (carpeta propia de Nextflow que almacena tanto datos intermedios como resultados finales).
+* Por último tendrás que explorar los resultados. Como podrás observar, se habrá creado una carpeta `01-nextflow-demo-results/` (corresponde con los resultados finales del workflow) y `work/` (carpeta propia de Nextflow que almacena tanto datos intermedios como resultados finales).
 
 
 **PREGUNTAS:**
 
 * ¿Cuántas tareas se lanzaron y con qué **jobName** aparecen en `squeue`?
-* Explora detenidamente la carpeta `results/pipeline_info/` generada por el workflow. 
+* Explora detenidamente la carpeta `01-nextflow-demo-results/pipeline_info/` generada por el workflow. 
 * Lanza **otra vez** el comando anterior añadiendo `-resume`: ¿re-ejecuta todo?
 
 ## C) Caso real: **nf-core/bacass**
@@ -176,21 +179,24 @@ Crea el script sbatch master que controlará la ejecución de nextflow. Llamarem
 ```bash
 #!/bin/bash
 #SBATCH --job-name=nf_bacass
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scientific-workflows-nextflow
 #SBATCH --partition=short_idx
 #SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=2G
-#SBATCH --output=nextflow_bacass_stdout.log
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
 
 module purge
 module load Nextflow/23.10.0
 module load singularity/3.7.1
 
+mkdir -p 02-nextflow-bacass-results
 nextflow run nf-core/bacass \
   -profile test,singularity \
   -c nextflow.config \
   --input samplesheet.csv \
-  --outdir results/bacass_test \
+  --outdir 02-nextflow-bacass-results \
   -resume
 ```
 
@@ -200,17 +206,17 @@ nextflow run nf-core/bacass \
 
 ```bash
 squeue --me -o "%.18i %.10P %.40j %.2t %.10M %.6D %R"
-tail -f nextflow_bacass_stdout.log
+tail -f nf_bacass-<JOBID>.out
 ```
 
 **Salidas esperables:**
 
-* `results/bacass_test/` con ensamblados, anotación y **MultiQC**.
-* `results/bacass_test/pipeline_info/`.
+* `02-nextflow-bacass-results/` con ensamblados, anotación y **MultiQC**.
+* `02-nextflow-bacass-results/pipeline_info/`.
 
 **PREGUNTAS:**
 
-* Explora `results/bacass_test/pipeline_info/`: ¿qué **etapa** fue la más lenta?
+* Explora `02-nextflow-bacass-results/pipeline_info/`: ¿qué **etapa** fue la más lenta?
 * Vuelve a lanzar con `-resume`: ¿qué etapas **se saltan** y cuáles se re-ejecutan?
 
 ### 3) Ajustar recursos “por proceso” (sin tocar el pipeline)
@@ -273,5 +279,6 @@ process {
 
 * ¿Qué parte te resultó más “mágica”: **no usar `sbatch`** o **reanudar** con `-resume`?
 * ¿Dónde mirarías primero si algo falla?
+
 
 
