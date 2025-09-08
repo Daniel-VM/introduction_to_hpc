@@ -158,9 +158,44 @@ Succeeded   : 8
 ## C) Caso real: **nf-core/bacass**
 
 
-Vamos a hacer un análisis real de un workflow en bioinformática automatizado con Nextflow y listo para ser utilizado en la infraestructura HPC. Este pipeline se llama [nf-core/bacass](https://nf-co.re/bacass/2.4.0), y realiza un control de calidad, ensamblado y anotación de genomas con multitud de herrmaientas.
+Vamos a hacer un análisis real de un workflow en bioinformática automatizado con Nextflow y listo para ser utilizado en la infraestructura HPC. Este pipeline se llama [nf-core/bacass](https://nf-co.re/bacass/2.4.0), y realiza un control de calidad, ensamblado y anotación de genomas con multitud de herramientas.
 
-Para comenzar, vamos cear un archivo de entrada para el pipeline en tu directorio de trabajo. Este archivo recoge la relación entre el nombre de la muestra y sus archivos implicados: 
+### 1) Quickstart con perfil de testing (sin samplesheet)
+
+nf-core/bacass incluye un perfil de testing (`-profile test`) que trae datos de prueba y parámetros mínimos preconfigurados dentro del propio pipeline. Con este perfil NO necesitas pasar `--input` ni otros parámetros de entrada; es ideal para verificar que Nextflow está bien configurado en tu cuenta.
+
+Script sbatch de ejemplo (solo controlador; las tareas pesadas las lanza Nextflow a Slurm):
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=nf_bacass_test
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/10-scientific-workflows-nextflow
+#SBATCH --partition=short_idx
+#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=2G
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+
+module purge
+module load Nextflow/23.10.0
+module load singularity/3.7.1
+
+mkdir -p 02-nextflow-bacass-results-test
+nextflow run nf-core/bacass \
+  -profile test,singularity \
+  -c nextflow.config \
+  --outdir 02-nextflow-bacass-results-test \
+  -resume
+```
+
+> El perfil `test` trae un dataset diminuto embebido en el pipeline (o referenciado desde su repositorio) y valores por defecto adecuados para comprobar que todo funciona en Slurm.
+
+---
+
+### 2) Crear `samplesheet.csv` (tus propios datos)
+
+Si quieres ejecutar el pipeline con tus datos, bacass espera un `samplesheet.csv` con esta estructura mínima (una muestra por fila):
 
 ```bash
 cat > samplesheet.csv <<'CSV'
@@ -170,9 +205,43 @@ Sample02,/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample02_R1.fa
 CSV
 ```
 
-> Cada fila muestra la información de una muestra. 
+> Cada fila muestra la información de una muestra.
 
-### 2) Reutiliza `nextflow.config` y lanza bacass
+#### 2.b) Generar `samplesheet.csv` a partir de `samples_id.txt` y `00-reads/`
+
+Si durante una sesión previa has generado `ANALYSIS/samples_id.txt` (una ID por línea) y has dejado los FASTQ en `ANALYSIS/00-reads/` con el patrón `<ID>_R1.fastq.gz` y `<ID>_R2.fastq.gz`, puedes crear el `samplesheet.csv` automáticamente:
+
+```bash
+# Rutas base (ajusta si es necesario)
+ANALYSIS_BASE="/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS"
+READS_DIR="${ANALYSIS_BASE}/00-reads"
+IDS_FILE="${ANALYSIS_BASE}/samples_id.txt"
+
+# Cabecera obligatoria para nf-core/bacass
+echo "ID,R1,R2,LongFastQ,Fast5,GenomeSize" > samplesheet.csv
+
+# Añade una fila por cada ID (R1/R2 apuntan a 00-reads)
+while read -r ID; do \
+  printf "%s,%s/%s_R1.fastq.gz,%s/%s_R2.fastq.gz,NA,NA,NA\n" \
+    "$ID" "$READS_DIR" "$ID" "$READS_DIR" "$ID" >> samplesheet.csv; \
+done < "$IDS_FILE"
+
+# Revisión rápida
+head -n 5 samplesheet.csv
+```
+
+Alternativa con `awk` (una sola línea):
+
+```bash
+awk -v R="/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads" \
+  'BEGIN{print "ID,R1,R2,LongFastQ,Fast5,GenomeSize"} \
+   {printf "%s,%s/%s_R1.fastq.gz,%s/%s_R2.fastq.gz,NA,NA,NA\n", $0,R,$0,R,$0}' \
+  /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/samples_id.txt > samplesheet.csv
+```
+
+> Comprueba que todos los ficheros existen (`ls -1 /scratch/.../00-reads/<ID>_R[12].fastq.gz`). Si alguna muestra no tiene R2 (lecturas simples), ajusta la línea correspondiente dejando `R2` vacío o consulta la documentación del pipeline para el formato single-end.
+
+### 3) Reutiliza `nextflow.config` y lanza bacass con tu samplesheet
 
 Crea el script sbatch master que controlará la ejecución de nextflow. Llamaremos a este script `nextflow_bacass.sbatch`.
 
