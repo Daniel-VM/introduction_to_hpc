@@ -15,7 +15,7 @@ BU-ISCIII
       - [5. Problemas de memoria](#5-problemas-de-memoria)
       - [6. Permisos de las distintas particiones](#6-permisos-de-las-distintas-particiones)
       - [7. Gestión de ficheros](#7-gestión-de-ficheros)
-      - [9. Lanzar un pipeline de Nextflow: Ejecución, revisión e interpretación](#9-lanzar-un-pipeline-de-nextflow-ejecución-revisión-e-interpretación)
+      - [9. Lanzar un pipeline de Nextflow en un caso real: Ejecución, revisión e interpretación](#9-lanzar-un-pipeline-de-nextflow-en-un-caso-real-ejecución-revisión-e-interpretación)
       - [10. Interpretación de logs](#10-interpretación-de-logs)
 
 ### Descripción
@@ -396,132 +396,32 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
   }
   ```
 
-- Script `cleanup_scratch.sh`: limpieza segura con dos modos
+- Script `cleanup_scratch.sh`: limpia temporales antiguos de forma segura
 
-  - Modo `temps`: busca temporales (p. ej. `work*`, `tmp*`, `.nextflow*`) antiguos.
-  - Modo `stale`: busca carpetas de primer nivel en `BASE` sin modificación reciente.
-
-  Por defecto solo muestra lo que borraría (modo "dry-run"). Para ejecutar el borrado, añade `--force`.
+  Por defecto solo muestra lo que borraría (modo "dry-run"). Para ejecutar el borrado, añadir `--force`.
 
   Guardar como `~/bin/cleanup_scratch.sh` y dar permisos: `chmod +x ~/bin/cleanup_scratch.sh`.
 
   ```bash
   #!/usr/bin/env bash
   set -euo pipefail
-
-  # Valores por defecto
   BASE="/scratch/hpc_course"
-  DAYS=2
-  MODE="temps"      # temps|stale
-  FORCE=0
-  KEEP_PATTERNS=()   # Solo aplica a modo 'stale' (patrones de nombre a conservar)
+  DAYS="${1:-2}"   # días de antigüedad
+  MODE="${2:---dry-run}"
 
-  usage() {
-    cat <<EOF
-Uso: $(basename "$0") [opciones]
+  echo "Buscando temporales (> ${DAYS} días) en ${BASE}"
+  find "$BASE" -maxdepth 3 \
+    \( -name "work" -o -name "work_*" -o -name "tmp" -o -name "tmp_*" -o -name ".nextflow*" \) \
+    -type d -mtime +"$DAYS" -print
 
-  -m, --mode   Modo de limpieza: temps (por defecto) o stale
-  -d, --days   Días de antigüedad (por defecto: 2)
-  -b, --base   Directorio base (por defecto: /scratch/hpc_course)
-  -k, --keep   Patrón de nombre a conservar (repetible; solo en modo stale)
-  -f, --force  Ejecuta el borrado (por defecto dry-run)
-  -h, --help   Muestra esta ayuda
-
-Ejemplos:
-  # Temporales antiguos (dry-run)
-  cleanup_scratch.sh -m temps -d 3
-
-  # Carpetas a primer nivel sin tocar en >2 días (dry-run)
-  cleanup_scratch.sh -m stale
-
-  # Borrar de verdad, conservando carpetas cuyo nombre case con "refs" o "important*"
-  cleanup_scratch.sh -m stale -f -k refs -k 'important*'
-EOF
-  }
-
-  # Parseo simple de flags
-  while [[ ${1:-} ]]; do
-    case "$1" in
-      -m|--mode) MODE="$2"; shift 2 ;;
-      -d|--days) DAYS="$2"; shift 2 ;;
-      -b|--base) BASE="$2"; shift 2 ;;
-      -k|--keep) KEEP_PATTERNS+=("$2"); shift 2 ;;
-      -f|--force) FORCE=1; shift ;;
-      -h|--help) usage; exit 0 ;;
-      *) echo "Opción no reconocida: $1"; usage; exit 1 ;;
-    esac
-  done
-
-  # Salvaguarda: exigir ruta en /scratch
-  if [[ "$BASE" != /scratch/* ]]; then
-    echo "ERROR: BASE debe estar bajo /scratch (actual: $BASE)" >&2
-    exit 1
-  fi
-
-  # Función auxiliar: confirma y ejecuta borrado
-  confirm_and_delete() {
-    local prompt="$1"; shift
-    local del_cmd=("$@")
-
-    if (( FORCE )); then
-      read -rp "$prompt [y/N] " ans
-      [[ "${ans:-N}" =~ ^[Yy]$ ]] || { echo "Cancelado"; return 0; }
-      "${del_cmd[@]}"
-    else
-      echo "(modo simulación: añade --force para borrar)"
-    fi
-  }
-
-  if [[ "$MODE" == "temps" ]]; then
-    echo "Buscando temporales (> ${DAYS} días) en ${BASE} (work*, tmp*, .nextflow*)"
-    # Listado
+  if [[ "$MODE" == "--force" ]]; then
+    read -rp "¿Eliminar los directorios listados? [y/N] " ans
+    [[ "${ans:-N}" =~ ^[Yy]$ ]] || { echo "Cancelado"; exit 0; }
     find "$BASE" -maxdepth 3 \
       \( -name "work" -o -name "work_*" -o -name "tmp" -o -name "tmp_*" -o -name ".nextflow*" \) \
-      -type d -mtime +"$DAYS" -print
-
-    # Borrado
-    confirm_and_delete "¿Eliminar los directorios listados?" \
-      find "$BASE" -maxdepth 3 \
-        \( -name "work" -o -name "work_*" -o -name "tmp" -o -name "tmp_*" -o -name ".nextflow*" \) \
-        -type d -mtime +"$DAYS" -exec rm -rf {} +
-
-  elif [[ "$MODE" == "stale" ]]; then
-    echo "Buscando carpetas de primer nivel sin modificación en > ${DAYS} días en ${BASE}"
-    # Recogemos candidatas de primer nivel
-    mapfile -t CANDIDATES < <(find "$BASE" -mindepth 1 -maxdepth 1 -type d -mtime +"$DAYS" -print | sort)
-
-    # Filtrado por patrones a conservar
-    TO_DELETE=()
-    for d in "${CANDIDATES[@]:-}"; do
-      name="$(basename "$d")"
-      keep=0
-      for pat in "${KEEP_PATTERNS[@]:-}"; do
-        if [[ "$name" == $pat ]]; then
-          keep=1; break
-        fi
-      done
-      (( keep )) || TO_DELETE+=("$d")
-    done
-
-    if ((${#TO_DELETE[@]}==0)); then
-      echo "No hay carpetas candidatas para borrar."
-      exit 0
-    fi
-
-    printf '%s\n' "${TO_DELETE[@]}"
-
-    # Borrado
-    if (( FORCE )); then
-      read -rp "¿Eliminar las carpetas listadas? [y/N] " ans
-      [[ "${ans:-N}" =~ ^[Yy]$ ]] || { echo "Cancelado"; exit 0; }
-      rm -rf -- "${TO_DELETE[@]}"
-    else
-      echo "(modo simulación: añade --force para borrar)"
-    fi
-
+      -type d -mtime +"$DAYS" -exec rm -rf {} +
   else
-    echo "ERROR: modo no reconocido: $MODE (usa temps|stale)" >&2
-    exit 1
+    echo "(modo simulación: añade --force para borrar)"
   fi
   ```
 
@@ -557,9 +457,9 @@ Recomendaciones:
 - Mantener `logs/` en data y solo temporales/pesados en scratch.
 - Automatizar con `rsync` y revisar siempre en modo `--dry-run` antes de borrar.
 
-#### 9. Lanzar un pipeline de Nextflow: Ejecución, revisión e interpretación
+#### 9. Lanzar un pipeline de Nextflow en un caso real: Ejecución, revisión e interpretación
 
-En este ejercicio vamos a ejecutar el pipeline de [**nf-core/bacass**](https://github.com/nf-core/bacass) indicando todos los pasos a seguir:
+Vamos a hacer un análisis real de un workflow en bioinformática automatizado con Nextflow y listo para ser utilizado en la infraestructura HPC. Este pipeline se llama [nf-core/bacass](https://nf-co.re/bacass/2.4.0), y realiza un control de calidad, ensamblado y anotación de genomas con multitud de herramientas.
 
 - Crear la carpeta de trabajo
 - Preparar los archivos necesarios
@@ -567,19 +467,150 @@ En este ejercicio vamos a ejecutar el pipeline de [**nf-core/bacass**](https://g
 - Revisar los logs y resultados
 - Revisar la carpeta `work`
 
-Ejecutamos:
+1. Quickstart con perfil de testing (sin samplesheet)
+
+nf-core/bacass incluye un perfil de testing (`-profile test`) que trae datos de prueba y parámetros mínimos preconfigurados dentro del propio pipeline. Con este perfil NO necesitas pasar `--input` ni otros parámetros de entrada; es ideal para verificar que Nextflow está bien configurado en tu cuenta.
+
+Script sbatch de ejemplo (solo controlador; las tareas pesadas las lanza Nextflow a Slurm):
 
 ```bash
+#!/bin/bash
+#SBATCH --job-name=nf_bacass_test
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/10-scientific-workflows-nextflow
+#SBATCH --partition=short_idx
+#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=2G
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
 
+module purge
+module load Nextflow/23.10.0
+module load singularity/3.7.1
+
+mkdir -p 02-nextflow-bacass-results-test
+nextflow run nf-core/bacass \
+  -profile test,singularity \
+  -c nextflow.config \
+  --outdir 02-nextflow-bacass-results-test \
+  -resume
 ```
 
-Observamos:
+> El perfil `test` trae un dataset diminuto embebido en el pipeline (o referenciado desde su repositorio) y valores por defecto adecuados para comprobar que todo funciona en Slurm.
+
+2. Crear `samplesheet.csv` (tus propios datos)
+
+Si quieres ejecutar el pipeline con tus datos, bacass espera un `samplesheet.csv` con esta estructura mínima (una muestra por fila):
 
 ```bash
-
+cat > samplesheet.csv <<'CSV'
+ID,R1,R2,LongFastQ,Fast5,GenomeSize
+Sample01,/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample01_R1.fastq.gz,/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample01_R2.fastq.gz,NA,NA,NA
+Sample02,/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample02_R1.fastq.gz,/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample02_R2.fastq.gz,NA,NA,NA
+CSV
 ```
 
-Recomendaciones:
+> Cada fila muestra la información de una muestra.
+
+3. Generar `samplesheet.csv` a partir de `samples_id.txt` y `00-reads/`
+
+Si durante una sesión previa has generado `ANALYSIS/samples_id.txt` (una ID por línea) y has dejado los FASTQ en `ANALYSIS/00-reads/` con el patrón `<ID>_R1.fastq.gz` y `<ID>_R2.fastq.gz`, puedes crear el `samplesheet.csv` automáticamente:
+
+```bash
+# Rutas base (ajusta si es necesario)
+ANALYSIS_BASE="/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS"
+READS_DIR="${ANALYSIS_BASE}/00-reads"
+IDS_FILE="${ANALYSIS_BASE}/samples_id.txt"
+
+# Cabecera obligatoria para nf-core/bacass
+echo "ID,R1,R2,LongFastQ,Fast5,GenomeSize" > samplesheet.csv
+
+# Añade una fila por cada ID (R1/R2 apuntan a 00-reads)
+while read -r ID; do \
+  printf "%s,%s/%s_R1.fastq.gz,%s/%s_R2.fastq.gz,NA,NA,NA\n" \
+    "$ID" "$READS_DIR" "$ID" "$READS_DIR" "$ID" >> samplesheet.csv; \
+done < "$IDS_FILE"
+
+# Revisión rápida
+head -n 5 samplesheet.csv
+```
+
+Alternativa con `awk` (una sola línea):
+
+```bash
+awk -v R="/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads" \
+  'BEGIN{print "ID,R1,R2,LongFastQ,Fast5,GenomeSize"} \
+   {printf "%s,%s/%s_R1.fastq.gz,%s/%s_R2.fastq.gz,NA,NA,NA\n", $0,R,$0,R,$0}' \
+  /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/samples_id.txt > samplesheet.csv
+```
+
+> Comprueba que todos los ficheros existen (`ls -1 /scratch/.../00-reads/<ID>_R[12].fastq.gz`). Si alguna muestra no tiene R2 (lecturas simples), ajusta la línea correspondiente dejando `R2` vacío o consulta la documentación del pipeline para el formato single-end.
+
+4. Reutiliza `nextflow.config` y lanza bacass con tu samplesheet
+
+Crea el script sbatch master que controlará la ejecución de nextflow. Llamaremos a este script `nextflow_bacass.sbatch`.
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=nf_bacass
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/10-scientific-workflows-nextflow
+#SBATCH --partition=short_idx
+#SBATCH --time=24:00:00
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=2G
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+
+module purge
+module load Nextflow/23.10.0
+module load singularity/3.7.1
+
+mkdir -p 02-nextflow-bacass-results
+nextflow run nf-core/bacass \
+  -profile test,singularity \
+  -c nextflow.config \
+  --input samplesheet.csv \
+  --outdir 02-nextflow-bacass-results \
+  -resume
+```
+
+> **Tip**: muchos pipelines nf-core aceptan `--input` (o `--samplesheet` según release). Verifica con `-help`.
+
+**Monitorea:**
+
+```bash
+squeue --me -o "%.18i %.10P %.40j %.2t %.10M %.6D %R"
+tail -f logs/nf_bacass-<JOBID>.out
+```
+
+**Salidas esperables:**
+
+- `02-nextflow-bacass-results/` con ensamblados, anotación y **MultiQC**.
+- `02-nextflow-bacass-results/pipeline_info/`.
+
+**PREGUNTAS:**
+
+- Explora `02-nextflow-bacass-results/pipeline_info/`: ¿qué **etapa** fue la más lenta?
+- Vuelve a lanzar con `-resume`: ¿qué etapas **se saltan** y cuáles se re-ejecutan?
+
+5. Ajustar recursos “por proceso” (sin tocar el pipeline)
+
+Puedes subir/bajar recursos con **`withName:`** en `nextflow.config` sin editar el pipeline:
+
+```groovy
+process {
+  withName: FASTQC {
+    cpus   = 2
+    memory = '3 GB'
+    time   = '30m'
+  }
+  withName: SPADES {
+    cpus   = 8
+    memory = '64 GB'
+    time   = '12h'
+  }
+}
+```
 
 #### 10. Interpretación de logs
 
