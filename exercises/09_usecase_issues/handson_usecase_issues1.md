@@ -772,7 +772,7 @@ SLURM
 sbatch run_taxprofiler.sbatch
 ```
 
-6) Comprobaciones y resultados
+6. Comprobaciones y resultados
 
 - Monitoriza los jobs: `squeue --me -o "%.18i %.40j %.2t %.10M %R"`
 - Revisa logs en `ANALYSIS/01-taxprofiler/` y resultados en `ANALYSIS/01-taxprofiler/results/`.
