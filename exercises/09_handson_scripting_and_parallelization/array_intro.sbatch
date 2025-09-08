@@ -23,9 +23,11 @@ LOG_SUFFIX="${SLURM_ARRAY_JOB_ID}-${SLURM_ARRAY_TASK_ID}"
 exec >"${OUTDIR}/logs/${SLURM_JOB_NAME}-${LOG_SUFFIX}.out" 2>"${OUTDIR}/logs/${SLURM_JOB_NAME}-${LOG_SUFFIX}.err"
 
 # Ejecuta FastQC sobre el par R1/R2 correspondiente al índice de la tarea
-fastqc -o "$OUTDIR" "data/sample0${SLURM_ARRAY_TASK_ID}_R1.fastq.gz" "data/sample0${SLURM_ARRAY_TASK_ID}_R2.fastq.gz"
+fastqc -o "$OUTDIR" \
+  "/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample0${SLURM_ARRAY_TASK_ID}_R1.fastq.gz" \
+  "/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample0${SLURM_ARRAY_TASK_ID}_R2.fastq.gz"
 
 # Cada tarea del array procesa un par de archivos:
-# data/sample${SLURM_ARRAY_TASK_ID}_R1.fastq.gz  y  data/sample${SLURM_ARRAY_TASK_ID}_R2.fastq.gz
+# /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample${SLURM_ARRAY_TASK_ID}_R1.fastq.gz  y  ..._R2.fastq.gz
 
 echo "[INFO] JobID=${SLURM_ARRAY_JOBID}; Task=${SLURM_ARRAY_TASK_ID}; End=$(date)"

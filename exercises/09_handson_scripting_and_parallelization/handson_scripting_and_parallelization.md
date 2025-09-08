@@ -47,7 +47,7 @@ echo "[INFO] Starting FastQC at $(date)"
 mkdir -p 02-fastqc-array-results
 
 # Ejecuta fastqc
-fastqc data/sample_R1.fastq.gz data/sample_R2.fastq.gz -o 02-fastqc-array-results
+fastqc /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R1.fastq.gz /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R2.fastq.gz -o 02-fastqc-array-results
 
 echo "[INFO] Finished at $(date)"
 ```
@@ -139,7 +139,7 @@ echo "[INFO] Node: $(hostname)"
 echo "[INFO] Starting FastQC at $(date)"
 
 mkdir -p 02-fastqc-array-results
-fastp data/sample_R1.fastq.gz data/sample_R2.fastq.gz -o 02-fastqc-array-results   # <<<< comando incorrecto
+fastp /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R1.fastq.gz /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R2.fastq.gz -o 02-fastqc-array-results   # <<<< comando incorrecto
 
 echo "[INFO] Finished at $(date)"
 ```
@@ -188,7 +188,7 @@ echo "[INFO] Node: $(hostname)"
 echo "[INFO] Starting FastQC at $(date)"
 
 mkdir -p 02-fastqc-array-results
-fastqc data/sample_R1.fastq.gz data/sample_R2.fastq.gz -o 02-fastqc-array-results
+fastqc /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R1.fastq.gz /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R2.fastq.gz -o 02-fastqc-array-results
 
 echo "[INFO] Finished at $(date)"
 ```
@@ -243,8 +243,9 @@ mkdir -p 02-fastqc-array-results
 OUTDIR="02-fastqc-array-results/intro_${SLURM_ARRAY_JOB_ID}"
 mkdir -p "$OUTDIR"
 
-fastqc -o "$OUTDIR" "data/sample0${SLURM_ARRAY_TASK_ID}_R1.fastq.gz" \
-                 "data/sample0${SLURM_ARRAY_TASK_ID}_R2.fastq.gz"
+fastqc -o "$OUTDIR" \
+       "/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample0${SLURM_ARRAY_TASK_ID}_R1.fastq.gz" \
+       "/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample0${SLURM_ARRAY_TASK_ID}_R2.fastq.gz"
 
 echo "[INFO] JobID=${SLURM_ARRAY_JOBID}; Task=${SLURM_ARRAY_TASK_ID}; End=$(date)"
 ```
@@ -263,7 +264,7 @@ echo "[INFO] JobID=${SLURM_ARRAY_JOBID}; Task=${SLURM_ARRAY_TASK_ID}; End=$(date
 Aquí los ficheros no tienen numeración clara → usamos una lista (`filelist`).
 
 ```bash
-ls data/*R1.fastq.gz | sort > data/filelist_R1.txt
+ls /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/*R1.fastq.gz | sort > data/filelist_R1.txt
 ```
 
 Script: **`fastqc_array.sbatch`**
@@ -369,8 +370,8 @@ module load fastp/0.20.0-GCC-8.3.0
 mkdir -p 01-openmp-mpi-results
 
 # Setup de variables
-R1=data/sample01_R1.fastq.gz
-R2=data/sample01_R2.fastq.gz
+R1=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample01_R1.fastq.gz
+R2=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample01_R2.fastq.gz
 OUTR1=01-openmp-mpi-results/sample01.clean.R1.fastq.gz
 OUTR2=01-openmp-mpi-results/sample01.clean.R2.fastq.gz
 
@@ -417,8 +418,8 @@ Guarda como **`spades_openmp.sbatch`**:
 
 module load SPAdes/3.15.2-GCC-10.2.0
 mkdir -p 01-openmp-mpi-results
-R1=data/sample01_R1.fastq.gz
-R2=data/sample01_R2.fastq.gz
+R1=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample01_R1.fastq.gz
+R2=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample01_R2.fastq.gz
 
 spades.py -1 "$R1" -2 "$R2" -o 01-openmp-mpi-results/spades_sample01 \
     --threads "$SLURM_CPUS_PER_TASK" \

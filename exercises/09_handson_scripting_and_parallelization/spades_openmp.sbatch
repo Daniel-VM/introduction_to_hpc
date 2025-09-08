@@ -10,8 +10,8 @@
 
 module load SPAdes/3.15.2-GCC-10.2.0
 mkdir -p 01-openmp-mpi-results
-R1=data/sample01_R1.fastq.gz
-R2=data/sample01_R2.fastq.gz
+R1=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample01_R1.fastq.gz
+R2=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample01_R2.fastq.gz
 
 spades.py -1 "$R1" -2 "$R2" -o 01-openmp-mpi-results/spades_sample01 \
     --threads "$SLURM_CPUS_PER_TASK" \

@@ -16,6 +16,8 @@ echo "[INFO] Node: $(hostname)"
 echo "[INFO] Starting FastQC at $(date)"
 
 mkdir -p 02-fastqc-array-results
-fastqc data/sample_R1.fastq.gz data/sample_R2.fastq.gz -o 02-fastqc-array-results
+fastqc /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R1.fastq.gz \
+       /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R2.fastq.gz \
+       -o 02-fastqc-array-results
 
 echo "[INFO] Finished at $(date)"

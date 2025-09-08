@@ -165,8 +165,8 @@ Para comenzar, vamos cear un archivo de entrada para el pipeline en tu directori
 ```bash
 cat > samplesheet.csv <<'CSV'
 ID,R1,R2,LongFastQ,Fast5,GenomeSize
-Sample01,data/sample01_R1.fastq.gz,data/sample01_R2.fastq.gz,NA,NA,NA
-Sample02,data/sample02_R1.fastq.gz,data/sample02_R2.fastq.gz,NA,NA,NA
+Sample01,/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample01_R1.fastq.gz,/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample01_R2.fastq.gz,NA,NA,NA
+Sample02,/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample02_R1.fastq.gz,/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample02_R2.fastq.gz,NA,NA,NA
 CSV
 ```
 
