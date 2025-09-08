@@ -396,34 +396,14 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
   }
   ```
 
-- Script `cleanup_scratch.sh`: limpia temporales antiguos de forma segura
+- Script `cleanup_scratch.sh`: limpieza segura con dos modos
 
-  Por defecto solo muestra lo que borraría (modo "dry-run"). Para ejecutar el borrado, añadir `--force`.
+  - Modo `temps`: busca temporales (p. ej. `work*`, `tmp*`, `.nextflow*`) antiguos.
+  - Modo `stale`: busca carpetas de primer nivel en `BASE` sin modificación reciente.
 
-  Guardar como `~/bin/cleanup_scratch.sh` y dar permisos: `chmod +x ~/bin/cleanup_scratch.sh`.
+  Por defecto solo muestra lo que borraría (modo "dry-run"). Para ejecutar el borrado, añade `--force`.
 
-  ```bash
-  #!/usr/bin/env bash
-  set -euo pipefail
-  BASE="/scratch/hpc_course"
-  DAYS="${1:-2}"   # días de antigüedad
-  MODE="${2:---dry-run}"
-
-  echo "Buscando temporales (> ${DAYS} días) en ${BASE}"
-  find "$BASE" -maxdepth 3 \
-    \( -name "work" -o -name "work_*" -o -name "tmp" -o -name "tmp_*" -o -name ".nextflow*" \) \
-    -type d -mtime +"$DAYS" -print
-
-  if [[ "$MODE" == "--force" ]]; then
-    read -rp "¿Eliminar los directorios listados? [y/N] " ans
-    [[ "${ans:-N}" =~ ^[Yy]$ ]] || { echo "Cancelado"; exit 0; }
-    find "$BASE" -maxdepth 3 \
-      \( -name "work" -o -name "work_*" -o -name "tmp" -o -name "tmp_*" -o -name ".nextflow*" \) \
-      -type d -mtime +"$DAYS" -exec rm -rf {} +
-  else
-    echo "(modo simulación: añade --force para borrar)"
-  fi
-  ```
+  Coger el script de la carpeta de la práctica y guardar en el nodo de acceso como `~/bin/cleanup_scratch.sh` y dar permisos: `chmod +x ~/bin/cleanup_scratch.sh`.
 
 - Plantilla mínima de job SLURM (batch)
 
