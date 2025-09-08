@@ -320,6 +320,61 @@ sbatch --array=1-$(wc -l < data/filelist_R1.txt) fastqc_array.sbatch
 
 ---
 
+### Ejercicio 3 — Job Array con lista de IDs (samples_id.txt)
+
+En esta variante partimos de un fichero `samples_id.txt` ubicado en la raíz de `ANALYSIS/` que contiene, una por línea, los identificadores de muestra (por ejemplo, `sample01`, `sample02`, …). Cada tarea del array leerá el ID de muestra correspondiente y ejecutará FastQC sobre el par `R1/R2` de `00-reads/`.
+
+Ejemplo de contenido de `samples_id.txt`:
+
+```text
+sample01
+sample02
+sample03
+```
+
+Script: **`fastqc_array_samplesid.sbatch`**
+
+```bash
+#!/bin/bash
+#SBATCH --job-name=fastqc_from_ids
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
+#SBATCH --partition=short_idx
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=6G
+#SBATCH --output=%x-%j.out
+#SBATCH --error=%x-%j.err
+
+module load FastQC/0.11.9-Java-11
+
+IDS_FILE="/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/samples_id.txt"
+READS_DIR="/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads"
+
+RESULTS_ROOT="02-fastqc-array-results"
+mkdir -p "$RESULTS_ROOT"
+OUTDIR="${RESULTS_ROOT}/fastqc_from_ids_${SLURM_ARRAY_JOB_ID}"
+mkdir -p "$OUTDIR/logs"
+
+LOG_SUFFIX="${SLURM_ARRAY_JOB_ID}-${SLURM_ARRAY_TASK_ID}"
+exec >"${OUTDIR}/logs/${SLURM_JOB_NAME}-${LOG_SUFFIX}.out" 2>"${OUTDIR}/logs/${SLURM_JOB_NAME}-${LOG_SUFFIX}.err"
+
+SAMPLE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$IDS_FILE")
+R1="${READS_DIR}/${SAMPLE}_R1.fastq.gz"
+R2="${READS_DIR}/${SAMPLE}_R2.fastq.gz"
+
+fastqc -o "$OUTDIR" "$R1" "$R2"
+echo "[INFO] Sample=${SAMPLE} R1=${R1} R2=${R2}"
+```
+
+Lanza el array ajustando el rango al número de líneas de `samples_id.txt`:
+
+```bash
+sbatch --array=1-$(wc -l < /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/samples_id.txt) fastqc_array_samplesid.sbatch
+```
+
+Los resultados se guardan en `02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/` y los logs por tarea en `.../logs/`.
+
+---
+
 ## 3. OpenMP vs MPI
 
 ### Descripción
