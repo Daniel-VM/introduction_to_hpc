@@ -261,10 +261,10 @@ tmpfs                                16G  858M   15G   6% /run
 tmpfs                                16G     0   16G   0% /sys/fs/cgroup
 172.21.17.100:/HPC_UI_ACTIVE         60T   54T  6.4T  90% /data
 172.21.31.9:/HPC_Home               200G  151G   50G  76% /home
-172.21.31.8:/HPC_UCCT_BI_ACTIVE      30T   19T   12T  61% /data/ucct/bi
-172.21.31.9:/HPC_Scratch            7.4T  5.4T  2.0T  74% /data/ucct/bi/scratch_tmp
+172.21.31.8:/HPC_UCCT_BI_ACTIVE      30T   19T   12T  61% /data/courses/hpc_course
+172.21.31.9:/HPC_Scratch            7.4T  5.4T  2.0T  74% /data/courses/hpc_course/scratch_tmp
 172.21.31.9:/HPC_Scratch            7.4T  5.4T  2.0T  74% /scratch
-//172.21.30.97/hpc-bioinfo/         1.0T  917G  108G  90% /data/ucct/bi/sftp
+//172.21.30.97/hpc-bioinfo/         1.0T  917G  108G  90% /data/courses/hpc_course/sftp
 172.21.31.9:/HPC_Soft               350G  295G   56G  85% /soft
 172.21.31.8:/HPC_UCCT_ME_ARCHIVED    42T   38T  4.2T  91% /archived/ucct/me
 172.21.31.8:/HPC_UCCT_BI_ARCHIVED    50T   37T   14T  74% /archived/ucct/bi
@@ -332,9 +332,9 @@ alias sq="squeue -o \"%8i %12j %4t %10u %20q %20a %10g %20P %10Q %5D %11l %11L %
 alias sa="squeue -u smonzon"
 alias scratch="srun --partition short_idx --nodelist ideafix02 --pty bash; cd /scratch"
 
-export NXF_SINGULARITY_CACHEDIR=/data/ucct/bi/pipelines/singularity-images
+export NXF_SINGULARITY_CACHEDIR=/data/courses/hpc_course/pipelines/singularity-images
 export LC_ALL="en_US.UTF-8"
-export R_LIBS_USER=/data/ucct/bi/pipelines/r-lib/
+export R_LIBS_USER=/data/courses/hpc_course/pipelines/r-lib/
 ```
 
 El archivo .bashrc es un script de configuración que se ejecuta automáticamente cada vez que abrimos una nueva shell interactiva de Bash.
@@ -504,14 +504,14 @@ ls -R /data/course/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}
 Output:
 
 ```bash
-/data/ucct/bi/tmp/20250902_HPC-COURSE:
+/data/hpc_course/20250902_HPC-COURSE_smonzon:
 ANALYSIS  DOC  RAW  REFERENCES  RESULTS  TMP
-/data/ucct/bi/tmp/20250902_HPC-COURSE/ANALYSIS:
-/data/ucct/bi/tmp/20250902_HPC-COURSE/DOC:
-/data/ucct/bi/tmp/20250902_HPC-COURSE/RAW:
-/data/ucct/bi/tmp/20250902_HPC-COURSE/REFERENCES:
-/data/ucct/bi/tmp/20250902_HPC-COURSE/RESULTS:
-/data/ucct/bi/tmp/20250902_HPC-COURSE/TMP:
+/data/hpc_course/20250902_HPC-COURSE_smonzon/ANALYSIS:
+/data/hpc_course/20250902_HPC-COURSE_smonzon/DOC:
+/data/hpc_course/20250902_HPC-COURSE_smonzon/RAW:
+/data/hpc_course/20250902_HPC-COURSE_smonzon/REFERENCES:
+/data/hpc_course/20250902_HPC-COURSE_smonzon/RESULTS:
+/data/hpc_course/20250902_HPC-COURSE_smonzon/TMP:
 ```
 
 - Ahora ya podemos copiar los ficheros que hemos subido al HPC a la estructura de carpetas que hemos creado. Como son ficheros crudos de secuenciación los copiaremos en `RAW`.

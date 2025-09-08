@@ -196,7 +196,7 @@ Welcome to the practice session for software management on our local HPC. Today,
   - Pull and run a Singularity container:
 
         ```bash
-        singularity exec --bind /scratch/RUTA_EJEMPLO /data/ucct/bi/pipelines/singularity-images/bedtools:2.31.1--h13024bc_3 \
+        singularity exec --bind /scratch/RUTA_EJEMPLO /data/courses/hpc_course/pipelines/singularity-images/bedtools:2.31.1--h13024bc_3 \
         bedtools bamtofastq -i RUTA_EJEMPLO_ARCHIVO -fq RUTA_EJEMPLO_FASTQ # Our container is initiated with exec so bedtools is accessible here
         ```
 

@@ -211,6 +211,12 @@ ls -lh "$HOME/srun_demo/logs"
 cat "$HOME/srun_demo/logs"/demo_log_*.out
 ```
 
+4. Borrar la carpeta con los logs demo.
+
+```bash
+rm -r "$HOME/srun_demo/logs"
+```
+
 **Notas**
 
 - `--output` acepta patrones de formato: `%j` (JobID), `%x` (JobName), `%N` (nodo), etc.
