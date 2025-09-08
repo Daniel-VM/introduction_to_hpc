@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=fastp_omp
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=4           # <- nº hilos/threads OpenMP
 #SBATCH --mem=16G
@@ -21,4 +21,3 @@ OUTR2=01-openmp-mpi-results/sample01.clean.R2.fastq.gz
 fastp -i "$R1" -I "$R2" -o "$OUTR1" -O "$OUTR2" \
     --thread="$SLURM_CPUS_PER_TASK" \
     --detect_adapter_for_pe
-

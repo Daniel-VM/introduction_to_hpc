@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=nf_bacass
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scientific-workflows-nextflow
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/10-scientific-workflows-nextflow
 #SBATCH --partition=short_idx
 #SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=1
@@ -19,4 +19,3 @@ nextflow run nf-core/bacass \
     --input samplesheet.csv \
     --outdir 02-nextflow-bacass-results \
     -resume
-

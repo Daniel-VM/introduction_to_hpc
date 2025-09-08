@@ -28,7 +28,7 @@ Guarda como **`fastqc_demo.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_demo
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -57,7 +57,7 @@ echo "[INFO] Finished at $(date)"
 ```bash
 sbatch fastqc_demo.sbatch \
   --job-name=fastqc_demo \
-  --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization \
+  --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization \
   --partition=short_idx \
   --cpus-per-task=1 \
   --mem=4G \
@@ -125,7 +125,7 @@ En este caso modificamos el script, lo guardamos como **`fastqc_failcmd.sbatch`*
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_fail
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -174,7 +174,7 @@ Script: **`fastqc_overask.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_overask
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=530G                       # << imposible en este nodo
@@ -228,7 +228,7 @@ Script: **`array_intro.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=array_intro
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --array=1-9%3
 #SBATCH --cpus-per-task=1
@@ -271,7 +271,7 @@ Script: **`fastqc_array.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_array
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=6G
@@ -357,7 +357,7 @@ Veamos cómo construir el script. Se muestra **`fastp_openmp.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastp_omp
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=4           # <- nº hilos/threads OpenMP
 #SBATCH --mem=16G
@@ -407,7 +407,7 @@ Guarda como **`spades_openmp.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=spades_omp
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G

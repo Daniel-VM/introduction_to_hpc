@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=raxml_mpi
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --nodes=2                 # <-- nº de nodos
 #SBATCH --ntasks=8                # total procesos MPI
@@ -26,4 +26,3 @@ mpirun -np "$SLURM_NTASKS" raxmlHPC \
     -T "$SLURM_CPUS_PER_TASK" \
     -n "$RUNNAME" \
     -w "$RESULTS_DIR"
-

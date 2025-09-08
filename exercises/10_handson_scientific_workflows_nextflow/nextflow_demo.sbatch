@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=nf_demo
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scientific-workflows-nextflow
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/10-scientific-workflows-nextflow
 #SBATCH --partition=short_idx
 #SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=1                 # Recursos SOLO para el controlador de Nextflow
@@ -21,4 +21,3 @@ nextflow run nf-core/demo \
   -c nextflow.config \
   --outdir 01-nextflow-demo-results \
   -resume
-

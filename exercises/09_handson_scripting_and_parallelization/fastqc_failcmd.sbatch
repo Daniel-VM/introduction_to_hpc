@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=fastqc_fail
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -19,4 +19,3 @@ mkdir -p 02-fastqc-array-results
 fastp data/sample_R1.fastq.gz data/sample_R2.fastq.gz -o 02-fastqc-array-results # <<<<  Comando modificado
 
 echo "[INFO] Finished at $(date)"
-

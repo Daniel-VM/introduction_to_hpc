@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=spades_omp
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
@@ -16,4 +16,3 @@ R2=data/sample01_R2.fastq.gz
 spades.py -1 "$R1" -2 "$R2" -o 01-openmp-mpi-results/spades_sample01 \
     --threads "$SLURM_CPUS_PER_TASK" \
     --mem 32
-

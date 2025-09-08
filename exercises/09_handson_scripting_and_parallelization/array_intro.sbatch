@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=array_intro                  # Nombre del job (visible en la cola)
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx                   # Partición/cola a usar
 #SBATCH --array=1-9%3                           # Índices del array: 1..10, máx. 3 tareas simultáneas
 #SBATCH --cpus-per-task=1                       # Hilos por tarea (FastQC usa 1 por defecto)
@@ -24,4 +24,3 @@ fastqc -o "$OUTDIR" "data/sample0${SLURM_ARRAY_TASK_ID}_R1.fastq.gz" "data/sampl
 # data/sample${SLURM_ARRAY_TASK_ID}_R1.fastq.gz  y  data/sample${SLURM_ARRAY_TASK_ID}_R2.fastq.gz
 
 echo "[INFO] JobID=${SLURM_ARRAY_JOBID}; Task=${SLURM_ARRAY_TASK_ID}; End=$(date)"
-

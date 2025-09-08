@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=fastqc_array
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=6G
@@ -23,4 +23,3 @@ echo "$INPUT"
 fastqc -o "$OUTDIR" "$INPUT"
 
 echo "[INFO] Task ${SLURM_ARRAY_TASK_ID}  End:   $(date)"
-
