@@ -62,8 +62,8 @@ sbatch fastqc_demo.sbatch \
   --cpus-per-task=1 \
   --mem=4G \
   --time=00:05:00 \
-  --output=%x-%j.out \
-  --error=%x-%j.err
+  --output=logs/%x-%j.out \
+  --error=logs/%x-%j.err
 ```
 
 ---
@@ -103,8 +103,8 @@ sacct -j <JOBID> -o JobID,State,Elapsed,MaxRSS,TotalCPU,ExitCode
 5. Leer logs
 
 ```bash
-less fastqc_demo-<JOBID>.out
-less fastqc_demo-<JOBID>.err
+less logs/fastqc_demo-<JOBID>.out
+less logs/fastqc_demo-<JOBID>.err
 ```
 
 **PREGUNTA:**
@@ -149,7 +149,7 @@ Ejecuta y monitoriza:
 ```bash
 sbatch fastqc_failcmd.sbatch
 sacct -j <JOBID> -o JobID,State,Elapsed,ExitCode
-tail fastqc_fail-<JOBID>.err
+tail logs/fastqc_fail-<JOBID>.err
 ```
 
 *Ejemplo de error esperado en `.err`:*
@@ -362,8 +362,8 @@ Veamos cómo construir el script. Se muestra **`fastp_openmp.sbatch`**:
 #SBATCH --cpus-per-task=4           # <- nº hilos/threads OpenMP
 #SBATCH --mem=16G
 #SBATCH --time=00:30:00
-#SBATCH --output=%x-%j.out
-#SBATCH --error=%x-%j.err
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
 
 module load fastp/0.20.0-GCC-8.3.0
 mkdir -p 01-openmp-mpi-results
@@ -412,8 +412,8 @@ Guarda como **`spades_openmp.sbatch`**:
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
 #SBATCH --time=02:00:00
-#SBATCH --output=%x-%j.out
-#SBATCH --error=%x-%j.err
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
 
 module load SPAdes/3.15.2-GCC-10.2.0
 mkdir -p 01-openmp-mpi-results
@@ -449,7 +449,7 @@ Guarda como **`raxml_mpi.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=raxml_mpi
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/06-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/09-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --nodes=2                 # <-- nº de nodos
 #SBATCH --ntasks=8                # total procesos MPI
@@ -457,8 +457,8 @@ Guarda como **`raxml_mpi.sbatch`**:
 #SBATCH --cpus-per-task=1         # (MPI puro: 1 CPU por proceso)
 #SBATCH --mem=8G
 #SBATCH --time=00:30:00
-#SBATCH --output=%x-%j.out
-#SBATCH --error=%x-%j.err
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
 
 module load RAxML/8.2.12-gompi-2020a-hybrid-avx2  # el módulo puede traer varios binarios
 

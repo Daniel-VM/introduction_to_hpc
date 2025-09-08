@@ -91,8 +91,8 @@ Vamos a crear un script `sbatch` con el comando de Nextflow a ejecutar. Hay que 
 #SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=1                 # Recursos SOLO para el controlador de Nextflow
 #SBATCH --mem=2G
-#SBATCH --output=%x-%j.out
-#SBATCH --error=%x-%j.err
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
 
 # Carga las dependencias para ejecutar Nextflow
 module purge
@@ -125,7 +125,7 @@ Ahora es el momento de monitorizar las tareas. En Nextflow tenemos que visualiza
 * El *standard output* se guardará en el archivo que hayamos definido en `--output` (en este ejemplo: `%x-%j.out`). Ejemplo de un *standard output* de Nextflow.:
 
 ```bash
-tail -f nf_demo-<JOBID>.out
+tail -f logs/nf_demo-<JOBID>.out
 ```
 
 ```bash
@@ -184,8 +184,8 @@ Crea el script sbatch master que controlará la ejecución de nextflow. Llamarem
 #SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=2G
-#SBATCH --output=%x-%j.out
-#SBATCH --error=%x-%j.err
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
 
 module purge
 module load Nextflow/23.10.0
@@ -206,7 +206,7 @@ nextflow run nf-core/bacass \
 
 ```bash
 squeue --me -o "%.18i %.10P %.40j %.2t %.10M %.6D %R"
-tail -f nf_bacass-<JOBID>.out
+tail -f logs/nf_bacass-<JOBID>.out
 ```
 
 **Salidas esperables:**
@@ -279,5 +279,3 @@ process {
 
 * ¿Qué parte te resultó más “mágica”: **no usar `sbatch`** o **reanudar** con `-resume`?
 * ¿Dónde mirarías primero si algo falla?
-
-

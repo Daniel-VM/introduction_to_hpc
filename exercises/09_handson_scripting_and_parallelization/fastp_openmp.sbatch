@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=4           # <- nº hilos/threads OpenMP
 #SBATCH --mem=16G
 #SBATCH --time=00:30:00
-#SBATCH --output=%x-%j.out
-#SBATCH --error=%x-%j.err
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
 
 module load fastp/0.20.0-GCC-8.3.0
 mkdir -p 01-openmp-mpi-results

@@ -13,9 +13,14 @@
 module load FastQC/0.11.9-Java-11
 
 # Asegura que existe la carpeta de resultados
+
 mkdir -p 02-fastqc-array-results
 OUTDIR="02-fastqc-array-results/intro_${SLURM_ARRAY_JOB_ID}"
-mkdir -p "$OUTDIR"
+mkdir -p "$OUTDIR/logs"
+
+# Redirige stdout/err a la carpeta de logs específica del OUTDIR
+LOG_SUFFIX="${SLURM_ARRAY_JOB_ID}-${SLURM_ARRAY_TASK_ID}"
+exec >"${OUTDIR}/logs/${SLURM_JOB_NAME}-${LOG_SUFFIX}.out" 2>"${OUTDIR}/logs/${SLURM_JOB_NAME}-${LOG_SUFFIX}.err"
 
 # Ejecuta FastQC sobre el par R1/R2 correspondiente al índice de la tarea
 fastqc -o "$OUTDIR" "data/sample0${SLURM_ARRAY_TASK_ID}_R1.fastq.gz" "data/sample0${SLURM_ARRAY_TASK_ID}_R2.fastq.gz"
