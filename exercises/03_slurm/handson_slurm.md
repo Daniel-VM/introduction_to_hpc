@@ -17,6 +17,7 @@ BU-ISCIII
     - [7. Cancelar trabajos con scancel](#7-cancelar-trabajos-con-scancel)
     - [8. Copiar datos entre /data y /scratch usando srun con rsync](#8-copiar-datos-entre-data-y-scratch-usando-srun-con-rsync)
     - [9. Ejecutar fastqc sobre datos reales en /scratch](#9-ejecutar-fastqc-sobre-datos-reales-en-scratch)
+    - [10. Copiar resultados a /data y limpiar /scratch](#10-copiar-resultados-a-data-y-limpiar-scratch)
     - [11. Solución de problemas](#11-solución-de-problemas)
 
 ### Objetivo
@@ -371,6 +372,7 @@ ls
 
 ```bash
 cat ../samples_id.txt | xargs -I % srun --partition=short_idx --cpus-per-task=2 --mem=4G --time=00:15:00 --chdir /scratch/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS fastqc -t 2 -o 01-fastqc 00-reads/%_R1.fastq.gz 00-reads/%_R2.fastq.gz
+```
 
 ### 10. Copiar resultados a /data y limpiar /scratch
 
@@ -379,15 +381,13 @@ Una vez terminado el procesamiento tenemos que devolver resultados a almacenamie
 1. Copiar resultados a un directorio de proyecto en /data.
 
 ```bash
-PRJ=/data/projects/$USER/hpc-course-$(date +%Y%m%d)
-mkdir -p "$PRJ"/RESULTS
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh "$SCR"/RESULTS/ "$PRJ"/RESULTS/
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /scratch/hpc_course/*HPC-COURSE*${USER}* /data/hpc_course/
 ```
 
 2. Limpiar temporal de forma segura.
 
 ```bash
-rm -rf "$SCR"
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rm -rf /scratch/hpc_course/*HPC-COURSE*${USER}*
 ```
 
 - Confirmar que el espacio en /scratch disminuye y que los resultados están en /data
