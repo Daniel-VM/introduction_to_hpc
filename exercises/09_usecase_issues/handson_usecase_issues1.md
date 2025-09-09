@@ -241,20 +241,6 @@ IP:/HPC_UCCT_BI_ARCHIVED             50T   37T   14T  74% /archived/ucct/bi
 IP:/HPC_Opt                         100G   15G   86G  15% /opt
 IP:/NGS_Data_FastQ_Active            15T  8.0T  7.1T  54% /srv/fastq_repo
 //IP7/hpc-genvigies/                1.0T  436G  589G  43% /sftp/genvigies
-tmpfs                               3.1G     0  3.1G   0% /run/user/3009
-tmpfs                               3.1G     0  3.1G   0% /run/user/3014
-tmpfs                               3.1G     0  3.1G   0% /run/user/3015
-tmpfs                               3.1G     0  3.1G   0% /run/user/3030
-tmpfs                               3.1G     0  3.1G   0% /run/user/3022
-tmpfs                               3.1G     0  3.1G   0% /run/user/3029
-tmpfs                               3.1G     0  3.1G   0% /run/user/1218
-tmpfs                               3.1G     0  3.1G   0% /run/user/1311
-tmpfs                               3.1G     0  3.1G   0% /run/user/1000
-tmpfs                               3.1G     0  3.1G   0% /run/user/3006
-tmpfs                               3.1G     0  3.1G   0% /run/user/3013
-tmpfs                               3.1G     0  3.1G   0% /run/user/1212
-tmpfs                               3.1G     0  3.1G   0% /run/user/3039
-tmpfs                               3.1G     0  3.1G   0% /run/user/3017
 ```
 
 Aquí podemos ver que el uso de `/scratch` es del 100% y que no queda espacio libre en la memoria. `/scratch` tiene 7Tb de memoria para compartir entre todos los usuarios del HPC. No es una unidad de almacenamiento sino una unidad de cómputo, por lo que no debe permanecer nada ahí que no se vaya a computar a corto plazo (24 horas) ya que el almacenamiento es limitado.
