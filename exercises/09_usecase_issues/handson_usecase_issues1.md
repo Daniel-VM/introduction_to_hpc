@@ -16,7 +16,7 @@ BU-ISCIII
       - [6. Permisos de las distintas particiones](#6-permisos-de-las-distintas-particiones)
       - [7. Gestión de ficheros](#7-gestión-de-ficheros)
       - [9. Lanzar un pipeline de Nextflow en un caso real: Ejecución, revisión e interpretación](#9-lanzar-un-pipeline-de-nextflow-en-un-caso-real-ejecución-revisión-e-interpretación)
-      - [10. Caso práctico: Descarga con nf-core/fetchngs y clasificación taxnómica con nf-core/taxprofiler](#10-caso-práctico-descarga-con-nf-corefetchngs-y-clasificación-taxnómica-con-nf-coretaxprofiler)
+      - [10. BONUS: Caso práctico: Descarga con nf-core/fetchngs y clasificación taxnómica con nf-core/taxprofiler](#10-bonus-caso-práctico-descarga-con-nf-corefetchngs-y-clasificación-taxnómica-con-nf-coretaxprofiler)
 
 ### Descripción
 
@@ -319,45 +319,27 @@ En este ejercicio vamos a crear scripts y alias reutilizables para trabajar de f
 
 Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
 
-- Script `hpc_cp.sh`: copiar entre scratch y data con rsync
+- Script `hpc_cp.sh`: copiar entre scratch y data con rsync (vía srun)
 
-  Guardar como `~/bin/hpc_cp.sh` y dar permisos: `chmod +x ~/bin/hpc_cp.sh`.
+  Usa el script proporcionado en esta carpeta: `exercises/09_usecase_issues/hpc_cp.sh`.
+  Cópialo al nodo de acceso como `~/bin/hpc_cp.sh` y dale permisos: `chmod +x ~/bin/hpc_cp.sh`.
+
+  Uso:
 
   ```bash
-  #!/usr/bin/env bash
-  set -euo pipefail
-
-  DATA_BASE="/data/courses/hpc_course"
-  SCRATCH_BASE="/scratch/hpc_course"
-
-  usage() {
-    echo "Uso: $(basename "$0") [scratch->data|data->scratch] <ruta_relativa> [--dry-run]"
-    echo "Ej.: $(basename "$0") scratch->data resultados/run42/"
-    exit 1
-  }
-
-  MODE="${1:-}"; REL_PATH="${2:-}"; OPT="${3:-}"
-  [[ -z "$MODE" || -z "$REL_PATH" ]] && usage
-
-  RSYNC_OPTS=(-avh --info=stats2 --progress)
-  [[ "$OPT" == "--dry-run" ]] && RSYNC_OPTS+=(--dry-run)
-
-  case "$MODE" in
-    scratch->data)
-      src="${SCRATCH_BASE}/${REL_PATH}"; dst="${DATA_BASE}/${REL_PATH}" ;;
-    data->scratch)
-      src="${DATA_BASE}/${REL_PATH}";   dst="${SCRATCH_BASE}/${REL_PATH}" ;;
-    *) usage ;;
-  esac
-
-  mkdir -p "$(dirname "$dst")"
-  echo "Sincronizando: $src -> $dst"
-  rsync "${RSYNC_OPTS[@]}" "$src" "$dst"
+  hpc_cp.sh [scratch->data|data->scratch] <ruta_relativa> [--dry-run] \
+            [--data-base /data/courses/hpc_course] \
+            [--scratch-base /scratch/hpc_course]
   ```
 
-  - Ejemplos:
-    - `hpc_cp.sh scratch->data folder/` copia `/scratch/hpc_course/run01/` a `/data/courses/hpc_course/run01/`.
-    - `hpc_cp.sh data->scratch folder/` copia `/data/courses/hpc_course/refs/` a `/scratch/hpc_course/refs/`.
+  Notas:
+  - Ejecuta `rsync` mediante `srun` en un nodo de cómputo (respeta políticas de scratch).
+  - Crea el directorio destino en el nodo de cómputo antes de sincronizar.
+  - Los mensajes del script están en inglés.
+
+  Ejemplos:
+  - `hpc_cp.sh "scratch->data" run01/` copia `/scratch/hpc_course/run01/` a `/data/courses/hpc_course/run01/`.
+  - `hpc_cp.sh "data->scratch" refs/ --dry-run` simula copiar `/data/courses/hpc_course/refs/` a `/scratch/hpc_course/refs/`.
 
 - Alias para colas: `sq` (squeue) y `si` (sinfo)
 
@@ -403,8 +385,7 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
   #SBATCH --cpus-per-task=2
   #SBATCH --mem=4G
   #SBATCH --chdir=/scratch/hpc_course
-  #SBATCH --output=logs/%x.%j.out
-  #SBATCH --error=logs/%x.%j.err
+  #SBATCH --output=logs/%x.%j.log
 
   set -euo pipefail
   mkdir -p logs
@@ -437,32 +418,59 @@ Vamos a hacer un análisis real de un workflow en bioinformática automatizado c
 
 nf-core/bacass incluye un perfil de testing (`-profile test`) que trae datos de prueba y parámetros mínimos preconfigurados dentro del propio pipeline. Con este perfil NO necesitas pasar `--input` ni otros parámetros de entrada; es ideal para verificar que Nextflow está bien configurado en tu cuenta.
 
-Script sbatch de ejemplo (solo controlador; las tareas pesadas las lanza Nextflow a Slurm):
+- Nos movemos a la carpeta de trabajo del curso
+
+```bash
+cd /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS
+mkdir -p 09-use-cases/logs
+cd 09-use-cases
+```
+
+- Script sbatch de ejemplo (solo controlador; las tareas pesadas las lanza Nextflow a Slurm). Crea un script `bacass_test.sbatch` y copia el contenido:
 
 ```bash
 #!/bin/bash
 #SBATCH --job-name=nf_bacass_test
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/10-scientific-workflows-nextflow
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/09-use-cases
 #SBATCH --partition=short_idx
 #SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=2G
-#SBATCH --output=logs/%x-%j.out
-#SBATCH --error=logs/%x-%j.err
+#SBATCH --output=logs/%x-%j.logs
 
+# You need to modify the --chdir above to point to your ANALYSIS directory
 module purge
 module load Nextflow/23.10.0
 module load singularity/3.7.1
 
-mkdir -p 02-nextflow-bacass-results-test
+mkdir -p 01-nextflow-bacass-results-test
 nextflow run nf-core/bacass \
   -profile test,singularity \
   -c nextflow.config \
-  --outdir 02-nextflow-bacass-results-test \
+  --outdir 01-nextflow-bacass-results-test \
   -resume
 ```
 
 > El perfil `test` trae un dataset diminuto embebido en el pipeline (o referenciado desde su repositorio) y valores por defecto adecuados para comprobar que todo funciona en Slurm.
+
+- Recordad copiar el fichero `nextflow.config` de la práctica anterior y copiarlo en el directorio de trabajo.
+
+- Sincronizamos a `/scratch`
+
+```bash
+cd /data/courses/hpc_course/
+bash ~/bin/hpc_cp.sh "data->scratch" *HPC-COURSE_${USER} --scratch-base /scratch/bi/ --data-base /data/ucct/bi/tmp/
+```
+
+- Nos movemos a scratch y lanzamos el trabajo.
+
+```bash
+# Lo hemos configurado antes en nuestro bashrc
+scratch
+sbatch ./bacass_test.sbatch
+```
+
+- Comprobamos el estado del trabajo, los logs y los output para comprobar si ha fallado o no. Si ha fallado interpretamos los logs para ver el problema. Si ni siquiera aparecen logs, todo apunta a un error de paths en chdir o en el path a los logs. O que no esté copiado correctamente a scratch.
 
 2. Crear `samplesheet.csv` (tus propios datos)
 
@@ -483,27 +491,10 @@ CSV
 Si durante una sesión previa has generado `ANALYSIS/samples_id.txt` (una ID por línea) y has dejado los FASTQ en `ANALYSIS/00-reads/` con el patrón `<ID>_R1.fastq.gz` y `<ID>_R2.fastq.gz`, puedes crear el `samplesheet.csv` automáticamente:
 
 ```bash
-# Rutas base (ajusta si es necesario)
-ANALYSIS_BASE="/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS"
-READS_DIR="${ANALYSIS_BASE}/00-reads"
-IDS_FILE="${ANALYSIS_BASE}/samples_id.txt"
-
-# Cabecera obligatoria para nf-core/bacass
-echo "ID,R1,R2,LongFastQ,Fast5,GenomeSize" > samplesheet.csv
-
-# Añade una fila por cada ID (R1/R2 apuntan a 00-reads)
-while read -r ID; do \
-  printf "%s,%s/%s_R1.fastq.gz,%s/%s_R2.fastq.gz,NA,NA,NA\n" \
-    "$ID" "$READS_DIR" "$ID" "$READS_DIR" "$ID" >> samplesheet.csv; \
-done < "$IDS_FILE"
-
-# Revisión rápida
-head -n 5 samplesheet.csv
-```
-
-Alternativa con `awk` (una sola línea):
-
-```bash
+# Muevete a un nodo de computo a scratch
+scratch
+cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/09-use-cases
+# Crea el fichero samplesheet.csv
 awk -v R="/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads" \
   'BEGIN{print "ID,R1,R2,LongFastQ,Fast5,GenomeSize"} \
    {printf "%s,%s/%s_R1.fastq.gz,%s/%s_R2.fastq.gz,NA,NA,NA\n", $0,R,$0,R,$0}' \
@@ -512,7 +503,7 @@ awk -v R="/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads" \
 
 > Comprueba que todos los ficheros existen (`ls -1 /scratch/.../00-reads/<ID>_R[12].fastq.gz`). Si alguna muestra no tiene R2 (lecturas simples), ajusta la línea correspondiente dejando `R2` vacío o consulta la documentación del pipeline para el formato single-end.
 
-4. Reutiliza `nextflow.config` y lanza bacass con tu samplesheet
+- Reutiliza `nextflow.config` y lanza bacass con tu samplesheet
 
 Crea el script sbatch master que controlará la ejecución de nextflow. Llamaremos a este script `nextflow_bacass.sbatch`.
 
@@ -524,12 +515,12 @@ Crea el script sbatch master que controlará la ejecución de nextflow. Llamarem
 #SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=2G
-#SBATCH --output=logs/%x-%j.out
-#SBATCH --error=logs/%x-%j.err
+#SBATCH --output=logs/%x-%j.logs
 
+# Tienes que ajustar --chdir para que apunte a tu ANALYSIS en la configuración de arriba
 module purge
-module load Nextflow/23.10.0
-module load singularity/3.7.1
+module load Nextflow/24.01.0
+module load singularity
 
 mkdir -p 02-nextflow-bacass-results
 nextflow run nf-core/bacass \
@@ -578,7 +569,7 @@ process {
 }
 ```
 
-#### 10. Caso práctico: Descarga con nf-core/fetchngs y clasificación taxnómica con nf-core/taxprofiler
+#### 10. BONUS: Caso práctico: Descarga con nf-core/fetchngs y clasificación taxnómica con nf-core/taxprofiler
 
 Objetivo: descargar tres runs SRA con `nf-core/fetchngs` (ERR2261314, ERR2261315, ERR2261318) dentro de `RAW/`, preparar `00-reads/` y ejecutar `nf-core/taxprofiler` usando solo Kraken2 con Singularity y la base de datos de Kraken proporcionada.
 
@@ -604,10 +595,10 @@ grep -q NXF_SINGULARITY_CACHEDIR ~/.bashrc || echo 'export NXF_SINGULARITY_CACHE
 # (ajusta la revisión -r a la versión estable disponible en tu entorno)
 # Puedes usar el entorno activo o llamar con micromamba run como se muestra:
 micromamba activate nf-core
-nf-core nf-core download nf-core/fetchngs \
+nf-core pipelines download nf-core/fetchngs \
   -r 1.12.0 \
-  --container singularity \
-  --container-cache-dir "$HOME/containers/singularity" \
+  --container-system singularity \
+  --container-cache-utilisation amend \
   --compress none \
   --outdir "$HOME/software/nfcore/fetchngs"
 
@@ -623,6 +614,8 @@ nf-core nf-core download nf-core/taxprofiler \
 1. Estructura de carpetas del proyecto
 
 ```bash
+# Muevete a un nodo de computo a scratch
+scratch
 # Ruta base del ejercicio
 BASE="/scratch/hpc_course/*HPC-COURSE-TAXPROFILER_${USER}"
 mkdir -p "$BASE"/{RAW,ANALYSIS,TMP,RESULTS,DOC,REFERENCES}
@@ -684,9 +677,7 @@ Verifica que en `RAW/` tienes los FASTQ descargados y el `samplesheet.csv` gener
 - Copia o enlaza los FASTQ de `RAW/` a `ANALYSIS/00-reads/` (ajusta patrones si tus ficheros difieren):
 
 ```bash
-cp "$BASE/RAW"/*fastq.gz "$BASE/ANALYSIS/00-reads/" 2>/dev/null || true
-# o equivalente con rsync/ln -s si prefieres:
-# ln -s "$BASE/RAW"/*fastq.gz "$BASE/ANALYSIS/00-reads/"
+ln -s "$BASE/RAW"/*fastq.gz "$BASE/ANALYSIS/00-reads/"
 ```
 
 - Crea un `samplesheet.csv` para taxprofiler con el esquema nf-core estándar (una muestra por fila). Si los runs son pareados quedarán como R1/R2; si son single-end, usa solo la columna `fastq_1`.
@@ -729,12 +720,12 @@ cat > run_taxprofiler.sbatch << 'SLURM'
 #SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
-#SBATCH --output=$BASE/ANALYSIS/01-taxprofiler/logs/logs_%x-%j.log
+#SBATCH --output=$BASE/ANALYSIS/01-taxprofiler/logs/%x-%j.log
 
 set -euo pipefail
 module purge
-module load Nextflow/23.10.0
-module load singularity/3.7.1
+module load Nextflow/24.01.0
+module load singularity
 
 export KRAKEN2_DB="/data/courses/hpc_course/references/kraken2_db"
 
