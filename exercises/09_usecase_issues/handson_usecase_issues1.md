@@ -510,7 +510,7 @@ Crea el script sbatch master que controlará la ejecución de nextflow. Llamarem
 ```bash
 #!/bin/bash
 #SBATCH --job-name=nf_bacass
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/10-scientific-workflows-nextflow
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/09-use-cases
 #SBATCH --partition=short_idx
 #SBATCH --time=24:00:00
 #SBATCH --cpus-per-task=1
