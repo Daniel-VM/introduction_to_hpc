@@ -144,7 +144,7 @@ Recomendaciones:
   - Reservar más recursos hará que tengamos menos prioridad en la cola
   - Reservar menos recursos hará que el proceso se pare y tengamos que volver a empezar
 
-##### 3. Load average
+#### 3. Load average
 
 Vamos a simular un **load average** elevado y analizar su impacto.
 
@@ -203,17 +203,39 @@ Vamos a ver como se puede emplear [**Ganglia**](http://ganglia.isciii.es/) como 
 - Diagnosticar cuellos de botella.
 - Comprobar si los trabajos se están ejecutando correctamente o si saturan el sistema.
 
-Observamos:
+Dentro de Ganglia podemos seleccionar el cluster que queremos monitorizar, en este caso seleccionamos XTutatis del desplegable `Cluster > Xtutatis`. 
 
-```bash
+Observamos los siguientes gráficos:
 
-```
+**XTutatis aggregated load_one last hour**
 
-Recomendaciones:
+![XTutatis aggregated load_one last hour](ganglia_load_one.png)
 
-#### 5. Problemas de memoria
+**XTutatis load_one last hour by node**
 
-En ocasiones cuando estemos trabajando en el HPC podemos observar este error `No space left on device`. Este se debe a que la memoria de alguna de las particiones que estamos empleando está llena. Vamos a revisar el tamaño de las particiones para gestionar el almacenamiento de forma eficiente.
+![XTutatis load_one last hour by node](ganglia_load_one_pernode.png)
+
+You can select a node and see more information:
+
+**CPU metrics**
+
+![CPU metrics](cpu_metrics.png)
+
+**Disk metrics**
+
+![Disk metrics](disk_metrics.png)
+
+**Load metrics**
+
+![Load metrics](load_metrics.png)
+
+**Memory metrics**
+
+![Memory metrics](memory_metrics.png)
+
+#### 5. Problemas de espacio
+
+En ocasiones cuando estemos trabajando en el HPC podemos observar este error `No space left on device`. Este se debe a que el espacio de alguna de las particiones que estamos empleando está llena. Vamos a revisar el tamaño de las particiones para gestionar el almacenamiento de forma eficiente.
 
 Ejecutamos:
 
