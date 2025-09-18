@@ -159,7 +159,7 @@ head microarray_adenoma_hk69.csv | sort -k1 -r
 
 #### 7. Reemplazar caracteres
 
-También podemos eliminásemos algunos caracteres commo las comillas que rodean los campos. Esta tarea podemos realizarla con el comando `sed` (stream editor). `sed` toma las líneas de una en una, les aplica la transformación que le indiquemos y devuelve las líneas modificadas. Por ejemplo, eliminemos los punto y coma del resultado anterior:
+También podemos eliminar algunos caracteres commo las comillas que rodean los campos. Esta tarea podemos realizarla con el comando `sed` (stream editor). `sed` toma las líneas de una en una, les aplica la transformación que le indiquemos y devuelve las líneas modificadas. Por ejemplo, eliminemos los punto y coma del resultado anterior:
 
 ```bash
 head microarray_adenoma_hk69.csv | sort -k1 -r | sed "s/;//g"

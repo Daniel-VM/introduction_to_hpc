@@ -78,9 +78,9 @@ Para poder conectarte al Entorno de Alta Computación (HPC) del ISCIII tienes qu
 ssh -p 32122 <usuario>@portutatis.isciii.es
 ```
 
-Escribes la constraseña de tu usuario del HPC
+Escribes la contraseña de tu usuario del HPC
 
-> Nota: No se muestra la constraseña a medida que escribes ni se indica ningún tipo de caracter para indicarte que estás escribiendo, así que asegurate de escribirla bien.
+> Nota: No se muestra la contraseña a medida que escribes ni se indica ningún tipo de caracter para indicarte que estás escribiendo, así que asegurate de escribirla bien.
 
 <details>
 <summary>PREGUNTA: ¿Qué información nos muestra el prompt una vez conectados al HPC??</summary>
@@ -101,7 +101,7 @@ pwd
 </details>
 
 <details>
-<summary>REGUNTA: ¿Lo que nos muestra <code class="code-inline">pwd</code> es ruta absoluta o relativa?</summary>
+<summary>PREGUNTA: ¿Lo que nos muestra <code class="code-inline">pwd</code> es ruta absoluta o relativa?</summary>
 
 El comando `pwd` muestra una ruta absoluta.
 </details>
@@ -112,10 +112,10 @@ El comando `pwd` muestra una ruta absoluta.
 #### 2. Listar los archivos de tu carpeta actual.
 
 1. Lista el contenido del directorio de tu home (`/home/usuario`).
-2. Lista el conenido del directorio de tu home (`/home/usuario`) en formato largo
-3. Lista el conenido del directorio de tu home (`/home/usuario`) mostrando los archivos ocultos
-4. Lista el conenido del directorio de tu home (`/home/usuario`) mostrando los archivos ocultos y en formato largo separando los parámetros.
-5. Lista el conenido del directorio de tu home (`/home/usuario`) mostrando los archivos ocultos y en formato largo juntando los parámetros.
+2. Lista el contenido del directorio de tu home (`/home/usuario`) en formato largo
+3. Lista el contenido del directorio de tu home (`/home/usuario`) mostrando los archivos ocultos
+4. Lista el contenido del directorio de tu home (`/home/usuario`) mostrando los archivos ocultos y en formato largo separando los parámetros.
+5. Lista el contenido del directorio de tu home (`/home/usuario`) mostrando los archivos ocultos y en formato largo juntando los parámetros.
 
 ```bash
 pwd
@@ -140,7 +140,7 @@ XXXXXXXX
 </details>
 
 <details>
-<summary>REGUNTA: ¿Qué hace el parámetro <code class="code-inline">-l</code>?</summary>
+<summary>PREGUNTA: ¿Qué hace el parámetro <code class="code-inline">-l</code>?</summary>
 
 El parámetro `-l` nos muestra la lista de archivos en formato largo, lo que significa que nos muestra la información de permisos de usuario, la información de modificación, espaico de almacenamiento, etc.
 </details>
@@ -167,7 +167,7 @@ Si. Si no, algo ha ido mal.
 
 #### 4. Moverte entre directorios
 
-Antes de moverte a un direcotio diferente, comprueba siempre donde estás y que archivos hay en tu carpeta con `pwd` y `ls`. Haz lo mismo siempre que cambies de carpeta.
+Antes de moverte a un directorio diferente, comprueba siempre donde estás y que archivos hay en tu carpeta con `pwd` y `ls`. Haz lo mismo siempre que cambies de carpeta.
 
 ```bash
 pwd
@@ -214,13 +214,13 @@ Vemos que tanto `>` como `touch` permiten crear archivos que antes no estaban.
 </details>
 
 <details>
-<summary>REGUNTA: ¿Y el path relativo a la carpeta en la que te encuetras actualmente (<code class="code-inline">/home/usuario</code>)?</summary>
+<summary>PREGUNTA: ¿Y el path relativo a la carpeta en la que te encuetras actualmente (<code class="code-inline">/home/usuario</code>)?</summary>
 
 `./practica_comandos/dir1/archivo1.txt` o `practica_comandos/dir1/archivo1.txt`
 </details>
 
 <details>
-<summary>REGUNTA: ¿Cómo crearías el archivo <code class="code-inline">archivo1.txt</code> desde tu home sin moverte de carpeta?</summary>
+<summary>PREGUNTA: ¿Cómo crearías el archivo <code class="code-inline">archivo1.txt</code> desde tu home sin moverte de carpeta?</summary>
 
 Con los comandos:
 
@@ -230,7 +230,7 @@ Ruta absoluta: `touch /home/<usuario>/practica_comandos/dir1/archivo1.txt` o `> 
 </details>
 
 <details>
-<summary>REGUNTA: ¿Que hace el comando <code class="code-inline">cd</code> sin argumento?</summary>
+<summary>PREGUNTA: ¿Que hace el comando <code class="code-inline">cd</code> sin argumento?</summary>
 
 Te mueve al directorio de tu home ubicado siempre en `/home/<tu nombre de usuario>`
 </details>
@@ -299,19 +299,19 @@ ls -r
 ```
 
 <details>
-<summary>REGUNTA: ¿Qué hace el parámetro <code class="code-inline">-t</code>?</summary>
+<summary>PREGUNTA: ¿Qué hace el parámetro <code class="code-inline">-t</code>?</summary>
 
 El parámetro `-t` minúscula (distinto de `-T` mayúscula) lista los archivos en orden de tiempo, poniendo el más reciente el primero.
 </details>
 
 <details>
-<summary>REGUNTA: ¿Qué hace el parámetro <code class="code-inline">-S</code>?</summary>
+<summary>PREGUNTA: ¿Qué hace el parámetro <code class="code-inline">-S</code>?</summary>
 
 El parámetro `-S` mayúscula (distinto de `-s` minúscula) lista los archivos ordenandolos por tamaño, poniendo primero el más grande.
 </details>
 
 <details>
-<summary>REGUNTA: ¿Qué hace el parámetro <code class="code-inline">-r</code>?</summary>
+<summary>PREGUNTA: ¿Qué hace el parámetro <code class="code-inline">-r</code>?</summary>
 
 El parámetro `-r` minúscula (distinto de `-R` mayúscula) te hace un listado en orden inverso. Por defecto se lista por orden alfabético por lo que el parámetro `-r` por sí solo listará en orden alfabético inverso. Si se juntara con el parámetro `-t` haría un listado por orden de tiempo reverso.
 </details>
@@ -425,7 +425,7 @@ El comando `clear` permite limpiar (aclarar) la pantalla de la terminal para pod
 
 #### 11. WildCards
 
-1. Lista todos los archvios que empiecen por la palabra archivo
+1. Lista todos los archivos que empiecen por la palabra archivo
 2. Lista todos los archivos que terminen por la palabra .txt
 3. Lee el contenido de todos los archivos que empizan por la palabra archivo
 4. Lee el contenido de todos los archivos que terminen por la palabra .txt

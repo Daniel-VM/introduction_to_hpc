@@ -114,7 +114,7 @@ chown -R user:bi .
 ll
 ```
 
-El parámetro `-R` induica al `chown` que trabaje de forma recursiva sobre todos los ficheros de un directorio.
+El parámetro `-R` indica al `chown` que trabaje de forma recursiva sobre todos los ficheros de un directorio.
 
 #### 7. Quitar permisos
 

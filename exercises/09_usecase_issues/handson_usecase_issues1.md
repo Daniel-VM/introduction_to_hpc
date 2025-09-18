@@ -35,7 +35,7 @@ NODELIST                                            CPUS        MEMORY          
 ideafix[01-32]                                      32          385000+               local_scratch:880G
 ```
 
-Para ver las la información de las particiones ejecutamos `sinfo`:
+Para ver la información de las particiones ejecutamos `sinfo`:
 
 ```bash
 $ sinfo 
