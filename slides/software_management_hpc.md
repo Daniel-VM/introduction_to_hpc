@@ -38,7 +38,7 @@ They exist to protect the operating system, applications, and data from accident
 ```bash
 # Load software through modules instead of custom install
 module avail
-module load python/3.10
+module load python/3.10.4
 python --version
 ```
 
