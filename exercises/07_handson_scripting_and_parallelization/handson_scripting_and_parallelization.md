@@ -56,7 +56,7 @@ Guarda como **`fastqc_demo.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_demo
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -76,8 +76,8 @@ mkdir -p 02-fastqc-array-results
 
 # Ejecuta fastqc
 fastqc \
-  /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R1.fastq.gz \
-  /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R2.fastq.gz \
+  /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
+  /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
   -o 02-fastqc-array-results
 
 echo "[INFO] Finished at $(date)"
@@ -88,7 +88,7 @@ echo "[INFO] Finished at $(date)"
 ```bash
 sbatch fastqc_demo.sbatch \
   --job-name=fastqc_demo \
-  --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scripting-and-parallelization \
+  --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization \
   --partition=short_idx \
   --cpus-per-task=1 \
   --mem=4G \
@@ -156,7 +156,7 @@ En este caso modificamos el script, lo guardamos como **`fastqc_failcmd.sbatch`*
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_fail
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -171,8 +171,8 @@ echo "[INFO] Starting FastQC at $(date)"
 
 mkdir -p 02-fastqc-array-results
 fastp \
-  /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R1.fastq.gz \
-  /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R2.fastq.gz \
+  /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
+  /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
   -o 02-fastqc-array-results
 
 echo "[INFO] Finished at $(date)"
@@ -208,7 +208,7 @@ Script: **`fastqc_overask.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_overask
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=530G                       # << imposible en este nodo
@@ -223,8 +223,8 @@ echo "[INFO] Starting FastQC at $(date)"
 
 mkdir -p 02-fastqc-array-results
 fastqc \
-  /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R1.fastq.gz \
-  /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample_R2.fastq.gz \
+  /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
+  /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
   -o 02-fastqc-array-results
 
 echo "[INFO] Finished at $(date)"
@@ -265,7 +265,7 @@ Script: **`array_intro.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=array_intro
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --array=1-9%3
 #SBATCH --cpus-per-task=1
@@ -281,8 +281,8 @@ OUTDIR="02-fastqc-array-results/intro_${SLURM_ARRAY_JOB_ID}"
 mkdir -p "$OUTDIR"
 
 fastqc -o "$OUTDIR" \
-       "/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample0${SLURM_ARRAY_TASK_ID}_R1.fastq.gz" \
-       "/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample0${SLURM_ARRAY_TASK_ID}_R2.fastq.gz"
+       "/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample0${SLURM_ARRAY_TASK_ID}_R1.fastq.gz" \
+       "/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample0${SLURM_ARRAY_TASK_ID}_R2.fastq.gz"
 
 echo "[INFO] JobID=${SLURM_ARRAY_JOBID}; Task=${SLURM_ARRAY_TASK_ID}; End=$(date)"
 ```
@@ -301,7 +301,7 @@ echo "[INFO] JobID=${SLURM_ARRAY_JOBID}; Task=${SLURM_ARRAY_TASK_ID}; End=$(date
 Aquí los ficheros no tienen numeración clara → usamos una lista (`filelist`).
 
 ```bash
-ls /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/*R1.fastq.gz | sort > data/filelist_R1.txt
+ls /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/*R1.fastq.gz | sort > data/filelist_R1.txt
 ```
 
 Script: **`fastqc_array.sbatch`**
@@ -309,7 +309,7 @@ Script: **`fastqc_array.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_array
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=6G
@@ -365,7 +365,7 @@ Script: **`fastqc_array_samplesid.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_from_ids
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=6G
@@ -374,8 +374,8 @@ Script: **`fastqc_array_samplesid.sbatch`**
 
 module load FastQC/0.11.9-Java-11
 
-IDS_FILE="/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/samples_id.txt"
-READS_DIR="/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads"
+IDS_FILE="/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/samples_id.txt"
+READS_DIR="/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads"
 
 RESULTS_ROOT="02-fastqc-array-results"
 mkdir -p "$RESULTS_ROOT"
@@ -396,7 +396,7 @@ echo "[INFO] Sample=${SAMPLE} R1=${R1} R2=${R2}"
 Lanza el array ajustando el rango al número de líneas de `samples_id.txt`:
 
 ```bash
-sbatch --array=1-$(wc -l < /scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/samples_id.txt) fastqc_array_samplesid.sbatch
+sbatch --array=1-$(wc -l < /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/samples_id.txt) fastqc_array_samplesid.sbatch
 ```
 
 Los resultados se guardan en `02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/` y los logs por tarea en `.../logs/`.
@@ -450,7 +450,7 @@ Veamos cómo construir el script. Se muestra **`fastp_openmp.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastp_omp
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=4           # <- nº hilos/threads OpenMP
 #SBATCH --mem=16G
@@ -462,8 +462,8 @@ module load fastp/0.20.0-GCC-8.3.0
 mkdir -p 01-openmp-mpi-results
 
 # Setup de variables
-R1=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample01_R1.fastq.gz
-R2=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample01_R2.fastq.gz
+R1=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample01_R1.fastq.gz
+R2=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample01_R2.fastq.gz
 OUTR1=01-openmp-mpi-results/sample01.clean.R1.fastq.gz
 OUTR2=01-openmp-mpi-results/sample01.clean.R2.fastq.gz
 
@@ -500,7 +500,7 @@ Guarda como **`spades_openmp.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=spades_omp
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
@@ -510,8 +510,8 @@ Guarda como **`spades_openmp.sbatch`**:
 
 module load SPAdes/3.15.2-GCC-10.2.0
 mkdir -p 01-openmp-mpi-results
-R1=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample01_R1.fastq.gz
-R2=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/00-reads/sample01_R2.fastq.gz
+R1=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample01_R1.fastq.gz
+R2=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample01_R2.fastq.gz
 
 spades.py -1 "$R1" -2 "$R2" -o 01-openmp-mpi-results/spades_sample01 \
     --threads "$SLURM_CPUS_PER_TASK" \
@@ -542,7 +542,7 @@ Guarda como **`raxml_mpi.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=raxml_mpi
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/07-scripting-and-parallelization
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --nodes=2                 # <-- nº de nodos
 #SBATCH --ntasks=8                # total procesos MPI
