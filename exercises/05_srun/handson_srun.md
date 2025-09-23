@@ -393,6 +393,7 @@ srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh
 2. Limpiar temporal de forma segura.
 
 ```bash
+cd
 srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rm -rf /scratch/hpc_course/*HPC-COURSE*${USER}*
 ```
 
