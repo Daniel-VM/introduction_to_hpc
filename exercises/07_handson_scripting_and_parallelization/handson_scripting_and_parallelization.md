@@ -34,6 +34,21 @@ Partiremos de un **script base** que ejecuta **FastQC** sobre dos FASTQ pequeño
 
 ---
 
+### Preparación de la práctica
+
+1. Creamos la estructura de carpetas
+
+```bash
+cd /data/courses/hpc_course/20250923_HPC-COURSE_alumno07/ANALYSIS
+mkdir 07-scripting-and-parallelization
+```
+
+2. Copiar los datos a scratch
+
+```bash
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /data/courses/hpc_course/*HPC-COURSE*${USER}* /scratch/hpc_course
+```
+
 ### Script base
 
 Guarda como **`fastqc_demo.sbatch`**:
