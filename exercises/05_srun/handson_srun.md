@@ -355,7 +355,7 @@ Por último vamos a efectuar un ciclo de trabajo completo en scratch.
 1. Cargar el módulo o activar el entorno.
 
 ```bash
-cd /data/courses/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS/01-fastqc
+cd /data/courses/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS/
 # Modules y la gestión de software se desarrollará en la siguiente práctica
 module load FastQC/0.11.9-Java-11
 ```
