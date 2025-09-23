@@ -497,8 +497,8 @@ Un checksum es un valor hash generado a partir del contenido de un archivo. Si e
 - Por ultimo vamos a crear una estructura de directorios estándar para organizar datos.
 
 ```bash
-mkdir -p /data/course/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}/{RAW,ANALYSIS,RESULTS,DOC,TMP,REFERENCES}
-ls -R /data/course/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}
+mkdir -p /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}/{RAW,ANALYSIS,RESULTS,DOC,TMP,REFERENCES}
+ls -R /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}
 ```
 
 Output:
@@ -518,7 +518,7 @@ ANALYSIS  DOC  RAW  REFERENCES  RESULTS  TMP
 
 ```bash
 cd /home/usuaio
-rsync -rlv data/ /data/course/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}/RAW
+rsync -rlv data/ /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}/RAW
 ```
 
 La organización clara de los proyectos permite localizar fácilmente los datos, compartir con colaboradores y evitar problemas de almacenamiento. Ya tenemos nuestros datos preparados para el resto de las prácticas.
