@@ -504,14 +504,14 @@ ls -R /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}
 Output:
 
 ```bash
-/data/hpc_course/20250902_HPC-COURSE_smonzon:
+/data/courses/hpc_course/20250902_HPC-COURSE_smonzon:
 ANALYSIS  DOC  RAW  REFERENCES  RESULTS  TMP
-/data/hpc_course/20250902_HPC-COURSE_smonzon/ANALYSIS:
-/data/hpc_course/20250902_HPC-COURSE_smonzon/DOC:
-/data/hpc_course/20250902_HPC-COURSE_smonzon/RAW:
-/data/hpc_course/20250902_HPC-COURSE_smonzon/REFERENCES:
-/data/hpc_course/20250902_HPC-COURSE_smonzon/RESULTS:
-/data/hpc_course/20250902_HPC-COURSE_smonzon/TMP:
+/data/courses/hpc_course/20250902_HPC-COURSE_smonzon/ANALYSIS:
+/data/courses/hpc_course/20250902_HPC-COURSE_smonzon/DOC:
+/data/courses/hpc_course/20250902_HPC-COURSE_smonzon/RAW:
+/data/courses/hpc_course/20250902_HPC-COURSE_smonzon/REFERENCES:
+/data/courses/hpc_course/20250902_HPC-COURSE_smonzon/RESULTS:
+/data/courses/hpc_course/20250902_HPC-COURSE_smonzon/TMP:
 ```
 
 - Ahora ya podemos copiar los ficheros que hemos subido al HPC a la estructura de carpetas que hemos creado. Como son ficheros crudos de secuenciación los copiaremos en `RAW`.

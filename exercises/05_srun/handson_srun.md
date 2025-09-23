@@ -355,7 +355,7 @@ Por último vamos a efectuar un ciclo de trabajo completo en scratch.
 1. Cargar el módulo o activar el entorno.
 
 ```bash
-cd /data/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS/01-fastqc
+cd /data/courses/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS/01-fastqc
 # Modules y la gestión de software se desarrollará en la siguiente práctica
 module load FastQC/0.11.9-Java-11
 ```
@@ -387,7 +387,7 @@ Una vez terminado el procesamiento tenemos que devolver resultados a almacenamie
 1. Copiar resultados a un directorio de proyecto en /data.
 
 ```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /scratch/hpc_course/*HPC-COURSE*${USER}* /data/hpc_course/
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /scratch/hpc_course/*HPC-COURSE*${USER}* /data/courses/hpc_course/
 ```
 
 2. Limpiar temporal de forma segura.
