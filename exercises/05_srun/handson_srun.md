@@ -369,7 +369,7 @@ srun --partition=short_idx --cpus-per-task=2 --mem=4G --time=00:15:00 --chdir /s
 3. Revisar salida.
 
 ```bash
-ls
+ls 01-fastqc
 ```
 
 - Deben generarse ficheros HTML y zip por cada fastq
@@ -377,7 +377,7 @@ ls
 3. Para hacer este análisis hemos utilizado un único comando srun, es decir hemos analizado todas las muestras utilizando un único job, y se ha analizado una detrás de otra. Ahora vamos a lanzarlas todas a la vez en paralelo.
 
 ```bash
-cat ../samples_id.txt | xargs -I % srun --partition=short_idx --cpus-per-task=2 --mem=4G --time=00:15:00 --chdir /scratch/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS fastqc -t 2 -o 01-fastqc 00-reads/%_R1.fastq.gz 00-reads/%_R2.fastq.gz
+cat samples_id.txt | xargs -I % srun --partition=short_idx --cpus-per-task=2 --mem=4G --time=00:15:00 --chdir /scratch/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS fastqc -t 2 -o 01-fastqc 00-reads/%_R1.fastq.gz 00-reads/%_R2.fastq.gz
 ```
 
 ### 10. Copiar resultados a /data y limpiar /scratch
