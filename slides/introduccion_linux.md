@@ -2,6 +2,39 @@
 
 Linux es un sistema operativo, de código abierto, multi-tarea y multi-usuario.
 
+- [Introducción a Linux](#introducción-a-linux)
+  - [1. Sistema Operativo Linux](#1-sistema-operativo-linux)
+  - [1.1. ¿Qué es un sistema operativo?](#11-qué-es-un-sistema-operativo)
+    - [Funciones del sistema operativo](#funciones-del-sistema-operativo)
+    - [Componentes del sistema operativo](#componentes-del-sistema-operativo)
+      - [Kernel](#kernel)
+      - [Sistema de ficheros](#sistema-de-ficheros)
+      - [La shell](#la-shell)
+    - [Sistemas operativos](#sistemas-operativos)
+      - [GNU/Linux](#gnulinux)
+  - [1.2. Código abierto](#12-código-abierto)
+  - [1.3. Distribuciones](#13-distribuciones)
+  - [1.4. Multi-tarea](#14-multi-tarea)
+  - [1.5. Multi-usuario](#15-multi-usuario)
+  - [2. File system](#2-file-system)
+    - [2.1. Características](#21-características)
+    - [2.2 Estructura](#22-estructura)
+    - [2.3. Comparción con windows](#23-comparción-con-windows)
+    - [2.4. Rutas](#24-rutas)
+  - [3. Comandos básicos de linux](#3-comandos-básicos-de-linux)
+    - [3.1. Shell](#31-shell)
+    - [3.2. Prompt](#32-prompt)
+    - [3.3. Comandos básicos](#33-comandos-básicos)
+  - [4. Sintaxis de la linea de comandos](#4-sintaxis-de-la-linea-de-comandos)
+    - [4.1. Sintaxis](#41-sintaxis)
+    - [4.2. Input/Output](#42-inputoutput)
+    - [4.3. Redirigir](#43-redirigir)
+    - [4.4. Pipes](#44-pipes)
+- [5. Usuarios y privilegios](#5-usuarios-y-privilegios)
+  - [5.1. Usuarios](#51-usuarios)
+  - [5.2. Permisos](#52-permisos)
+  - [5.3. Cambiar permisos](#53-cambiar-permisos)
+
 ## 1. Sistema Operativo Linux
 
 ## 1.1. ¿Qué es un sistema operativo?
