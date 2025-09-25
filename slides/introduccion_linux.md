@@ -12,7 +12,7 @@ Un sistema operativo por definición es el **software** principal de un sistema 
 - El usuario somos nosotros, y nosotros lo que hacemos en el ordenador es usar aplicaciones, como Word o Chrome.
 - Estas aplicaciones se relacionan directamente con el sistema operativo, pero para funcionar necesitan los recursos del hardware como la memoria, de forma que el sistema operativo es el intermediario entre las aplicaciones y el hardware.
 
-Un ejemplo sería que nosotros queremos abrir el Word y el Word le dice al sistema operativo que necesita que el monitor despliegue una ventana, entonces el sistema operativo le dice al hardware que es la caja y el monitor que desplieguen esa ventana. 
+Un ejemplo sería que nosotros queremos abrir el Word y el Word le dice al sistema operativo que necesita que el monitor despliegue una ventana, entonces el sistema operativo le dice al hardware que es la caja y el monitor que desplieguen esa ventana.
 De forma que hay una relación uno a uno entre los distintos elementos.
 
 "Linux es como el director de una orquesta que coordina todos los instrumentos (programas, recursos del sistema), y permite que varias personas toquen al mismo tiempo."
@@ -104,9 +104,9 @@ Para que un software sea considerado verdaderamente de código abierto, su licen
 
 Gracias a los principios del software de código abierto, especialmente la libre redistribución, el acceso al código fuente y la posibilidad de crear trabajos derivados, es posible que múltiples comunidades y organizaciones desarrollen sus propias distribuciones de Linux.
 
-Una distribución (coloquialmente llamada distro) es una distribución de software basada en el kernel de Linux que incluye determinados paquetes de software para satisfacer las necesidades de un grupo específico de usuarios, dando así origen a ediciones domésticas, empresariales y para servidores. 
+Una distribución (coloquialmente llamada distro) es una distribución de software basada en el kernel de Linux que incluye determinados paquetes de software para satisfacer las necesidades de un grupo específico de usuarios, dando así origen a ediciones domésticas, empresariales y para servidores.
 
-Además del núcleo o kernel de Linux, las distribuciones incluyen habitualmente las librerías y herramientas del proyecto GNU, software adicional, documentación, un sistema de ventanas, un gestor de ventanas y un entorno de escritorio. Dependiendo del tipo de usuarios a los que la distribución esté dirigida se incluye también otro tipo de software como procesadores de texto, hoja de cálculo, reproductores multimedia, herramientas administrativas, etc. 
+Además del núcleo o kernel de Linux, las distribuciones incluyen habitualmente las librerías y herramientas del proyecto GNU, software adicional, documentación, un sistema de ventanas, un gestor de ventanas y un entorno de escritorio. Dependiendo del tipo de usuarios a los que la distribución esté dirigida se incluye también otro tipo de software como procesadores de texto, hoja de cálculo, reproductores multimedia, herramientas administrativas, etc.
 
 Por lo general están compuestas, total o mayoritariamente, de software libre, aunque a menudo incorporan aplicaciones o controladores propietarios.
 
@@ -181,9 +181,9 @@ También gestiona:
 - Espacio libre y ocupado
 - Integridad y recuperación ante errores
 
-Otras características: 
+Otras características:
 
-- La estructura de ficheros de Linux es una estructura jerárquica en forma de árbol invertido, donde el directorio principal (directorio raíz) es el directorio `/`, del que cuelga toda la estructura del sistema. 
+- La estructura de ficheros de Linux es una estructura jerárquica en forma de árbol invertido, donde el directorio principal (directorio raíz) es el directorio `/`, del que cuelga toda la estructura del sistema.
 - Todo tiene rutas, que hay que especificar
 - En Linux, todo son archivos, tanto los archivos de texto, como los directorios o carpetas, como los dispositivos que están conectados al ordenador, todo está representado como si fueran archivos. ¿Por qué se hace esto?
   - Porque tratarlo todo como ficheros simplifica la programación y el uso del sistema:
@@ -201,15 +201,15 @@ Desde este punto se ramifican todos los demás directorios y archivos del sistem
 - `/` (Root (Raíz)): Es el punto de partida del sistema de archivos. Todos los demás archivos y carpetas están contenidos o enlazados desde aquí. Es el núcleo de la jerarquía.
 - `/bin` (Binary): Contiene programas ejecutables esenciales, necesarios tanto para el sistema como para todos los usuarios. Son comandos básicos que se deben poder ejecutar incluso en modo de rescate o sin montar otras particiones.
 - `/usr` (User system resources): Contiene programas y utilidades de uso general para los usuarios. Dentro de `/usr` también hay subdirectorios como:
-    - `/usr/bin`: comandos no esenciales para todos los usuarios.
-    - `/usr/sbin`: herramientas administrativas.
-    - `/usr/lib`: bibliotecas compartidas.
+  - `/usr/bin`: comandos no esenciales para todos los usuarios.
+  - `/usr/sbin`: herramientas administrativas.
+  - `/usr/lib`: bibliotecas compartidas.
 - `/var` (Variable): Contiene archivos cuyo contenido cambia con el tiempo:
-    - Logs del sistema (/var/log)
-    - Bases de datos temporales
-    - Correos electrónicos del sistema
-    - Cachés
-    - Archivos de spool (como colas de impresión o correos)
+  - Logs del sistema (/var/log)
+  - Bases de datos temporales
+  - Correos electrónicos del sistema
+  - Cachés
+  - Archivos de spool (como colas de impresión o correos)
 - `/etc`: Configuraciones del sistema y servicios.
 - `/root`: Directorio personal del superusuario (root).
 - `/sbin`: Comandos del sistema usados por el administrador.
@@ -264,6 +264,7 @@ La shell es el programa que interpreta los comandos que escribimos. Es como un "
 En Linux, la forma de comunicarse con el sistema operativo es a través de la línea de comandos. A diferencia de los entornos gráficos, que permiten hacer clic en iconos o menús, la línea de comandos nos permite dar instrucciones precisas y controlar el sistema a un nivel más profundo. Esta interacción se realiza en un entorno llamado terminal. La terminal es la aplicación gráfica que permite acceder a esta shell, y es especialmente importante en entornos como servidores, sistemas sin interfaz gráfica o infraestructuras HPC, donde la línea de comandos es la herramienta principal de trabajo. Aunque hoy en día existen entornos gráficos (ventanas, menús, botones), la terminal sigue siendo una herramienta muy poderosa y flexible, especialmente en entornos de alta computación y servidores.
 
 En Linux, una de las shells más comunes es Bash. A través de ella, se pueden:
+
 - Navegar por el sistema de archivos.
 - Ejecutar programas y scripts.
 - Gestionar procesos.
@@ -279,6 +280,7 @@ Un prompt típico puede tener este aspecto:
 ```bash
 [user@machine ~]$
 ```
+
 Este ejemplo nos da información importante:
 
 - user → es el nombre del usuario que ha iniciado sesión.
@@ -324,7 +326,8 @@ Documentos  Descargas  imagen.png  script.sh
 [user@machine ~]$ pwd
 /home/user/
 ```
->  Primero estamos dentro de la carpeta Documentos y después nos movemos al directorio anterior con `..`
+
+> Primero estamos dentro de la carpeta Documentos y después nos movemos al directorio anterior con `..`
 
 - `mkdir` (Make Directory): Sirve para crear nuevos directorios (si tenemos permisos).
 
@@ -372,7 +375,7 @@ Documentos  Descargas   script.sh
 copia_script.sh  Documentos  Descargas  script.sh
 ```
 
->  Aquí hemos copiado el archivo `script.sh` a `copia_script.sh`
+> Aquí hemos copiado el archivo `script.sh` a `copia_script.sh`
 
 - `mv` (Mover): Sirve tanto para mover archivos a otra ubicación como para cambiarles el nombre.
 
@@ -446,13 +449,13 @@ comando [opciones o parámetros] [argumentos]
   - Para algunos comandos el argumento de archivo es obligatorio (como el de mover o leer un archivo)
 
 Ejemplos:
+
 - `ls -l -a`: Tiene dos parámetros
   - `-l`: Indica que se haga el listado en formato largo
   - `-a`: Indica que se haga el listado incluyendo archivos ocultos
 - `cp archivo1.txt copia.txt`: Tiene dos argumentos, donde **el orden importa**:
   - archivo1.txt: El archivo de origen, siempre va primero
   - copia.txt: El archivo de destino siempre va segundo
-
 
 ### 4.2. Input/Output
 
@@ -485,6 +488,7 @@ En Linux, puedes redirigir estas salidas y entradas para controlar mejor lo que 
 ```bash
 echo "Hola mundo" > saludo.txt
 ```
+
 > Crea un archivo llamado saludo.txt con el contenido Hola mundo.
 
 - **Añadir** (en vez de sobrescribir) a un archivo:
@@ -493,6 +497,7 @@ echo "Hola mundo" > saludo.txt
 echo "Otra línea" >> saludo.txt
 
 ```
+
 > Añade una línea al final del archivo sin borrar lo anterior.
 
 - Redirigir **la entrada estándar desde un archivo**
@@ -500,6 +505,7 @@ echo "Otra línea" >> saludo.txt
 ```bash
 cat < saludo.txt
 ```
+
 > Lee el contenido de saludo.txt como si lo estuvieras escribiendo tú.
 
 - **Redirigir errores**: Puedes redirigir la salida de error (stderr) con 2>:
@@ -517,7 +523,6 @@ cat archivo_que_no_existe.txt > salida.txt 2>&1
 ```
 
 > Esto guarda tanto stdout como stderr en el mismo archivo.
-
 
 ### 4.4. Pipes
 
@@ -583,10 +588,11 @@ Existen dos tipos de usuarios:
   - Es el administrador del sistema.
   - Tiene acceso total a todos los archivos y comandos.
   - Puede instalar programas, borrar cualquier archivo, crear usuarios, etc.
- 
+
 Un grupo es un conjunto de usuarios. Se usan para gestionar permisos colectivos. Ejemplo: si varios usuarios necesitan acceder a un proyecto común, puedes añadirlos al mismo grupo.
 
 Algunas caracteristicas:
+
 - Los usuarios están asociados a una persona o proceso de computación
 - Todos los usuarios pueden pertenecer a uno o más grupos
 - Todos los usuarios tienen una carpeta propia dentro de la carpeta home
@@ -627,7 +633,7 @@ Los permisos como su propio nombre indica son los derechos de los usuarios para 
 
 La información de los permisos se almacena en el sistema como una secuencia de 9 bits en una estructura de tres grupos:
 
-- La primera es para el propietario del fichero 
+- La primera es para el propietario del fichero
 - La segunda secuencia es para el grupo del fichero
 - Y la tercera es para los demás usuarios que no sean ni el propietario ni pertenezcan al grupo
 
@@ -639,13 +645,16 @@ Después de la secuencia de información de permisos te proporciona información
 
 Los permisos de un fichero solo pueden ser alterados por su propietario, los usuarios que pertenezcan al grupo y por el administrador. El super usuario puede cambiar los permisos de cualquier fichero del sistema.
 
-Comandos para cambiar permisos: 
+Comandos para cambiar permisos:
+
 - `chmod` (change mode): Sirve para cambiar los permisos de acceso de un archivo o directorio.
 
 ```bash
 chmod 755 archivo.sh
 ```
+
 Este ejemplo le da:
+
 - `rwx` al usuario (7 = 4 + 2 + 1)
 - `rx` al grupo (5 = 4 + 0 + 1)
 - `rx` a los demás (5 = 4 + 0 + 1)
