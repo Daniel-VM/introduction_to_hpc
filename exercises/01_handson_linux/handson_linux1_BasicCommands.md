@@ -14,10 +14,10 @@ BU-ISCIII
     - [Cheats](#cheats)
     - [Ejercicios](#ejercicios)
       - [1. Muestra tu directorio de trabajo actual](#1-muestra-tu-directorio-de-trabajo-actual)
-      - [2. Listar los archivos de tu carpeta actual.](#2-listar-los-archivos-de-tu-carpeta-actual)
+      - [2. Listar los archivos de tu carpeta actual](#2-listar-los-archivos-de-tu-carpeta-actual)
       - [3. Crear directorios](#3-crear-directorios)
       - [4. Moverte entre directorios](#4-moverte-entre-directorios)
-      - [5. Crear directorios, moverse y crear archivos vacíos dentro.](#5-crear-directorios-moverse-y-crear-archivos-vacíos-dentro)
+      - [5. Crear directorios, moverse y crear archivos vacíos dentro](#5-crear-directorios-moverse-y-crear-archivos-vacíos-dentro)
       - [6. Modificar y visualizar el contenido de los archivos](#6-modificar-y-visualizar-el-contenido-de-los-archivos)
       - [7. Parámetros de un mismo comando](#7-parámetros-de-un-mismo-comando)
       - [8. Copiar archivos y directorios](#8-copiar-archivos-y-directorios)
@@ -40,10 +40,10 @@ El objetivo es realizar, desde la línea de comandos, aquellas tareas cotidianas
 
 ### Notas importantes
 
-* Usa el tabulador para guiarte en la terminal y autocompletar nombres de ruta, archivos y comandos (el tabulador es tu mejor aliado).
-* Usa las flechas del teclado para moverte por el historial de comandos ejecutados (podrás reutilizarlos sin volver a escribirlos).
-* No es aconsejable usar espacios, tildes ni caracteres especiales como la "ñ" en los nombres de archivos o directorios.
-* Comandos básicos que siempre debes recordar: `pwd`, `cd`, `ls`, `mkdir`, `mv`, `rm`, `rmdir`, `less`, `nano`.
+- Usa el tabulador para guiarte en la terminal y autocompletar nombres de ruta, archivos y comandos (el tabulador es tu mejor aliado).
+- Usa las flechas del teclado para moverte por el historial de comandos ejecutados (podrás reutilizarlos sin volver a escribirlos).
+- No es aconsejable usar espacios, tildes ni caracteres especiales como la "ñ" en los nombres de archivos o directorios.
+- Comandos básicos que siempre debes recordar: `pwd`, `cd`, `ls`, `mkdir`, `mv`, `rm`, `rmdir`, `less`, `nano`.
 
 ### Cheats
 
@@ -62,9 +62,13 @@ El objetivo es realizar, desde la línea de comandos, aquellas tareas cotidianas
 
 ### Ejercicios
 
-> Nota: En [este archivo](./esquema_practica_comandos.pdf) hay un esquema con los cambios en las rutas que se van ralizando a lo largo de la práctica.
+> Nota: En [este archivo](./esquema_practica_comandos.pdf) hay un esquema con los cambios en las rutas que se van realizando a lo largo de la práctica.
 
-Abrimos una terminal en nuestro ordenador. En Linux se puede pulsar `Ctrl + Alt + T` para abrir una terminal.
+Abrimos una terminal en nuestro ordenador. En Linux se puede pulsar `Ctrl + Alt + T` para abrir una terminal. En windows podemos utilizar abrir una powershell para poder usar comandos de terminal de windows, o también tenemos acceso a un subsistema de linux integrado, el WSL. Este WSL podemos usarlo directamente buscando `Ubuntu` en nuestras aplicaciones, o bien a través de VSCode y su terminal.
+
+En estas prácticas vamos a usar....
+
+1. Abrir terminal en...
 
 <details>
 <summary>PREGUNTA: ¿Qué información nos muestra el prompt?</summary>
@@ -106,10 +110,9 @@ pwd
 El comando `pwd` muestra una ruta absoluta.
 </details>
 
-
 > Nota: El resultado del comando `pwd` debe coincidir con la ruta que se muestra en el prompt.
 
-#### 2. Listar los archivos de tu carpeta actual.
+#### 2. Listar los archivos de tu carpeta actual
 
 1. Lista el contenido del directorio de tu home (`/home/usuario`).
 2. Lista el contenido del directorio de tu home (`/home/usuario`) en formato largo
@@ -164,7 +167,6 @@ ls
 Si. Si no, algo ha ido mal.
 </details>
 
-
 #### 4. Moverte entre directorios
 
 Antes de moverte a un directorio diferente, comprueba siempre donde estás y que archivos hay en tu carpeta con `pwd` y `ls`. Haz lo mismo siempre que cambies de carpeta.
@@ -182,12 +184,11 @@ ls
 No deberia contener nada porque la has creado vacía.
 </details>
 
-#### 5. Crear directorios, moverse y crear archivos vacíos dentro.
+#### 5. Crear directorios, moverse y crear archivos vacíos dentro
 
 1. Desde `practica_comandos` crear 2 directorios, uno se llamara ‘dir1’ y el otro ‘dir2’
-2. Acceder dentro del directorio `dir1` y crear dos archivos de ‘texto’ vacios, uno llamado `archivo1.txt` y otro llamado `archivo2.txt`. 
+2. Acceder dentro del directorio `dir1` y crear dos archivos de ‘texto’ vacios, uno llamado `archivo1.txt` y otro llamado `archivo2.txt`.
 3. Volver al directorio de inicio (/home/alumno)
-
 
 ```bash
 ls
@@ -238,9 +239,9 @@ Te mueve al directorio de tu home ubicado siempre en `/home/<tu nombre de usuari
 #### 6. Modificar y visualizar el contenido de los archivos
 
 1. Moverse al directorio `practica_comandos/dir1/`
-Usando el editor nano, añadir texto al archivo `archivo1.txt`, guardar (pulsar ctrl + o) y salir del editor (ctrl + x). 
+Usando el editor nano, añadir texto al archivo `archivo1.txt`, guardar (pulsar ctrl + o) y salir del editor (ctrl + x).
 2. Visualizar en pantalla el contenido de `archivo1.txt`.
-3. Usando el editor nano, añadir texto DISTINTO al archivo `archivo2.txt`, guardar (pulsar ctrl + o) y salir del editor (ctrl + x). 
+3. Usando el editor nano, añadir texto DISTINTO al archivo `archivo2.txt`, guardar (pulsar ctrl + o) y salir del editor (ctrl + x).
 4. visualizar en pantalla el contenido de `archivo1.txt` y `archivo2.txt` con una sola instrucción.
 5. Por último, guardar el contenido de los 2 ficheros en uno nuevo y llámalo `juntar_ficheros.txt`.
 6. Visualizar en pantalla.
@@ -586,9 +587,11 @@ uname -a
 <summary>PREGUNTA: ¿Que hace el comando <code class="code-inline">who</code>?</summary>
 
 Muestra qué usuarios están actualmente conectados al sistema y desde dónde:
+
 - Quien está conectado, tu nombre de usuario
 - El nombre del terminal o sesión
 - La fecha y hora de la conexión
+
 </details>
 
 <details>
@@ -601,20 +604,24 @@ Te dice con qué usuario estás conectado, que es tu nombre de usuario.
 <summary>PREGUNTA: ¿Que hace el comando <code class="code-inline">id</code>?</summary>
 
 Muestra el UID, GID y grupos a los que pertenece el usuario actual.
+
 - UID: identificador único del usuario
 - GID: identificador del grupo principal
 - groups: lista de grupos a los que perteneces
+
 </details>
 
 <details>
 <summary>PREGUNTA: ¿Que hace el comando <code class="code-inline">uname -a</code>?</summary>
 
 Muestra información del sistema: kernel, nombre de host, arquitectura y más.
+
 - Sistema operativo
 - Nombre del host
 - Versión del kernel
 - Arquitectura
 - Sistema base
+
 </details>
 
 #### 17. Super usuario
@@ -631,11 +638,11 @@ En el HPC no tenemos permisos de root / sudo, por lo que no podemos conectarnos 
 
 ### Nota final
 
-* Podéis practicar estos ejercicios en cualquier ordenador, ya que estos comandos son universales y funcionan en toda máquina linux y similares, incluyendo macs y WSL.
+- Podéis practicar estos ejercicios en cualquier ordenador, ya que estos comandos son universales y funcionan en toda máquina linux y similares, incluyendo macs y WSL.
 
-* La manera más sencilla de practicarlos sin instalar nada es vía <http://www.webminal.org/>. En esta web puedes crearte un usuario de forma gratuita y abrir una terminal en una máquina remota, todo a través de vuestro explorador web. También contiene tutoriales complementarios que os pueden servir para afianzar lo aprendido hoy o repasar los comandos cuando tengáis necesidad de usarlos.
+- La manera más sencilla de practicarlos sin instalar nada es vía <http://www.webminal.org/>. En esta web puedes crearte un usuario de forma gratuita y abrir una terminal en una máquina remota, todo a través de vuestro explorador web. También contiene tutoriales complementarios que os pueden servir para afianzar lo aprendido hoy o repasar los comandos cuando tengáis necesidad de usarlos.
 
-* Como alternativa podéis usar <http://copy.sh/v86/?profile=archlinux>, aunque esta carece de tutoriales.
+- Como alternativa podéis usar <http://copy.sh/v86/?profile=archlinux>, aunque esta carece de tutoriales.
 
 ```
 Visita Webminal o copy.sh para practicar en casa: http://www.webminal.org/ o http://copy.sh/v86/?profile=archlinux
