@@ -134,12 +134,12 @@ ALGUNOS (no todos) parámetros se pueden juntar en un único parámetro, como es
 <details>
 <summary>PREGUNTA: ¿Qué ficheros ves?
 </summary>
-XXXXXXXXX
+Busca diferencias entre los ficheros que ves utilizando un parámetro y los que ves sin utilizarlo.
 </details>
 
 <details>
 <summary>PREGUNTA: ¿Qué carpetas ves?</summary>
-XXXXXXXX
+Busca diferencias entre las carpetas que ves utilizando un parámetro y las que ves sin utilizarlo.
 </details>
 
 <details>
@@ -434,6 +434,7 @@ El comando `clear` permite limpiar (aclarar) la pantalla de la terminal para pod
 ```bash
 pwd
 ls
+cd ../dir1
 ls archivo*
 ls *.txt
 ```
@@ -447,8 +448,8 @@ cat *.txt
 
 1. Renombrar `archivo1.txt` a `archivo_importante.txt`
 2. Leer el contenido de `archivo_importante.txt`
-2. Leer y redireccionar el contenido del archivo `/etc/passwd` a `archivo_importante.txt`
-2. Leer el contenido de `archivo_importante.txt` con distintos comandos
+3. Leer y redireccionar el contenido del archivo `/etc/passwd` a `archivo_importante.txt`
+4. Leer el contenido de `archivo_importante.txt` con distintos comandos
 
 ```bash
 pwd
@@ -492,9 +493,6 @@ ls
 ```
 
 ```bash
-pwd
-ls
-cd ../dir1/
 pwd
 ls
 rm *
