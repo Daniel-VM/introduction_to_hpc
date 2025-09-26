@@ -325,7 +325,7 @@ squeue -u "$USER" -o "%8i %12j %4t %10u %20P %11l %11L %50R" | grep demo_cancel 
 
 ### 8. Copiar datos entre /data y /scratch usando srun con rsync
 
-Ahora que sabemos usar srun con su parametrización, vamos a aprender a usar los filesystem de /data y /scratch. Específicamente vamos a copiar de un recuerso a otro usando un nodo de cómputo evitando cargar el nodo de acceso.
+Ahora que sabemos usar srun con su parametrización, vamos a aprender a usar los filesystem de /data y /scratch. Específicamente vamos a copiar de un recurso a otro usando un nodo de cómputo evitando cargar el nodo de acceso.
 
 1. Preparamos las carpetas que vamos a necesitar para el análisis real partiendo de la carpeta que creamos en la práctica anterior.
 
@@ -342,7 +342,7 @@ cat ../samples_id.txt | xargs -I % echo "ln -s ../../RAW/%_*1*.fastq.gz %_R1.fas
 cat ../samples_id.txt | xargs -I % echo "ln -s ../../RAW/%_*2*.fastq.gz %_R2.fastq.gz" | bash
 ```
 
-1. Compiamos los datos a scratch con un rsync lanzado en un nodo de cómputo.
+1. Copiamos los datos a scratch con un rsync lanzado en un nodo de cómputo.
 
 ```bash
 srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /data/courses/hpc_course/*HPC-COURSE*${USER}* /scratch/hpc_course
