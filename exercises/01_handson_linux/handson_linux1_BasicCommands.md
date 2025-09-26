@@ -66,9 +66,9 @@ El objetivo es realizar, desde la línea de comandos, aquellas tareas cotidianas
 
 Abrimos una terminal en nuestro ordenador. En Linux se puede pulsar `Ctrl + Alt + T` para abrir una terminal. En windows podemos utilizar abrir una powershell para poder usar comandos de terminal de windows, o también tenemos acceso a un subsistema de linux integrado, el WSL. Este WSL podemos usarlo directamente buscando `Ubuntu` en nuestras aplicaciones, o bien a través de VSCode y su terminal.
 
-En estas prácticas vamos a usar....
+En estas prácticas vamos a usar WSL
 
-1. Abrir terminal en...
+1. Abrir terminal en WSL/Ubuntu.
 
 <details>
 <summary>PREGUNTA: ¿Qué información nos muestra el prompt?</summary>
