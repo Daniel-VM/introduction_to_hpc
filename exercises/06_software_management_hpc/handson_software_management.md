@@ -20,11 +20,11 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
 
   - Comprobar tus permisos de usuario en tu ordenador personal:
 
-    ```bash
-    whoami # Mostrar mi nombre de usuario
-    groups # Mostrar los grupos a los que pertenece mi usuario
-    ls -l ~ # Listar contenido del directorio home (~), incluyendo permisos
-    ```
+  ```bash
+  whoami # Mostrar mi nombre de usuario
+  groups # Mostrar los grupos a los que pertenece mi usuario
+  ls -l ~ # Listar contenido del directorio home (~), incluyendo permisos
+  ```
 
   - Ahora repite el mismo comando pero en el HPC, ¿ves alguna diferencia? ¿Por qué?
 
@@ -32,45 +32,49 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
 
   - En tu ordenador personal (si tienes acceso admin/root), crea un archivo y cambia su propietario:
 
-      ```bash
-      touch testfile.txt # Crear archivo
-      ls -l testfile.txt
-      rm testfile.txt
-      ```
+  ```bash
+  touch testfile.txt # Crear archivo
+  ls -l testfile.txt
+  rm testfile.txt
+  ```
 
   - El archivo se ha borrado sin problema. Pero ¿qué pasa si solo puede borrarlo root?
 
   - Primero, iniciemos una sesión root:
 
-      ```bash
-      sudo su
-      touch testfile.txt
-      exit # Salir de la sesión root
-      ```
+  ```bash
+  sudo su
+  touch testfile.txt
+  exit # Salir de la sesión root
+  ```
 
   - Ahora que salimos de root, revisemos los permisos de testfile.txt.
 
-      ```bash
-      ls -l testfile.txt
-      ```
+  ```bash
+  ls -l testfile.txt
+  ```
 
   - Intenta editar o borrar el archivo como usuario normal:
 
-      ```bash
-      rm testfile.txt
-      ```
+  ```bash
+  rm testfile.txt
+  ```
 
   - En el HPC, intenta ejecutar `chown` en un archivo de tu directorio home:
 
-      ```bash
-      touch myfile.txt
-      chown root:root myfile.txt
-      ```
+  ```bash
+  # vamos a nuestro home
+  cd
+  pwd
+  ls
+  touch myfile.txt
+  ls
+  chown root:root myfile.txt
+  ```
 
-  - **Esperado:** Aparecerá `"Operation not permitted"`, porque no tienes privilegios root en el HPC.
+  - **Output:** Aparecerá `"Operation not permitted"`, porque no tienes privilegios root en el HPC.
 
-  - Ahora intenta cambiar la propiedad a un grupo común del laboratorio:
-      `chown alumnoXX:hpccourse myfile.txt`
+  - Ahora intenta cambiar la propiedad a un grupo común del laboratorio: `chown alumnoXX:hpccourse myfile.txt`. Vemos que en ese caso sí que funciona porque pertenecemos a ese grupo y el propietario sigue siendo el mismo.
 
   - **Discusión:**
 
@@ -85,10 +89,14 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
 - **¿Cómo crear un entorno virtual?**
   Existen muchas herramientas que ayudan a crear entornos virtuales. Softwares como **conda o mamba** incluso los gestionan para simplificar la instalación de software y evitar conflictos.
   
-- En primer lugar, vamos a conectarnos al HPC por ssh como hemos visto anteriormente: `ssh -p 32122 usuario@portutatis.isciii.es`
+- En primer lugar, sino estamos ya conectados, vamos a conectarnos al HPC por ssh como hemos visto anteriormente: `ssh -p 32122 usuario@portutatis.isciii.es`
+
   - Una manera sencilla de crear un entorno virtual es con `venv`, una herramienta propia de Python:
 
     ```bash
+    cd # nos aseguramos que estamos en nuestro home
+    pwd
+    ls
     python3 -m venv bioenv # Crear el entorno
     source bioenv/bin/activate # Activar el entorno
     ```
@@ -107,7 +115,7 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
 
 - **¿Cómo trabajar con entornos virtuales en nuestro HPC?**
   En este ejercicio usaremos **seqkit** para inspeccionar archivos de secuencias.
-  
+
   - Veamos si lo tenemos instalado:
 
     ```bash
@@ -120,13 +128,13 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
     pip install seqkit
     ```
 
-  - Bueno, eso no salió como esperábamos ¿verdad? Como vimos en la clase teórica, pip no crea ninguna virtualización, solo gestiona paquetes y dependencias. Por lo tanto, si intentáramos instalar algo con pip, terminaríamos instalándolo para todos los demás   usuarios del HPC. Esa es la razón principal por la que **pip no está instalado globalmente en nuestro HPC**.
+  - Bueno, eso no salió como esperábamos ¿verdad? Como vimos en la clase teórica, pip no crea ninguna virtualización, solo gestiona paquetes y dependencias. Por lo tanto, si intentáramos instalar algo con pip, terminaríamos instalándolo para todos los demás usuarios del HPC. Esa es la razón principal por la que **pip no está instalado globalmente en nuestro HPC**.
 
-  - **Discusión:** ¿Se te ocurre alguna alternativa para instalar seqkit? <br>
+  - **Discusión:** ¿Se te ocurre alguna alternativa para instalar seqkit?
   Vamos a ver si lo tenemos disponible dentro de **bioenv**, el entorno virtual que creamos previamente.
 
     ```bash
-    source envs/bioenv
+    source bioenv/bin/activate
     pip list # Comando para ver qué paquetes están instalados por pip
 
     # Output esperado:
@@ -152,35 +160,133 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
     Como `seqkit` no está en PyPI, usaremos **micromamba**.<br> <br>
 
 - **Micromamba:** Nuestro gestor de entornos favorito, ya que es especialmente rápido y ligero. Para descargarlo en vuestro _Home_ podéis utilizar el siguiente comando:
-`curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj ~/bin/micromamba`
- Además, para hacerlo fácilmente accesible vamos a añadir una **configuración** extra a `~/.bashrc`:
 
-  ```bash
-  # >>> mamba initialize >>>
-  # !! Contents within this block are managed by 'mamba  init' !!
-  export MAMBA_EXE='/home/USUARIO/bin/micromamba  bin/micromamba';
-  export MAMBA_ROOT_PREFIX='/home/USUARIO/bin/micromamba micromamba';
-  __mamba_setup="$("$MAMBA_EXE" shell hook --shell bash  --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
-  if [ $? -eq 0 ]; then
-      eval "$__mamba_setup"
-  else
-      alias micromamba="$MAMBA_EXE"
-  fi
-  unset __mamba_setup
-  # <<< mamba initialize <<<
-  ```
+```bash
+curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
+```
 
-  Aplica los cambios:
+- Comprobamos que está instalado viendo que tenemos un fichero binario en `~/bin/micromamba`. Además de lanzar el comando y ver que vemos la ayuda
 
-  ```bash
-  source ~/.bashrc
-  ```
+```bash
+micromamba
+```
+
+- Output:
+
+```bash
+Version: 2.3.2 
+
+
+
+micromamba [OPTIONS] [SUBCOMMAND]
+
+
+OPTIONS:
+  -h,     --help              Print this help message and exit
+          --version
+
+Configuration options:
+          --rc-file FILE1 FILE2...
+                              Paths to the configuration files to use
+          --no-rc             Disable the use of configuration files
+          --no-env            Disable the use of environment variables
+
+Global options:
+  -v,     --verbose           Set verbosity (higher verbosity with multiple -v, e.g. -vvv)       
+          --log-level ENUM:value in {critical->5,debug->1,error->4,info->2,off->6,trace->0,warning->3} OR {5,1,4,2,6,0,3}
+                              Set the log level
+  -q,     --quiet             Set quiet mode (print less output)
+  -y,     --yes               Automatically answer yes on prompted questions
+          --json              Report all output as json
+          --offline           Force use cached repodata
+          --dry-run           Only display what would have been done
+          --download-only     Only download and extract packages, do not link them into
+                              environment.
+          --experimental      Enable experimental features
+          --use-uv            Whether to use uv for installing pip dependencies. Defaults to     
+                              false.
+
+Prefix options:
+  -r,     --root-prefix PATH  Path to the root prefix
+  -p,     --prefix PATH       Path to the target prefix
+          --relocate-prefix PATH
+                              Path to the relocation prefix
+  -n,     --name NAME         Name of the target prefix
+
+SUBCOMMANDS:
+  shell                       Generate shell init scripts
+  create                      Create new environment
+  install                     Install packages in active environment
+  update                      Update packages in active environment
+  self-update                 Update micromamba
+  repoquery                   Find and analyze packages in active environment or channels        
+  remove, uninstall           Remove packages from active environment
+  list                        List packages in active environment
+  package                     Extract a package or bundle files into an archive
+  clean                       Clean package cache
+  config                      Configuration of micromamba
+  info                        Information about micromamba
+  constructor                 Commands to support using micromamba in constructor
+  env                         See `mamba/micromamba env --help`
+  activate                    Activate an environment
+  run                         Run an executable in an environment
+  ps                          Show, inspect or kill running processes
+  auth                        Login or logout of a given host
+  search                      Find packages in active environment or channels
+                              This is equivalent to `repoquery search` command
+```
+
+- Para hacer que el comando micromamba persista en nuestro entorno cuando reiniciemos la terminar, o salgamos y entremos de nuevo en el hpc. Tenemos que añadir una serie de cambios a nuestro bashrc. Además de hacer el setup de la carpeta donde se van a instalar todos los entornos.
+
+```bash
+./bin/micromamba shell init -s bash -r ~/micromamba
+```
+
+- Este comando añadirá este bloque a tu .bashrc. Puedes comprobarlo con `cat .bashrc`
+
+```bash
+# >>> mamba initialize >>>
+# !! Contents within this block are managed by 'mamba  init' !!
+export MAMBA_EXE='/home/USUARIO/bin/micromamba  bin/micromamba';
+export MAMBA_ROOT_PREFIX='/home/USUARIO/bin/micromamba micromamba';
+__mamba_setup="$("$MAMBA_EXE" shell hook --shell bash  --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__mamba_setup"
+else
+    alias micromamba="$MAMBA_EXE"
+fi
+unset __mamba_setup
+# <<< mamba initialize <<<
+```
+
+- Para que se apliquen los cambios a nuestra terminal actual recargamos la configuración de nuestra terminal:
+
+```bash
+source ~/.bashrc
+```
 
 - Ahora ya podemos utilizar micromamba invocándolo directamente por su nombre. Micromamba cuenta con un entorno `base` pre-instalado: podemos activarlo con `micromamba activate`. Cuando se haya activado aparecerá `(base)` a la izquierda de nuestra linea de comandos. Para salir, utiliza `micromamba deactivate`.
+
+- Por último vamos a configurar nuestro `.condarc`:
+
+```bash
+touch ~/.condarc
+```
+
+- Escribimos lo siguiente en el fichero con `nano` o `vim`:
+
+```bash
+auto_activate_base: false
+channels:
+  - conda-forge
+channel_priority: strict
+```
+
 - Con esto ya tendríamos un entorno virtual, pero nosotros vamos a ir más allá, creando un entorno virtual personalizado con `micromamba create`:
 
-  ```bash
-  micromamba create -y -n bioenv python==3.12.0 pip twine -c conda-forge
+```bash
+micromamba create -y -n bioenv python==3.12.0 pip twine -c conda-forge
+```
   
 - Output:
 
@@ -204,25 +310,30 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   - `python==3.12.0 pip twine` son los **paquetes iniciales** a instalar: en este caso especificamos `python` con la versión `3.12.0` y `pip`.
   - `-c` indica el **channel o canal** donde va a buscar los paquetes.
 
-  **Podemos establecer tantos paquetes iniciales como queramos**, siempre que estén disponibles en los canales de conda configurados. <br>Iniciemos nuestro entorno virtual:
+  **Podemos establecer tantos paquetes iniciales como queramos**, siempre que estén disponibles en los canales de conda configurados.
+  
+  - Activemos nuestro entorno virtual:
   
   ```bash
   micromamba activate bioenv
   ```
   
-  ¡Felicidades! Tus paquetes ahora están aislados del   sistema global. Verás `(bioenv)` añadido en la esquina   izquierda del prompt de tu terminal como indicador de que   el entorno está activado. <br>Puedes probar `pip list`   ahora, ya que estará disponible dentro del entorno   virtual. Esto listará todos los paquetes instalados con   pip. Intenta hacer lo mismo en el anterior virtualenv   `bioenv` para ver qué ocurre (_pista: primero necesitarás   salir con `micromamba deactivate`_).
+  - Tus paquetes ahora están aislados del   sistema global. Verás `(bioenv)` añadido en la esquina   izquierda del prompt de tu terminal como indicador de que   el entorno está activado.
   
-  <br>Veamos si `seqkit` está disponible en pip o micromamba para poder instalarlo:
+  - Puedes probar `pip list`   ahora, ya que estará disponible dentro del entorno   virtual. Esto listará todos los paquetes instalados con   pip. Intenta hacer lo mismo en el anterior virtualenv   `bioenv` para ver qué ocurre (_pista: primero necesitarás   salir con `micromamba deactivate`_).
+  
+  - Veamos si `seqkit` está disponible en pip o micromamba para poder instalarlo:
   Pip no tiene un comando oficial para buscar un paquete, debes ir a su página web y usar el navegador para encontrarlo [https://pypi.org/search](<https://pypi.org/>  search). Es crucial inspeccionarlo antes de instalar, ya que podría haber un paquete con el mismo nombre que el que quieres pero con diferente funcionalidad.
-  **Ejemplo**: `taranis` en pip es un wrapper de una API   meteorológica, pero en bioconda es un pipeline para wg/cgMLST allele calling.
   
-  <br>`Seqkit` no está disponible a través de pip, por lo que nuestra mejor opción es instalarlo con micromamba.
+  **Ejemplo**: `taranis` en pip es un wrapper de una API meteorológica, pero en bioconda es un pipeline para wg/cgMLST allele calling.
+  
+  - En este caso, `Seqkit` no está disponible a través de pip, por lo que nuestra mejor opción es instalarlo con micromamba.
   
   - Veamos si `seqkit` está disponible en micromamba:
   
   ```bash
   micromamba search seqkit
-  Getting repodata from channels...
+  # Getting repodata from channels...
 
   # nodefaults/  # linux-64                                         Using   # cache
   # nodefaults/  # noarch                                           Using   # cache
@@ -234,7 +345,7 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   
   Como puedes ver no aparece. Esto es debido a que seqkit solo se encuentra disponible en [https://conda.anaconda.org/bioconda](https://conda.anaconda.org/bioconda). Esto significa que si no tenemos el canal `bioconda` añadido a nuestra configuración, no podremos descargarlo con micromamba.
   
-  <br>- Puedes comprobar la lista de canales accesibles con:
+  - Puedes comprobar la lista de canales accesibles con:
   
   ```bash
   micromamba config get channels
@@ -245,7 +356,6 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   ```bash
   channels:
       - conda-forge
-      - nodefaults
   ```
 
   Vamos a indicarle que busque el paquete en `bioconda`:
@@ -254,17 +364,17 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   micromamba install seqkit -c bioconda
   ```
   
-  Si quieres **añadir un canal por defecto**, puedes hacerlo modificando la sección `channels` en el archivo de configuración `~/.condarc` que deberías tener en tu directorio home. Es un archivo oculto, por lo que necesitarás `ls -a` para verlo.
-  Tras modificarlo, debería quedar así:
+  - Si quieres **añadir un canal por defecto**, puedes hacerlo modificando la sección `channels` en el archivo de configuración `~/.condarc`. El orden de los canales es importante para evitar conflictos, la configuración actual que recomienda bioconda es esta, pero puede cambiar con el tiempo:
 
+  > Nota primer canal con más prioridad que el segundo
+  
   ```bash
   channels:
       - conda-forge
-      - nodefaults
       - bioconda
   ```
 
-  Ahora ya no tendrás que indicar bioconda como canal al instalar ya que lo usará por defecto. <br><br>
+  Ahora ya no tendrás que indicar bioconda como canal al instalar ya que lo usará por defecto.
 
   Como práctica, vamos a **eliminar el canal bioconda** e intentar reinstalar `seqkit`:
   
@@ -277,8 +387,6 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   Para continuar con la siguiente sección, **vuelve a añadir   el canal bioconda** e **instala seqkit otra vez** por tu   cuenta.
   
   - **Consejo**: si quieres instalar paquetes de   Python, usa `pip install` ya que es el repositorio de   paquetes de Python más grande, pero para herramientas más   complejas como `bedtools` utiliza **micromamba** o   **conda**.
-
----
 
 ### 2.1 Cómo compartir entornos virtuales entre usuarios del HPC
 
