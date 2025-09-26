@@ -538,7 +538,7 @@ ANALYSIS  DOC  RAW  REFERENCES  RESULTS  TMP
 
 ```bash
 cd /home/usuaio
-rsync -rlv hpc_isciii_data /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}/RAW
+rsync -rlv hpc_isciii_data/* /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}/RAW
 ```
 
 La organización clara de los proyectos permite localizar fácilmente los datos, compartir con colaboradores y evitar problemas de almacenamiento. Ya tenemos nuestros datos preparados para el resto de las prácticas.
