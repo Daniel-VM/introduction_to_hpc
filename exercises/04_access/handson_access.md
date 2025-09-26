@@ -386,11 +386,13 @@ El comando `ssh-keygen` genera una nueva clave pública/privada en el directorio
 
 #### Subir archivo con `scp`
 
+- Descargamos los datos de la práctica
+
 - Abrimos WSL
 
 ```bash
-cd /path/to/hpc_isciii_data
-scp -r -P 32122 data usuario@portutatis.isciii.es:/home/usuario
+cd /path/to/where/hpc_isciii_data_is
+scp -r -P 32122 hpc_isciii_data usuario@portutatis.isciii.es:/home/usuario
 ```
 
 Output:
@@ -409,7 +411,7 @@ virus1_R1.fastq.gz                                                              
 #### Descargar archivo con `scp`
 
 ```bash
-scp -P 32122 usuario@portutatis.isciii.es:/home/usuario/data/ERR2261314_1.fastq.gz ./
+scp -P 32122 usuario@portutatis.isciii.es:/home/usuario/hpc_isciii_data/ERR2261314_1.fastq.gz ./
 ```
 
 Output:
@@ -422,7 +424,7 @@ ERR2261314_1.fastq.gz
 #### Sincronizar carpeta con `rsync`
 
 ```bash
-rsync -avz -e "ssh -p 32122" data/ usuario@portutatis.isciii.es:/home/usuario
+rsync -avz -e "ssh -p 32122" hpc_isciii_data usuario@portutatis.isciii.es:/home/usuario
 ```
 
 Output:
@@ -472,10 +474,10 @@ Resumen:
 
 ```bash
 # En nuestro ordenador local creamos el fichero md5sum de los ficheros
-cd /path/to/hpc_isciii_data/data
+cd /path/to/hpc_isciii_data
 md5sum *.gz > md5sum.md5
-scp -P 32122 md5sum.md5 usuario@portutatis.isciii.es:/home/usuario/data
-ssh -p 32122 usuario@portutatis.isciii.es "cd /home/usuario/data;md5sum -c md5sum.md5"
+scp -P 32122 md5sum.md5 usuario@portutatis.isciii.es:/home/usuario/hpc_isciii_data
+ssh -p 32122 usuario@portutatis.isciii.es "cd /home/usuario/hpc_isciii_data;md5sum -c md5sum.md5"
 ```
 
 Output:
@@ -513,6 +515,8 @@ Un checksum es un valor hash generado a partir del contenido de un archivo. Si e
 - Por ultimo vamos a crear una estructura de directorios estándar para organizar datos.
 
 ```bash
+# recordad conectarse al hpc primero
+ssh -p 32122 usuario@portutatis.isciii.es
 mkdir -p /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}/{RAW,ANALYSIS,RESULTS,DOC,TMP,REFERENCES}
 ls -R /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}
 ```
@@ -534,7 +538,7 @@ ANALYSIS  DOC  RAW  REFERENCES  RESULTS  TMP
 
 ```bash
 cd /home/usuaio
-rsync -rlv data/ /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}/RAW
+rsync -rlv hpc_isciii_data /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}/RAW
 ```
 
 La organización clara de los proyectos permite localizar fácilmente los datos, compartir con colaboradores y evitar problemas de almacenamiento. Ya tenemos nuestros datos preparados para el resto de las prácticas.
