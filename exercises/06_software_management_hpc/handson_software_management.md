@@ -4,32 +4,33 @@
 
 Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. Hoy cubriremos tres temas principales:
 
-* [Curso Práctico de Iniciación al uso del Entorno de Alta Computación](#curso-práctico-de-iniciación-al-uso-del-entorno-de-alta-computación)
-
-  * [Práctica 5: Gestión de Software en HPC](#práctica-5-gestión-de-software-en-hpc)
-  * [1. Permisos: PC personal vs HPC](#1-permisos-pc-personal-vs-hpc)
-  * [2. Entornos Virtuales & Gestores de Software](#2-entornos-virtuales--gestores-de-software)
-
-    * [2.1 Cómo compartir entornos virtuales entre usuarios del HPC](#21-Cómo-compartir-entornos-virtuales-entre-usuarios-del-HPC)
-  * [3. Contenedores: Docker & Singularity](#3-contenedores-docker--singularity)
+- [Curso Práctico de Iniciación al uso del Entorno de Alta Computación](#curso-práctico-de-iniciación-al-uso-del-entorno-de-alta-computación)
+  - [Práctica 5: Gestión de Software en HPC](#práctica-5-gestión-de-software-en-hpc)
+  - [1. Permisos: PC personal vs HPC](#1-permisos-pc-personal-vs-hpc)
+  - [2. Entornos Virtuales \& Gestores de Software](#2-entornos-virtuales--gestores-de-software)
+    - [2.1 Cómo compartir entornos virtuales entre usuarios del HPC](#21-cómo-compartir-entornos-virtuales-entre-usuarios-del-hpc)
+  - [3. Contenedores: Docker \& Singularity](#3-contenedores-docker--singularity)
+    - [3.1 Descargar y ejecutar un contenedor de Singularity](#31-descargar-y-ejecutar-un-contenedor-de-singularity)
+    - [3.2 Otros conceptos importantes sobre singularity](#32-otros-conceptos-importantes-sobre-singularity)
 
 ## 1. Permisos: PC personal vs HPC
 
-* En este apartado vamos a **Comparar permisos de archivos y software** entre tu PC personal y el HPC y cómo gestionarlos.
-* **Práctica: comprobar permisos de usuario y grupo**
+- En este apartado vamos a **Comparar permisos de archivos y software** entre tu PC personal y el HPC y cómo gestionarlos.
+- **Práctica: comprobar permisos de usuario y grupo**
 
-  * Comprobar tus permisos de usuario en tu ordenador personal:
+  - Comprobar tus permisos de usuario en tu ordenador personal:
 
     ```bash
     whoami # Mostrar mi nombre de usuario
     groups # Mostrar los grupos a los que pertenece mi usuario
     ls -l ~ # Listar contenido del directorio home (~), incluyendo permisos
     ```
-    Ahora repite el mismo comando pero en el HPC, ¿ves alguna diferencia? <br><br>
 
-* **Práctica con `chown` (cambiar propietario del archivo):**
+  - Ahora repite el mismo comando pero en el HPC, ¿ves alguna diferencia? ¿Por qué?
 
-    * En tu ordenador personal (si tienes acceso admin/root), crea un archivo y cambia su propietario:
+- **Práctica con `chown` (cambiar propietario del archivo):**
+
+  - En tu ordenador personal (si tienes acceso admin/root), crea un archivo y cambia su propietario:
 
       ```bash
       touch testfile.txt # Crear archivo
@@ -37,9 +38,9 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
       rm testfile.txt
       ```
 
-    * El archivo se ha borrado sin problema. Pero ¿qué pasa si solo puede borrarlo root?
+  - El archivo se ha borrado sin problema. Pero ¿qué pasa si solo puede borrarlo root?
 
-    * Primero, iniciemos una sesión root:
+  - Primero, iniciemos una sesión root:
 
       ```bash
       sudo su
@@ -47,43 +48,41 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
       exit # Salir de la sesión root
       ```
 
-    * Ahora que salimos de root, revisemos los permisos de testfile.txt. **Nota:** reinicia la terminal, ya que `sudo` tiene un tiempo de gracia en el que no pide la contraseña de nuevo.
+  - Ahora que salimos de root, revisemos los permisos de testfile.txt.
 
       ```bash
       ls -l testfile.txt
       ```
 
-    * Intenta editar o borrar el archivo como usuario normal:
+  - Intenta editar o borrar el archivo como usuario normal:
 
       ```bash
       rm testfile.txt
       ```
 
-    * En el HPC, intenta ejecutar `chown` en un archivo de tu directorio home:
+  - En el HPC, intenta ejecutar `chown` en un archivo de tu directorio home:
 
       ```bash
       touch myfile.txt
       chown root:root myfile.txt
       ```
 
-    * **Esperado:** Aparecerá `"Operation not permitted"`, porque no tienes privilegios root en el HPC.
+  - **Esperado:** Aparecerá `"Operation not permitted"`, porque no tienes privilegios root en el HPC.
 
-    * Ahora intenta cambiar la propiedad a un grupo común del laboratorio:
-      `chown bi:bi myfile.txt`
+  - Ahora intenta cambiar la propiedad a un grupo común del laboratorio:
+      `chown alumnoXX:hpccourse myfile.txt`
 
-  * **Discusión:**
+  - **Discusión:**
 
-    * ¿Por qué `chown` está restringido en sistemas compartidos?
-    * ¿Cómo afecta esto a la instalación de software y gestión de archivos en HPC?
-
----
+    - ¿Por qué `chown` está restringido en sistemas compartidos?
+    - ¿Cómo afecta esto a la instalación de software y gestión de archivos en HPC?
 
 ## 2. Entornos Virtuales & Gestores de Software
 
-* **¿Por qué usar entornos virtuales?**
+- **¿Por qué usar entornos virtuales?**
   Principalmente para aislar dependencias y evitar conflictos, pero también sirve para organizar todo el software necesario para una tarea en el mismo lugar.
 
-* **¿Cómo crear un entorno virtual?**
+- **¿Cómo crear un entorno virtual?**
   Existen muchas herramientas que ayudan a crear entornos virtuales. Softwares como **conda o mamba** incluso los gestionan para simplificar la instalación de software y evitar conflictos.
   
 - En primer lugar, vamos a conectarnos al HPC por ssh como hemos visto anteriormente: `ssh -p 32122 usuario@portutatis.isciii.es`
@@ -106,19 +105,23 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
 
     Nota: Puedes salir en cualquier momento con `deactivate`.
 
-* **¿Cómo trabajar con entornos virtuales en nuestro HPC?**
-  En este ejercicio usaremos **seqkit** para inspeccionar archivos de secuencias. 
-  * Veamos si lo tenemos instalado:
+- **¿Cómo trabajar con entornos virtuales en nuestro HPC?**
+  En este ejercicio usaremos **seqkit** para inspeccionar archivos de secuencias.
+  
+  - Veamos si lo tenemos instalado:
+
     ```bash
     seqkit --help # <-- Command 'seqkit' not found
     ```
 
-  * Intentemos instalarlo con pip:
+  - Intentemos instalarlo con pip:
 
     ```bash
     pip install seqkit
     ```
-  * Bueno, eso no salió como esperábamos ¿verdad? Como vimos en la clase teórica, pip no crea ninguna virtualización, solo gestiona paquetes y dependencias. Por lo tanto, si intentáramos instalar algo con pip, terminaríamos instalándolo para todos los demás   usuarios del HPC. Esa es la razón principal por la que **pip no está instalado globalmente en nuestro HPC**. <br><br>
+
+  - Bueno, eso no salió como esperábamos ¿verdad? Como vimos en la clase teórica, pip no crea ninguna virtualización, solo gestiona paquetes y dependencias. Por lo tanto, si intentáramos instalar algo con pip, terminaríamos instalándolo para todos los demás   usuarios del HPC. Esa es la razón principal por la que **pip no está instalado globalmente en nuestro HPC**.
+
   - **Discusión:** ¿Se te ocurre alguna alternativa para instalar seqkit? <br>
   Vamos a ver si lo tenemos disponible dentro de **bioenv**, el entorno virtual que creamos previamente.
 
@@ -133,8 +136,10 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
     # setuptools 80.9.0
     # wheel      0.45.1
     ```
+
     No es nuestro caso, pero podemos intentar instalarlo con pip.
-    ```
+
+    ```bash
     pip install seqkit
 
     # Output esperado:
@@ -146,7 +151,7 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
 
     Como `seqkit` no está en PyPI, usaremos **micromamba**.<br> <br>
 
-* **Micromamba:** Nuestro gestor de entornos favorito, ya que es especialmente rápido y ligero. Para descargarlo en vuestro _Home_ podéis utilizar el siguiente comando:
+- **Micromamba:** Nuestro gestor de entornos favorito, ya que es especialmente rápido y ligero. Para descargarlo en vuestro _Home_ podéis utilizar el siguiente comando:
 `curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj ~/bin/micromamba`
  Además, para hacerlo fácilmente accesible vamos a añadir una **configuración** extra a `~/.bashrc`:
 
@@ -171,13 +176,15 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   source ~/.bashrc
   ```
 
-* Ahora ya podemos utilizar micromamba invocándolo directamente por su nombre. Micromamba cuenta con un entorno `base` pre-instalado: podemos activarlo con `micromamba activate`. Cuando se haya activado aparecerá `(base)` a la izquierda de nuestra linea de comandos. Para salir, utiliza `micromamba deactivate`.
-* Con esto ya tendríamos un entorno virtual, pero nosotros vamos a ir más allá, creando un entorno virtual personalizado con `micromamba create`:
+- Ahora ya podemos utilizar micromamba invocándolo directamente por su nombre. Micromamba cuenta con un entorno `base` pre-instalado: podemos activarlo con `micromamba activate`. Cuando se haya activado aparecerá `(base)` a la izquierda de nuestra linea de comandos. Para salir, utiliza `micromamba deactivate`.
+- Con esto ya tendríamos un entorno virtual, pero nosotros vamos a ir más allá, creando un entorno virtual personalizado con `micromamba create`:
 
   ```bash
   micromamba create -y -n bioenv python==3.12.0 pip twine -c conda-forge
   
-  # Output esperado:
+- Output:
+
+```bash
   #
   # Transaction finished
   # 
@@ -188,12 +195,13 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   # Or to execute a single command in this environment, use:
   # 
   #    micromamba run -n bioenv mycommand
-  ```
+```
   
-  Vamos a explicar cada parámetro en profundidad:
-  -  `-y` sirve para no tener que confirmar la instalación
+- Vamos a explicar cada parámetro en profundidad:
+
+  - `-y` sirve para no tener que confirmar la instalación
   - `-n` se usa para asignar el **nombre del entorno**
-  - `python==3.12.0 pip twine` son los **paquetes iniciales** a instalar: en este caso especificamos `python` con la versión `3.12.0` y `pip`. 
+  - `python==3.12.0 pip twine` son los **paquetes iniciales** a instalar: en este caso especificamos `python` con la versión `3.12.0` y `pip`.
   - `-c` indica el **channel o canal** donde va a buscar los paquetes.
 
   **Podemos establecer tantos paquetes iniciales como queramos**, siempre que estén disponibles en los canales de conda configurados. <br>Iniciemos nuestro entorno virtual:
@@ -202,15 +210,15 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   micromamba activate bioenv
   ```
   
-  ¡Felicidades! Tus paquetes ahora están aislados del   sistema global. Verás `(bioenv)` añadido en la esquina   izquierda del prompt de tu terminal como indicador de que   el entorno está activado. <br>Puedes probar `pip list`   ahora, ya que estará disponible dentro del entorno   virtual. Esto listará todos los paquetes instalados con   pip. Intenta hacer lo mismo en el anterior virtualenv   `bioenv` para ver qué ocurre (*pista: primero necesitarás   salir con `micromamba deactivate`*).
+  ¡Felicidades! Tus paquetes ahora están aislados del   sistema global. Verás `(bioenv)` añadido en la esquina   izquierda del prompt de tu terminal como indicador de que   el entorno está activado. <br>Puedes probar `pip list`   ahora, ya que estará disponible dentro del entorno   virtual. Esto listará todos los paquetes instalados con   pip. Intenta hacer lo mismo en el anterior virtualenv   `bioenv` para ver qué ocurre (_pista: primero necesitarás   salir con `micromamba deactivate`_).
   
   <br>Veamos si `seqkit` está disponible en pip o micromamba para poder instalarlo:
-  Pip no tiene un comando oficial para buscar un paquete, debes ir a su página web y usar el navegador para encontrarlo [https://pypi.org/search](https://pypi.org/  search). Es crucial inspeccionarlo antes de instalar, ya que podría haber un paquete con el mismo nombre que el que quieres pero con diferente funcionalidad.
+  Pip no tiene un comando oficial para buscar un paquete, debes ir a su página web y usar el navegador para encontrarlo [https://pypi.org/search](<https://pypi.org/>  search). Es crucial inspeccionarlo antes de instalar, ya que podría haber un paquete con el mismo nombre que el que quieres pero con diferente funcionalidad.
   **Ejemplo**: `taranis` en pip es un wrapper de una API   meteorológica, pero en bioconda es un pipeline para wg/cgMLST allele calling.
   
   <br>`Seqkit` no está disponible a través de pip, por lo que nuestra mejor opción es instalarlo con micromamba.
   
-  * Veamos si `seqkit` está disponible en micromamba:
+  - Veamos si `seqkit` está disponible en micromamba:
   
   ```bash
   micromamba search seqkit
@@ -241,18 +249,21 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   ```
 
   Vamos a indicarle que busque el paquete en `bioconda`:
+
   ```bash
   micromamba install seqkit -c bioconda
   ```
   
   Si quieres **añadir un canal por defecto**, puedes hacerlo modificando la sección `channels` en el archivo de configuración `~/.condarc` que deberías tener en tu directorio home. Es un archivo oculto, por lo que necesitarás `ls -a` para verlo.
   Tras modificarlo, debería quedar así:
+
   ```bash
   channels:
       - conda-forge
       - nodefaults
       - bioconda
   ```
+
   Ahora ya no tendrás que indicar bioconda como canal al instalar ya que lo usará por defecto. <br><br>
 
   Como práctica, vamos a **eliminar el canal bioconda** e intentar reinstalar `seqkit`:
@@ -265,16 +276,15 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   
   Para continuar con la siguiente sección, **vuelve a añadir   el canal bioconda** e **instala seqkit otra vez** por tu   cuenta.
   
-  * **Consejo**: si quieres instalar paquetes de   Python, usa `pip install` ya que es el repositorio de   paquetes de Python más grande, pero para herramientas más   complejas como `bedtools` utiliza **micromamba** o   **conda**.
-
+  - **Consejo**: si quieres instalar paquetes de   Python, usa `pip install` ya que es el repositorio de   paquetes de Python más grande, pero para herramientas más   complejas como `bedtools` utiliza **micromamba** o   **conda**.
 
 ---
 
-## 2.1 Cómo compartir entornos virtuales entre usuarios del HPC
+### 2.1 Cómo compartir entornos virtuales entre usuarios del HPC
 
-* Con micromamba:
+- Con micromamba:
 
-  * Configura `.condarc` para utilizar el mismo directorio de entornos que el resto de alumnos:
+  - Configura `.condarc` para utilizar el mismo directorio de entornos que el resto de alumnos:
 
     ```bash
     nano ~/.condarc
@@ -282,14 +292,14 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
        - RUTA_POSIBLE/micromamba/envs
     ```
 
-  * Buscar y activar `hpc_course_bioenv`:
+  - Buscar y activar `hpc_course_bioenv`:
 
     ```bash
     micromamba env list
     micromamba activate hpc_course_bioenv
     ```
 
-  * Comparar con módulos del sistema:
+  - Comparar con módulos del sistema:
 
     ```bash
     module overview
@@ -297,23 +307,15 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
     R --help
     ```
 
-  * Prueba a instalar un paquete con micromamba y pip, y observa las diferencias.
-
----
-
-Aquí tienes la traducción al **español** manteniendo el estilo **markdown**:
-
----
-
 ## 3. Contenedores: Docker & Singularity
 
-* **¿Por qué contenedores?**
+- **¿Por qué contenedores?**
   Portabilidad y reproducibilidad de entornos de software.
 
-* **Práctica:**
+- **Práctica:**
   Desafortunadamente, no tenemos Docker disponible en nuestro HPC. **Singularity** es un buen reemplazo de Docker ya que gestiona contenedores y además está **específicamente diseñado para sistemas HPC**.
 
-* En este ejercicio usaremos **bedtools** para convertir algunos archivos bam de nuevo a fastq. Busquemos un contenedor de Singularity con el software requerido:
+- En este ejercicio usaremos **bedtools** para convertir algunos archivos bam de nuevo a fastq. Busquemos un contenedor de Singularity con el software requerido:
 
 ```bash
 singularity search bedtools
@@ -335,13 +337,13 @@ Para ello bastará con utilizar `module avail`. Si por otra parte queremos busca
 
 ---
 
-#### Descargar y ejecutar un contenedor de Singularity:
+### 3.1 Descargar y ejecutar un contenedor de Singularity
 
 Existen muchos repositorios de contenedores, siendo [https://hub.docker.com](https://hub.docker.com) el más común. Para herramientas bioinformáticas recomendamos:
 
-* [galaxy index](https://depot.galaxyproject.org/singularity/)
-* [biocontainers registry](https://biocontainers.pro/registry)
-* [sequera containers](https://seqera.io/containers/)
+- [galaxy index](https://depot.galaxyproject.org/singularity/)
+- [biocontainers registry](https://biocontainers.pro/registry)
+- [sequera containers](https://seqera.io/containers/)
 
 El comando `singularity run` ya descarga la imagen antes de ejecutarla, lo cual usaremos en este ejercicio para correr un contenedor de bedtools directamente desde el repositorio de Galaxy.
 
@@ -378,19 +380,19 @@ bedtools bamtofastq -i RUTA_EJEMPLO_ARCHIVO -fq RUTA_EJEMPLO_FASTQ
 
 Al hacer `--bind <PATH>`, lo que pongamos en `<PATH>` será accesible dentro del contenedor. Por defecto se incluye la carpeta en la que nos encontremos al momento de lanzar singularity.
 
-#### Otros conceptos importantes sobre singularity.
+### 3.2 Otros conceptos importantes sobre singularity
 
-* Para uso únicamente interactivo dentro de una imagen, ejecuta:
+- Para uso únicamente interactivo dentro de una imagen, ejecuta:
 
   ```bash
   singularity shell /path/to/image
   ```
 
-* Puedes **configurar y crear tu propio contenedor vía web** fácilmente con [https://seqera.io/containers](https://seqera.io/containers).
+- Puedes **configurar y crear tu propio contenedor vía web** fácilmente con [https://seqera.io/containers](https://seqera.io/containers).
   Solo busca cada dependencia y añádela a la lista, luego haz clic en **"Get Container"** y espera a que la imagen esté lista. Una vez completado, puedes usarla con:
 
   ```bash
   singularity run <container_url>
   ```
 
-* Si quieres aprender más sobre cómo crear tu propio contenedor, recomendamos revisar la documentación de [singularity build](https://docs.sylabs.io/guides/3.0/user-guide/build_a_container.html) y [docker build](https://docs.docker.com/get-started/workshop/02_our_app/) para conocer todas las especificaciones necesarias.
+- Si quieres aprender más sobre cómo crear tu propio contenedor, recomendamos revisar la documentación de [singularity build](https://docs.sylabs.io/guides/3.0/user-guide/build_a_container.html) y [docker build](https://docs.docker.com/get-started/workshop/02_our_app/) para conocer todas las especificaciones necesarias.
