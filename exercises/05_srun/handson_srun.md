@@ -34,7 +34,7 @@ BU-ISCIII
 
 ### 1. Reservar recursos mínimos con srun desde /home
 
-1. Primero vamos a comprobar qué particiones hay en el clúster y cuáles son sus características.
+1. Primero vamos a comprobar qué particiones hay en el clúster y cuáles son sus características. Acuérdate de entrar al HPC primero.
 
 ```bash
 sinfo -o '%P %l %c %m %G'
@@ -56,19 +56,19 @@ Output:
 ```bash
 cd ~
 # 1 cpu, 1gb memoria ram, 5 minutos tiempo máximo
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:00:60 bash -c "hostname; sleep 100"
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:00:60 bash -c "hostname; sleep 60"
 # Comprobamos con squeue en otra terminal
-squeue -u "$USER" -o "%8i %12j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"
+squeue -u "$USER" -o "%8i %22j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"
 # si no usamos -u "$USER" veremos el trabajo de otros usuarios
-squeue -o "%8i %12j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"
+squeue -o "%8i %22j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"
 ```
 
 3. Repetir pidiendo dos threads y dos gigas.
 
 ```bash
 srun --partition=short_idx --cpus-per-task=2 --mem=2G --time=00:00:60 bash -c "hostname; sleep 60"
-# Comprobamos con squeue en otra terminal
-squeue -u "$USER" -o "%8i %12j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"
+# Comprobamos con squeue en otra terminal. Esta vez filtrando solo por tu usuario
+squeue -u "$USER" -o "%8i %22j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"
 ```
 
 - Comprobamos que no se ejecuta en el nodo de acceso portutatis, sino que se ejecuta en uno de los nodos de cómputo. El hostname va a devolver el nombre del nodo donde se está ejecutando, cada uno tendréis uno diferente. ¿Cuál es el tuyo?
@@ -76,8 +76,8 @@ squeue -u "$USER" -o "%8i %12j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %
 4. ¿Qué ocurre si solicita menos tiempo del necesario?
 
 ```bash
-srun --partition=short_idx --cpus-per-task=2 --mem=2G --time=00:00:10 bash -c "hostname; sleep 60"
-# espera unos segundos
+srun --partition=short_idx --cpus-per-task=2 --mem=2G --time=00:00:60 bash -c "hostname; sleep 100"
+# espera un minuto
 ```
 
 Output:
@@ -106,7 +106,7 @@ srun: error: ideafix03: task 0: Out Of Memory
 - Revisemos la información del job con `sacct`
 
 ```bash
-sacct -j $SLURM_JOB_ID --format=JobID,State,MaxRSS,ReqMem 
+sacct -j SLURM_JOB_ID --format=JobID,State,MaxRSS,ReqMem 
 # Debido a que el trabajo es muy corto no da tiempo al accounting a recoger la información por lo que no lo veremos aquí.
 # en un trabajo más largo sería donde se vería que MaxRSS llega al ReqMem
 ```
@@ -144,11 +144,13 @@ srun --partition=short_idx --nodes=1 --ntasks=4 --time=00:10:00 bash -c 'echo Ta
 srun --partition=middle_idx --nodes=2 --ntasks-per-node=1 --time=00:10:00 bash -c 'echo Nodo $(hostname) con tarea $SLURM_PROCID'
 ```
 
-3. Solicitar una GPU si la partición gpus está disponible. -> no veo los nodos gpu, ni una cola de gpu
+1. Solicitar una GPU si la partición gpus está disponible.
 
 ```bash
 srun --partition=gpus --gres=gpu:1 --cpus-per-task=4 --mem=16G --time=00:30:00 nvidia-smi
 ```
+
+> Nota: por motivos técnicos los nodos gpu no están disponibles en este momento por lo que este comando no funcionará.
 
 ### 3. Enviar trabajos con srun en segundo plano y comprobar con squeue
 
@@ -170,7 +172,7 @@ jobs
 3. Consultar su estado en la cola.
 
 ```bash
-squeue -o "%8i %12j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"
+squeue -u $USER -o "%8i %22j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"
 ```
 
 ### 4. Gestionar logs y nombre de job
@@ -246,7 +248,7 @@ exit
 1. Obtener un resumen de los trabajos en la cola. Esto lo hemos ido haciendo a lo largo de la práctica.
 
 ```bash
-squeue -o "%8i %12j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c" 
+squeue -o "%8i %22j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c" 
 ```
 
 Leyenda del formato:
@@ -265,7 +267,7 @@ Leyenda del formato:
 - %C: CPUs (total de CPUs asignadas al job/step)
 - %c: CPUs per task (cpus por tarea, si aplica)
 
-Nota sobre los números: en expresiones como `%8i` o `%12j`, el número indica el ancho de columna (margen/padding) para una salida tabulada más legible. No forma parte del campo en sí.
+Nota sobre los números: en expresiones como `%8i` o `%22j`, el número indica el ancho de columna (margen/padding) para una salida tabulada más legible. No forma parte del campo en sí.
 
 1. Obtener un resumen de los trabajos terminados.
 
@@ -293,7 +295,7 @@ done
 2. Verificar que están en cola/ejecución.
 
 ```bash
-squeue -u "$USER" -o "%8i %12j %4t %10u %20P %11l %11L %50R"
+squeue -u "$USER" -o "%8i %22j %4t %10u %20P %11l %11L %50R"
 ```
 
 3. Cancelar un trabajo concreto por JobID.
@@ -302,7 +304,7 @@ squeue -u "$USER" -o "%8i %12j %4t %10u %20P %11l %11L %50R"
 # Elige un JobID de la salida anterior, p.ej. 1234567
 scancel JOBID
 # Verifica que ese solo desaparece
-squeue -u "$USER" -o "%8i %12j %4t %10u %20P %11l %11L %50R"
+squeue -u "$USER" -o "%8i %22j %4t %10u %20P %11l %11L %50R"
 ```
 
 4. Cancelar todos los trabajos restantes del usuario (o solo por nombre).
@@ -320,7 +322,7 @@ scancel -n demo_cancel_3
 5. Comprobar que no quedan trabajos demo.
 
 ```bash
-squeue -u "$USER" -o "%8i %12j %4t %10u %20P %11l %11L %50R" | grep demo_cancel || echo "Sin trabajos demo_cancel"
+squeue -u "$USER" -o "%8i %22j %4t %10u %20P %11l %11L %50R" | grep demo_cancel || echo "Sin trabajos demo_cancel"
 ```
 
 ### 8. Copiar datos entre /data y /scratch usando srun con rsync
@@ -333,7 +335,7 @@ Ahora que sabemos usar srun con su parametrización, vamos a aprender a usar los
 # Nos movemos a la carpeta en nuestra carpeta compartida dentro del hpc
 cd /data/courses/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS
 # Creamos las carpetas que vamos a necesitar
-mkdir -p 00-reads 01-fastqc
+mkdir -p 00-reads 01-fastqc/logs
 # vamos a crear un archivo con los nombres de los muestras
 ls ../RAW/*.fastq.gz | cut -d "/" -f 3 | cut -d "_" -f 1 | sort -u > samples_id.txt
 # Por último creamos enlaces simbólicos para cada muestra de forma homogéne en 00-reads para tenerlo a mano
@@ -377,7 +379,13 @@ ls 01-fastqc
 3. Para hacer este análisis hemos utilizado un único comando srun, es decir hemos analizado todas las muestras utilizando un único job, y se ha analizado una detrás de otra. Ahora vamos a lanzarlas todas a la vez en paralelo.
 
 ```bash
-cat samples_id.txt | xargs -I % srun --partition=short_idx --cpus-per-task=2 --mem=4G --time=00:15:00 --chdir /scratch/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS fastqc -t 2 -o 01-fastqc 00-reads/%_R1.fastq.gz 00-reads/%_R2.fastq.gz
+cat samples_id.txt | xargs -I @@ echo "srun --chdir /scratch/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS --partition=short_idx --job-name fastqc_@@ --cpus-per-task=2 --mem=4G --time=00:15:00 fastqc -t 2 -o 01-fastqc 00-reads/@@_R1.fastq.gz 00-reads/@@_R2.fastq.gz &" | bash
+```
+
+Lo puedes comprobar en otra terminal lanzando:
+
+```bash
+watch squeue -u $USER -o \"%8i %22j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c\"
 ```
 
 ### 10. Copiar resultados a /data y limpiar /scratch
