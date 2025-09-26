@@ -53,6 +53,7 @@ En esta práctica aprenderás a:
 
 ```bash
 ssh -p 32122 usuario@portutatis.isciii.es
+exit
 ```
 
 Output:
@@ -72,7 +73,9 @@ Si la conexión falla, podemos añadir opciones de depuración:
 - **Modo detallado (-v):**
 
 ```bash
+exit
 ssh -v -p 32122 usuario@portutatis.isciii.es
+exit
 ```
 
 Muestra información sobre cada paso de la conexión SSH. Útil para identificar problemas de autenticación.
@@ -184,6 +187,7 @@ Last login: Tue Sep  2 16:27:50 2025 from 10.22.140.230
 
 ```bash
 ssh -vvv -p 32122 usuario@portutatis.isciii.es
+exit
 ```
 
 Muestra aún más detalles, incluyendo el intercambio de claves. Útil cuando el problema es con la clave pública o el fingerprint.
@@ -192,17 +196,29 @@ Muestra aún más detalles, incluyendo el intercambio de claves. Útil cuando el
 
 ```bash
 ssh -v usuario@portutatis.isciii.es
+exit
 ```
 
 Output:
 
 ```bash
-
+OpenSSH_9.6p1 Ubuntu-3ubuntu13.13, OpenSSL 3.0.13 30 Jan 2024
+debug1: Reading configuration data /home/smonzon/.ssh/config
+debug1: Reading configuration data /etc/ssh/ssh_config
+debug1: /etc/ssh/ssh_config line 19: include /etc/ssh/ssh_config.d/*.conf matched no files
+debug1: /etc/ssh/ssh_config line 21: Applying options for *
+debug1: Connecting to portutatis.isciii.es [172.21.7.100] port 22.
+debug1: connect to address 172.21.7.100 port 22: Connection refused
+ssh: connect to host portutatis.isciii.es port 22: Connection refused
 ```
 
 ### Ejercicio 2: Exploración del entorno
 
-- Ahora vamos a familiarizarnos con el nodo de acceso y los recursos disponibles del clúster.
+- Ahora vamos a familiarizarnos con el nodo de acceso y los recursos disponibles del clúster. Nos conectamos al clúster con ssh de nuevo.
+
+```bash
+ssh -p 32122 usuario@portutatis.isciii.es
+```
 
 - Quienes somos y a qué grupos pertenecemos:
 
@@ -344,7 +360,7 @@ Sirve para personalizar el entorno del usuario: definir variables de entorno, ca
 ### Ejercicio 3: Configuración de clave SSH
 
 - Ahora vamos a configurar nuestra key ssh para poder conectarnos sin necesidad de escribir contraseña en cada acceso.
-- Debemos generar la clave ssh-key desde nuestro ordenador local y copiarla a portutatis.isciii.es
+- Debemos generar la clave ssh-key desde nuestro ordenador local y copiarla a portutatis.isciii.es. Por lo tanto *salimos del HPC con `exit`*
 
 ```bash
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
