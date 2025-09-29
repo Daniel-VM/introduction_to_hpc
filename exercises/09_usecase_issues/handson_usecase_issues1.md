@@ -409,10 +409,16 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
   El modo `temps` no aplica filtro de antigüedad, por lo que detectará inmediatamente la carpeta `work`. Si además queremos generar un caso para el modo `stale`, podemos envejecer la carpeta completa:
 
   ```bash
-  touch -d '3 days ago' TEST_FOLDER_${USER} TEST_FOLDER_${USER}/work
+  touch -d '3 days ago' TEST_FOLDER_${USER}
   ```
 
   Con ello `stale` mostrará el directorio principal como candidato por tener más de 2 días sin actividad.
+
+  ```bash
+  cleanup_scratch -m temps
+  cleanup_scratch -m stale
+  cleanup_scratch -m stale -f
+  ```
 
 - Plantilla mínima de job SLURM (batch)
 
