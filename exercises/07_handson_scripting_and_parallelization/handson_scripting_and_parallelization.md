@@ -44,12 +44,6 @@ mkdir 07-scripting-and-parallelization
 mkdir 07-scripting-and-parallelization/logs
 ```
 
-2. Copiar los datos a scratch
-
-```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /data/courses/hpc_course/*HPC-COURSE*${USER}* /scratch/hpc_course
-```
-
 ### Script base
 
 Guarda como **`fastqc_demo.sbatch`**:
@@ -73,29 +67,31 @@ echo "[INFO] Node: $(hostname)"
 echo "[INFO] Starting FastQC at $(date)"
 
 # Crea la carpeta de resultados
-mkdir -p 02-fastqc-array-results
+mkdir -p 01-fastqc-demo-results
 
 # Ejecuta fastqc
 fastqc \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
-  -o 02-fastqc-array-results
+  -o 01-fastqc-demo-results
 
 echo "[INFO] Finished at $(date)"
 ```
 
-> Nota: los parámetros que introducimos en la cabecera con `#SBATCH` también los podemos pasar por CLI:
+>IMPORTANTE: De aquí en adelante tendrás que sustituir en el script de sbatch la cadena de caracteres `*HPC-COURSE_${USER}` que se encuentra en la directiva `#SBATCH --chdir=...` por el nombre de tu carpeta de carpeta de trabajo en el HPC. Por ejemplo:
 
 ```bash
-sbatch fastqc_demo.sbatch \
-  --job-name=fastqc_demo \
-  --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization \
-  --partition=short_idx \
-  --cpus-per-task=1 \
-  --mem=4G \
-  --time=00:05:00 \
-  --output=logs/%x-%j.out \
-  --error=logs/%x-%j.err
+Sustituye esto:
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
+
+por:
+#SBATCH --chdir=/scratch/hpc_course/20250929_HPC-COURSE_alumno10/ANALYSIS/07-scripting-and-parallelization
+```
+
+2. Copiar los datos desde /data a /scratch
+
+```bash
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /data/courses/hpc_course/*HPC-COURSE*${USER}* /scratch/hpc_course
 ```
 
 ---
@@ -106,6 +102,11 @@ sbatch fastqc_demo.sbatch \
 Ejecutar el script tal cual, comprobar el nodo, los logs y el estado final.
 
 **Pasos**
+0. Sitúate en la carpeta de trabajo en `/scratch`
+
+``` bash
+cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
+```
 
 1. Enviar el trabajo
 
@@ -140,7 +141,9 @@ less /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-paralleli
 ```
 
 **PREGUNTA:**
-¿En qué **nodo** se ejecutó el trabajo y cuánto **tiempo** tardó?
+
+¿En qué **partición** se ejecutó el trabajo y cuánto **tiempo** tardó?
+
 ¿Qué **pico de RAM** muestra `MaxRSS` y qué **estado final** aparece en `sacct`?
 
 > Estados típicos: **PD** (PENDING), **R** (RUNNING), **CG** (COMPLETING), **CD** (COMPLETED), **F** (FAILED), **TO** (TIMEOUT), **CA** (CANCELLED), **NF** (NODE\_FAIL).
@@ -165,14 +168,14 @@ En este caso modificamos el script, lo guardamos como **`fastqc_failcmd.sbatch`*
 #SBATCH --output=logs/%x-%j.out
 #SBATCH --error=logs/%x-%j.err
 
-echo "[INFO] Node: $(hostname)"
-echo "[INFO] Starting FastQC at $(date)"
+# Carga dependencias
+module load FastQC/0.11.9-Java-11
 
-mkdir -p 02-fastqc-array-results
+mkdir -p 01-fastqc-demo-results
 fastp \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
-  -o 02-fastqc-array-results
+  -o 01-fastqc-demo-results
 
 echo "[INFO] Finished at $(date)"
 ```
@@ -181,7 +184,9 @@ Ejecuta y monitoriza:
 
 ```bash
 sbatch fastqc_failcmd.sbatch
+
 sacct -j <JOBID> -o JobID,State,Elapsed,ExitCode
+
 tail /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/logs/fastqc_fail-<JOBID>.err
 ```
 
@@ -192,7 +197,9 @@ tail /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-paralleli
 ```
 
 **PREGUNTA:**
+
 ¿Qué **mensaje de error** aparece en `fastqc_fail-<jobid>.err` y qué **ExitCode** ves en `sacct`?
+
 ¿Qué **cambio mínimo** haría que el trabajo funcione?
 
 ---
@@ -220,11 +227,11 @@ module load FastQC/0.11.9-Java-11
 echo "[INFO] Node: $(hostname)"
 echo "[INFO] Starting FastQC at $(date)"
 
-mkdir -p 02-fastqc-array-results
+mkdir -p 01-fastqc-demo-results
 fastqc \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
-  -o 02-fastqc-array-results
+  -o 01-fastqc-demo-results
 
 echo "[INFO] Finished at $(date)"
 ```
@@ -235,8 +242,14 @@ Monitoriza:
 sbatch fastqc_overask.sbatch
 squeue -j <JOBID> -o "%.18i %.10P %.20j %.2t %.10M %.6D %R"
 scontrol show job <JOBID> | egrep 'Reason|Req|MinCPUs|TRES|Nodes|Partition|QOS'
-scancel <JOBID> #don't forget to kill the job
 ```
+
+Cuando los recursos no pueden ser asignados, por ejemplo, por una solicitud de recursos fuera de los límites, la tarea se queda en estado "PD" (Pending). Cuando esto ocurre, tenemos que cancelar la el trabajo utilizando el comando:
+
+```
+scancel <JOBID>
+```
+
 
 **PREGUNTA:**
 ¿Qué **Reason** muestra el trabajo en **PD**?
@@ -260,38 +273,35 @@ Los **Job Arrays** permiten enviar un solo trabajo que se divide en **N tareas**
 Usaremos archivos tipo `virus1.fastq.gz`, `virus2.fastq.gz`...
 Cada tarea del array procesará un par R1/R2.
 
-Script: **`array_intro.sbatch`**
+Script: **`array_demo.sbatch`**
 
 ```bash
 #!/bin/bash
-#SBATCH --job-name=array_intro
+#SBATCH --job-name=array_demo
 #SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
-#SBATCH --array=1-2%3
+#SBATCH --array=1-2  <<<<< Es importante indicar las dimensiones del array
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=2G
 #SBATCH --time=00:05:00
-#SBATCH --output=logs/%x-%j.out
-#SBATCH --error=logs/%x-%j.err
+#SBATCH --output=logs/%x-%A_%a.out
+#SBATCH --error=logs/%x-%A_%a.err
 
 module load FastQC/0.11.9-Java-11
 
-mkdir -p 02-fastqc-array-results
-OUTDIR="02-fastqc-array-results/intro_${SLURM_ARRAY_JOB_ID}"
+mkdir -p 02-array-demo-results
+OUTDIR="02-array-demo-results/demo_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}"
 mkdir -p "$OUTDIR"
 
-fastqc -o "$OUTDIR" \
-       "/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus${SLURM_ARRAY_TASK_ID}_R1.fastq.gz" \
-       "/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus${SLURM_ARRAY_TASK_ID}_R2.fastq.gz"
+fastqc -o "$OUTDIR" /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus${SLURM_ARRAY_TASK_ID}_R1.fastq.gz /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus${SLURM_ARRAY_TASK_ID}_R2.fastq.gz
 
-echo "[INFO] JobID=${SLURM_ARRAY_JOBID}; Task=${SLURM_ARRAY_TASK_ID}; End=$(date)"
+echo "[INFO] JobID=${SLURM_JOBID}; Task=${SLURM_ARRAY_TASK_ID}; End=$(date)"
 ```
 
 **PREGUNTAS**
 
+* ¿Cuántas muestras se procesan en el array?
 * ¿Qué valores de ArrayID y TaskID ves en los logs?
-* ¿Qué fichero procesa la tarea 7?
-* ¿Cuántas tareas corren en paralelo (pista: `%3`)?
 * ¿Qué `MaxRSS` observas en `sacct`?
 
 ---
@@ -301,8 +311,12 @@ echo "[INFO] JobID=${SLURM_ARRAY_JOBID}; Task=${SLURM_ARRAY_TASK_ID}; End=$(date
 Aquí los ficheros no tienen numeración clara → usamos una lista (`filelist`).
 
 ```bash
-ls /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/*R1.fastq.gz | sort > filelist_R1.txt
+ls /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/*{R1,1}.fastq.gz | sort > filelist_R1.txt
+ls /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/*{R2,2}.fastq.gz | sort > filelist_R2.txt
 ```
+> Explora el contenido de los archivos generados.
+
+Vamos a crear el script de sbatch que ejecutará el JOBARRAY
 
 Script: **`fastqc_array.sbatch`**
 
@@ -313,9 +327,9 @@ Script: **`fastqc_array.sbatch`**
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=6G
-#SBATCH --array=1-5
-#SBATCH --output=logs/%x-%j.out
-#SBATCH --error=logs/%x-%j.err
+#SBATCH --array=1-10%2  <<<<< Es importante indicar las dimensiones del array
+#SBATCH --output=logs/%x-%A_%a.out
+#SBATCH --error=logs/%x-%A_%a.err
 
 module load FastQC/0.11.9-Java-11
 
@@ -323,22 +337,24 @@ module load FastQC/0.11.9-Java-11
 mkdir -p 02-fastqc-array-results
 
 # Construimos el array input a partir del archivo filelist
-INPUT=$(sed -n "${SLURM_ARRAY_TASK_ID}p" filelist_R1.txt)
+INPUT_R1=$(sed -n "${SLURM_ARRAY_TASK_ID}p" filelist_R1.txt)
+INPUT_R2=$(sed -n "${SLURM_ARRAY_TASK_ID}p" filelist_R2.txt)
 
 # Creamos una carpeta de resultados para cada archivo
-OUTDIR="02-fastqc-array-results/fastqc_array_${SLURM_ARRAY_JOB_ID}"
+OUTDIR="02-fastqc-array-results/fastqc_${SLURM_ARRAY_JOB_ID}"
 mkdir -p "$OUTDIR"
 
 # Ejecutamos el comando:
-fastqc -o "$OUTDIR" "$INPUT"
-echo "[INFO] Task ${SLURM_ARRAY_TASK_ID} End: $(date)"
+fastqc -o "$OUTDIR" "$INPUT_R1" "$INPUT_R2"
+echo "echo [INFO] JobID=${SLURM_JOBID}; Task ${SLURM_ARRAY_TASK_ID} End: $(date)"
 ```
 
 **PREGUNTAS**
-
+* ¿Cuántas tareas corren en paralelo (pista: `%`)?
+* ¿Podrías describir como este script construye el array utilizando los archivos filelist_R1.txt y filelist_R2.txt?
 * ¿Qué JOBID y TaskID aparecen?
 * ¿Puedes encontrar sus logs y resultados?
-* ¿Qué `Elapsed` y `MaxRSS` muestra `sacct`?
+
 
 **Tip**: automatiza el rango del array con:
 
@@ -362,7 +378,10 @@ virus1
 virus2
 ```
 
-Script: **`fastqc_array_samplesid.sbatch`**
+Crea este archhivo dentro de la carpeta `ANALYSIS` con el nombre: `samples_id.txt`
+
+
+A continuación, vamos a crear el script sbatch **`fastqc_array_samplesid.sbatch`** dentro de la carpeta `ANALYSIS/07-scripting-and-parallelization`
 
 ```bash
 #!/bin/bash
@@ -371,21 +390,18 @@ Script: **`fastqc_array_samplesid.sbatch`**
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=6G
-#SBATCH --output=logs/%x-%j.out
-#SBATCH --error=logs/%x-%j.err
+#SBATCH --output=logs/%x-%A_%a.out
+#SBATCH --error=logs/%x-%A_%a.err
 
 module load FastQC/0.11.9-Java-11
 
-IDS_FILE="/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/samples_id.txt"
-READS_DIR="/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads"
+IDS_FILE="../samples_id.txt"
+READS_DIR="../00-reads"
 
 RESULTS_ROOT="02-fastqc-array-results"
 mkdir -p "$RESULTS_ROOT"
 OUTDIR="${RESULTS_ROOT}/fastqc_from_ids_${SLURM_ARRAY_JOB_ID}"
 mkdir -p "$OUTDIR/logs"
-
-LOG_SUFFIX="${SLURM_ARRAY_JOB_ID}-${SLURM_ARRAY_TASK_ID}"
-exec >"${OUTDIR}/logs/${SLURM_JOB_NAME}-${LOG_SUFFIX}.out" 2>"${OUTDIR}/logs/${SLURM_JOB_NAME}-${LOG_SUFFIX}.err"
 
 SAMPLE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$IDS_FILE")
 R1="${READS_DIR}/${SAMPLE}_R1.fastq.gz"
@@ -398,7 +414,7 @@ echo "[INFO] Sample=${SAMPLE} R1=${R1} R2=${R2}"
 Lanza el array ajustando el rango al número de líneas de `samples_id.txt`:
 
 ```bash
-sbatch --array=1-$(wc -l < samples_id.txt) fastqc_array_samplesid.sbatch
+sbatch --array=1-$(wc -l < /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/samples_id.txt) fastqc_array_samplesid.sbatch
 ```
 
 Los resultados se guardan en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/` y los logs por tarea en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/logs/`.
@@ -464,10 +480,10 @@ module load fastp/0.20.0-GCC-8.3.0
 mkdir -p 01-openmp-mpi-results
 
 # Setup de variables
-R1=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample01_R1.fastq.gz
-R2=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample01_R2.fastq.gz
-OUTR1=01-openmp-mpi-results/sample01.clean.R1.fastq.gz
-OUTR2=01-openmp-mpi-results/sample01.clean.R2.fastq.gz
+R1=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz
+R2=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz
+OUTR1=01-openmp-mpi-results/virus1.clean.R1.fastq.gz
+OUTR2=01-openmp-mpi-results/virus1.clean.R2.fastq.gz
 
 # Ejecutamos el comando
 fastp -i "$R1" -I "$R2" -o "$OUTR1" -O "$OUTR2" \
