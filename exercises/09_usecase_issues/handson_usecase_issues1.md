@@ -10,9 +10,9 @@ BU-ISCIII
     - [Ejercicios](#ejercicios)
       - [1. Reservar más recursos de los disponibles](#1-reservar-más-recursos-de-los-disponibles)
       - [2. Un trabajo utiliza más memoria de la solicitada](#2-un-trabajo-utiliza-más-memoria-de-la-solicitada)
-        - [3. Load average](#3-load-average)
+      - [3. Load average](#3-load-average)
       - [4. Ganglia](#4-ganglia)
-      - [5. Problemas de memoria](#5-problemas-de-memoria)
+      - [5. Problemas de espacio](#5-problemas-de-espacio)
       - [6. Permisos de las distintas particiones](#6-permisos-de-las-distintas-particiones)
       - [7. Gestión de ficheros](#7-gestión-de-ficheros)
       - [9. Lanzar un pipeline de Nextflow en un caso real: Ejecución, revisión e interpretación](#9-lanzar-un-pipeline-de-nextflow-en-un-caso-real-ejecución-revisión-e-interpretación)
@@ -318,14 +318,14 @@ touch: cannot touch 'test_file.txt': Read-only file system
 srun --partition=short_idx --cpus-per-task=2 --mem=2G --time=00:30:00 --pty bash
 hostname
 cd /scratch/hpc_course
-touch test_file.txt
-ls -l test_file.txt
+touch test_file_${USER}.txt
+ls -l test_file_${USER}.txt
 ```
 
 Observamos que ahora el fichero se crea correctamente en el nodo de cómputo. Para dejarlo limpio, podemos borrar el fichero y salir:
 
 ```bash
-rm -f /scratch/hpc_course/test_file.txt
+rm -f /scratch/hpc_course/test_file_${USER}.txt
 exit
 ```
 
@@ -344,7 +344,11 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
 - Script `hpc_cp.sh`: copiar entre scratch y data con rsync (vía srun)
 
   Usa el script proporcionado en esta carpeta: `exercises/09_usecase_issues/hpc_cp.sh`.
-  Cópialo al nodo de acceso como `~/bin/hpc_cp.sh` y dale permisos: `chmod +x ~/bin/hpc_cp.sh`.
+  Cópialo al nodo de acceso como `~/bin/hpc_cp.sh` y dale permisos: `chmod +x ~/bin/hpc_cp.sh`. P.e desde tu máquina local donde tengas los scripts:
+  
+  ```bash
+    scp -P 32122 *.sh profesor00@portutatis.isciii.es:/home/hpc_course/profesor00/bin
+  ```
 
   Uso:
 
@@ -360,8 +364,8 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
   - Los mensajes del script están en inglés.
 
   Ejemplos:
-  - `hpc_cp.sh "scratch->data" run01/` copia `/scratch/hpc_course/run01/` a `/data/courses/hpc_course/run01/`.
-  - `hpc_cp.sh "data->scratch" refs/ --dry-run` simula copiar `/data/courses/hpc_course/refs/` a `/scratch/hpc_course/refs/`.
+  - `hpc_cp.sh "scratch->data" 20250929_HPC-COURSE_profesor00/` copia `/scratch/hpc_course/20250929_HPC-COURSE_profesor00/` a `/data/courses/hpc_course/20250929_HPC-COURSE_profesor00/`.
+  - `hpc_cp.sh "data->scratch" 20250929_HPC-COURSE_profesor00/ --dry-run` simula copiar `/data/courses/hpc_course/20250929_HPC-COURSE_profesor00/` a `/scratch/hpc_course/20250929_HPC-COURSE_profesor00/`.
 
 - Alias para colas: `sq` (squeue) y `si` (sinfo)
 
@@ -394,6 +398,16 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
   Por defecto solo muestra lo que borraría (modo "dry-run"). Para ejecutar el borrado, añade `--force`.
 
   Coger el script de la carpeta de la práctica y guardar en el nodo de acceso como `~/bin/cleanup_scratch.sh` y dar permisos: `chmod +x ~/bin/cleanup_scratch.sh`.
+
+  Para probarlo podemos crear una carpeta falseando su fecha de modificación, y dentro crear una carpeta temporal y una de resultados:
+
+  ```bash
+  scratch
+  mkdir -p TEST_FOLDER_${USER}/work
+  touch -d '3 days ago' TEST_FOLDER_${USER}
+  ```
+
+  El `touch -d '3 days ago'` fuerza que la carpeta `TEST_FOLDER` tenga una fecha de modificación superior a 2 días, permitiendo comprobar que el script identifica y limpia correctamente directorios antiguos.
 
 - Plantilla mínima de job SLURM (batch)
 

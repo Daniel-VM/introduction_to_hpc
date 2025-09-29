@@ -80,18 +80,80 @@ EOF
   fi
 
   # Helper: confirm and execute deletion
-  confirm_and_delete() {
-    local prompt="$1"; shift
-    local del_cmd=("$@")
+confirm_and_delete() {
+  local prompt="$1"; shift
+  local del_cmd=("$@")
 
-    if (( FORCE )); then
-      read -rp "$prompt [y/N] " ans
-      [[ "${ans:-N}" =~ ^[Yy]$ ]] || { echo "Cancelled"; return 0; }
-      "${del_cmd[@]}"
+  if (( FORCE )); then
+    read -rp "$prompt [y/N] " ans
+    [[ "${ans:-N}" =~ ^[Yy]$ ]] || { echo "Cancelled"; return 0; }
+    "${del_cmd[@]}"
+  else
+    echo "(simulation mode: add --force to delete)"
+  fi
+}
+
+# Evaluate deletion permissions for the provided directories on a compute node
+check_directories() {
+  local dirs=("$@")
+
+  DELETABLE=()
+  BLOCKED_REPORT=()
+
+  ((${#dirs[@]})) || return 0
+
+  local list_file
+  list_file="$(mktemp "$(pwd)/.cleanup_scratch.check.XXXXXX")"
+  printf '%s\n' "${dirs[@]}" > "$list_file"
+
+  mapfile -t CHECK_RESULTS < <(
+    srun "${SRUN_ARGS[@]}" bash -s "$list_file" <<'EOF'
+set -euo pipefail
+
+LIST_FILE=$1
+
+while IFS= read -r dir; do
+  [[ -z "$dir" ]] && continue
+
+  parent=${dir%/*}
+  [[ -z "$parent" ]] && parent='/'
+
+  if ! test -w "$parent" -a -x "$parent"; then
+    who=$(stat -c '%U:%G %A' "$parent" 2>/dev/null || echo '?')
+    printf 'BLOCK|%s|NON-WRITABLE PARENT: %s [%s]\n' "$dir" "$parent" "$who"
+    continue
+  fi
+
+  first_block=$(find "$dir" -type d \
+    \( ! -writable -o ! -executable \) -printf '%M %u:%g %p\n' -quit 2>/dev/null || true)
+  if [[ -n "$first_block" ]]; then
+    printf 'BLOCK|%s|INNER DIR WITHOUT PERMS: %s\n' "$dir" "$first_block"
+    continue
+  fi
+
+  immutable_path=$(command -v lsattr >/dev/null 2>&1 && lsattr -Rd "$dir" 2>/dev/null | awk '/\si\s/ {sub(/^.*\s/, ""); print; exit}' || true)
+  if [[ -n "$immutable_path" ]]; then
+    printf 'BLOCK|%s|IMMUTABLE ATTRIBUTE: %s (+i)\n' "$dir" "$immutable_path"
+    continue
+  fi
+
+  printf 'OK|%s|\n' "$dir"
+done < "$LIST_FILE"
+EOF
+  )
+
+  rm -f -- "$list_file"
+
+  local line status path reason
+  for line in "${CHECK_RESULTS[@]}"; do
+    IFS='|' read -r status path reason <<<"$line"
+    if [[ "$status" == "OK" ]]; then
+      DELETABLE+=("$path")
     else
-      echo "(simulation mode: add --force to delete)"
+      BLOCKED_REPORT+=("$path|$reason")
     fi
-  }
+  done
+}
 
   # Build -mtime expression if DAYS>0; with DAYS=0 no age filter
   MTIME_EXPR=()
@@ -121,32 +183,7 @@ EOF
       exit 0
     fi
 
-    # Permission precheck: writable+executable parent + subdirectories require w+x
-    DELETABLE=()
-    BLOCKED_REPORT=()
-    for d in "${CANDIDATES[@]}"; do
-      parent_dir="$(dirname "$d")"
-      if ! srun "${SRUN_ARGS[@]}" bash -lc "test -w \"$parent_dir\" -a -x \"$parent_dir\""; then
-        who=$(srun "${SRUN_ARGS[@]}" stat -c '%U:%G %A' "$parent_dir" 2>/dev/null || echo '?')
-        BLOCKED_REPORT+=("$d|NON-WRITABLE PARENT: $parent_dir [$who]")
-        continue
-      fi
-
-      first_block=$(srun "${SRUN_ARGS[@]}" bash -lc "find \"$d\" -type d \
-        \( ! -writable -o ! -executable \) -printf '%M %u:%g %p\n' -quit" 2>/dev/null || true)
-      if [[ -n "$first_block" ]]; then
-        BLOCKED_REPORT+=("$d|INNER DIR WITHOUT PERMS: $first_block")
-        continue
-      fi
-
-      immutable_path=$(srun "${SRUN_ARGS[@]}" bash -lc "command -v lsattr >/dev/null 2>&1 && lsattr -Rd \"$d\" 2>/dev/null | awk '/\si\s/ {sub(/^.*\s/ , \"\"); print; exit}' || true")
-      if [[ -n "$immutable_path" ]]; then
-        BLOCKED_REPORT+=("$d|IMMUTABLE ATTRIBUTE: $immutable_path (+i)")
-        continue
-      fi
-
-      DELETABLE+=("$d")
-    done
+    check_directories "${CANDIDATES[@]}"
 
     echo "${BOLD}Candidates:${RESET} ${#CANDIDATES[@]}"
     echo "${GREEN}Deletable:${RESET} ${#DELETABLE[@]}"
@@ -206,32 +243,7 @@ EOF
       exit 0
     fi
 
-    # Permission precheck: writable+executable parent + subdirectories require w+x
-    DELETABLE=()
-    BLOCKED_REPORT=()
-    for d in "${TO_DELETE[@]}"; do
-      parent_dir="$(dirname "$d")"
-      if ! srun "${SRUN_ARGS[@]}" bash -lc "test -w \"$parent_dir\" -a -x \"$parent_dir\""; then
-        who=$(srun "${SRUN_ARGS[@]}" stat -c '%U:%G %A' "$parent_dir" 2>/dev/null || echo '?')
-        BLOCKED_REPORT+=("$d|NON-WRITABLE PARENT: $parent_dir [$who]")
-        continue
-      fi
-
-      first_block=$(srun "${SRUN_ARGS[@]}" bash -lc "find \"$d\" -type d \
-        \( ! -writable -o ! -executable \) -printf '%M %u:%g %p\n' -quit" 2>/dev/null || true)
-      if [[ -n "$first_block" ]]; then
-        BLOCKED_REPORT+=("$d|INNER DIR WITHOUT PERMS: $first_block")
-        continue
-      fi
-
-      immutable_path=$(srun "${SRUN_ARGS[@]}" bash -lc "command -v lsattr >/dev/null 2>&1 && lsattr -Rd \"$d\" 2>/dev/null | awk '/\si\s/ {sub(/^.*\s/ , \"\"); print; exit}' || true")
-      if [[ -n "$immutable_path" ]]; then
-        BLOCKED_REPORT+=("$d|IMMUTABLE ATTRIBUTE: $immutable_path (+i)")
-        continue
-      fi
-
-      DELETABLE+=("$d")
-    done
+    check_directories "${TO_DELETE[@]}"
 
     echo "${BOLD}Candidates:${RESET} ${#TO_DELETE[@]}"
     echo "${GREEN}Deletable:${RESET} ${#DELETABLE[@]}"
