@@ -1,11 +1,11 @@
 # Curso Práctico de Iniciación al uso del Entorno de Alta Computación
 
-## Práctica 5: Gestión de Software en HPC
+## Práctica 6: Gestión de Software en HPC
 
 Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. Hoy cubriremos tres temas principales:
 
 - [Curso Práctico de Iniciación al uso del Entorno de Alta Computación](#curso-práctico-de-iniciación-al-uso-del-entorno-de-alta-computación)
-  - [Práctica 5: Gestión de Software en HPC](#práctica-5-gestión-de-software-en-hpc)
+  - [Práctica 6: Gestión de Software en HPC](#práctica-6-gestión-de-software-en-hpc)
   - [1. Permisos: PC personal vs HPC](#1-permisos-pc-personal-vs-hpc)
   - [2. Entornos Virtuales \& Gestores de Software](#2-entornos-virtuales--gestores-de-software)
     - [2.1 Cómo compartir entornos virtuales entre usuarios del HPC](#21-cómo-compartir-entornos-virtuales-entre-usuarios-del-hpc)
