@@ -6,14 +6,6 @@ The material includes slides with theory concepts and practical exercises.
 
 ## Slides
 
-### Programm
-
-- [**Course Programm**](slides/program.pdf)
-
-### Set up
-
-- [**xxxx**](exercises/xxx.md)
-
 ### Day 1
 
 - **Talk 1:** [Introduction to High-Performance Computing and its components. Identifying problems that can be addressed using a computing cluster](slides/xxx.pdf)
