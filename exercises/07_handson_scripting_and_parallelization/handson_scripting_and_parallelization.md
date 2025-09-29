@@ -44,12 +44,6 @@ mkdir 07-scripting-and-parallelization
 mkdir 07-scripting-and-parallelization/logs
 ```
 
-2. Copiar los datos a scratch
-
-```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /data/courses/hpc_course/*HPC-COURSE*${USER}* /scratch/hpc_course
-```
-
 ### Script base
 
 Guarda como **`fastqc_demo.sbatch`**:
@@ -73,29 +67,31 @@ echo "[INFO] Node: $(hostname)"
 echo "[INFO] Starting FastQC at $(date)"
 
 # Crea la carpeta de resultados
-mkdir -p 02-fastqc-array-results
+mkdir -p 01-fastqc-demo-results
 
 # Ejecuta fastqc
 fastqc \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
-  -o 02-fastqc-array-results
+  -o 01-fastqc-demo-results
 
 echo "[INFO] Finished at $(date)"
 ```
 
-> Nota: los parámetros que introducimos en la cabecera con `#SBATCH` también los podemos pasar por CLI:
+>IMPORTANTE: De aquí en adelante tendrás que sustituir en el script de sbatch la cadena de caracteres `*HPC-COURSE_${USER}` que se encuentra en la directiva `#SBATCH --chdir=...` por el nombre de tu carpeta de carpeta de trabajo en el HPC. Por ejemplo:
 
 ```bash
-sbatch fastqc_demo.sbatch \
-  --job-name=fastqc_demo \
-  --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization \
-  --partition=short_idx \
-  --cpus-per-task=1 \
-  --mem=4G \
-  --time=00:05:00 \
-  --output=logs/%x-%j.out \
-  --error=logs/%x-%j.err
+Sustituye esto:
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
+
+por:
+#SBATCH --chdir=/scratch/hpc_course/20250929_HPC-COURSE_alumno10/ANALYSIS/07-scripting-and-parallelization
+```
+
+2. Copiar los datos desde /data a /scratch
+
+```bash
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /data/courses/hpc_course/*HPC-COURSE*${USER}* /scratch/hpc_course
 ```
 
 ---
@@ -106,6 +102,11 @@ sbatch fastqc_demo.sbatch \
 Ejecutar el script tal cual, comprobar el nodo, los logs y el estado final.
 
 **Pasos**
+0. Sitúate en la carpeta de trabajo en `/scratch`
+
+``` bash
+cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
+```
 
 1. Enviar el trabajo
 
@@ -140,7 +141,9 @@ less /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-paralleli
 ```
 
 **PREGUNTA:**
-¿En qué **nodo** se ejecutó el trabajo y cuánto **tiempo** tardó?
+
+¿En qué **partición** se ejecutó el trabajo y cuánto **tiempo** tardó?
+
 ¿Qué **pico de RAM** muestra `MaxRSS` y qué **estado final** aparece en `sacct`?
 
 > Estados típicos: **PD** (PENDING), **R** (RUNNING), **CG** (COMPLETING), **CD** (COMPLETED), **F** (FAILED), **TO** (TIMEOUT), **CA** (CANCELLED), **NF** (NODE\_FAIL).
@@ -168,11 +171,11 @@ En este caso modificamos el script, lo guardamos como **`fastqc_failcmd.sbatch`*
 echo "[INFO] Node: $(hostname)"
 echo "[INFO] Starting FastQC at $(date)"
 
-mkdir -p 02-fastqc-array-results
+mkdir -p 01-fastqc-demo-results
 fastp \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
-  -o 02-fastqc-array-results
+  -o 01-fastqc-demo-results
 
 echo "[INFO] Finished at $(date)"
 ```
@@ -181,7 +184,9 @@ Ejecuta y monitoriza:
 
 ```bash
 sbatch fastqc_failcmd.sbatch
+
 sacct -j <JOBID> -o JobID,State,Elapsed,ExitCode
+
 tail /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/logs/fastqc_fail-<JOBID>.err
 ```
 
@@ -192,7 +197,9 @@ tail /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-paralleli
 ```
 
 **PREGUNTA:**
+
 ¿Qué **mensaje de error** aparece en `fastqc_fail-<jobid>.err` y qué **ExitCode** ves en `sacct`?
+
 ¿Qué **cambio mínimo** haría que el trabajo funcione?
 
 ---
@@ -220,11 +227,11 @@ module load FastQC/0.11.9-Java-11
 echo "[INFO] Node: $(hostname)"
 echo "[INFO] Starting FastQC at $(date)"
 
-mkdir -p 02-fastqc-array-results
+mkdir -p 01-fastqc-demo-results
 fastqc \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
-  -o 02-fastqc-array-results
+  -o 01-fastqc-demo-results
 
 echo "[INFO] Finished at $(date)"
 ```
@@ -235,8 +242,14 @@ Monitoriza:
 sbatch fastqc_overask.sbatch
 squeue -j <JOBID> -o "%.18i %.10P %.20j %.2t %.10M %.6D %R"
 scontrol show job <JOBID> | egrep 'Reason|Req|MinCPUs|TRES|Nodes|Partition|QOS'
-scancel <JOBID> #don't forget to kill the job
 ```
+
+Cuando los recursos no pueden ser asignados, por ejemplo, por una solicitud de recursos fuera de los límites, la tarea se queda en estado "PD" (Pending). Cuando esto ocurre, tenemos que cancelar la el trabajo utilizando el comando:
+
+```
+scancel <JOBID>
+```
+
 
 **PREGUNTA:**
 ¿Qué **Reason** muestra el trabajo en **PD**?
