@@ -8,7 +8,7 @@ The material includes slides with theory concepts and practical exercises.
 
 ### Day 1
 
-- **Talk 1:** [Introduction to High-Performance Computing and its components. Identifying problems that can be addressed using a computing cluster](slides/xxx.pdf)
+- **Talk 1:** [Introduction to High-Performance Computing and its components. Identifying problems that can be addressed using a computing cluster](slides/talk1_introduction_hpc.pdf)
 - **Talk 2:** [Introduction to the Linux environment. Using the shell and basic commands](slides/linux_intro.pdf).
 - **Exercise 1:** [Linux basic commands](exercises/01_handson_linux/handson_linux1_BasicCommands.md) -- [Download pdf](exercises/01_handson_linux/handson_linux1_BasicCommands.pdf)
 
@@ -16,12 +16,12 @@ The material includes slides with theory concepts and practical exercises.
 
 - **Exercise 2:** [Filesystem](exercises/01_handson_linux/handson_linux2_FileProcessing.md) -- [Download pdf](exercises/01_handson_linux/handson_linux2_FileProcessing.pdf)
 - **Exercise 3:** [Users and privileges](exercises/01_handson_linux/handson_linux3_Privileges.md) -- [Download pdf](exercises/01_handson_linux/handson_linux3_Privileges.pdf)
-- **Talk 3:** [Accessing, connecting to, and transferring data to an HPC environment](slides/xxxx.pdf)
+- **Talk 3:** [Accessing, connecting to, and transferring data to an HPC environment](slides/talk3_access_connection_datatransfer.pdf)
 - **Exercise 4:** [Accessing, connecting to, and transferring data to an HPC environment](exercises/04_access/handson_access.md) -- [Download pdf](exercises/xxx.pdf)
 
 ### Day 3
 
-- **Talk 4:** [Running processes using a job scheduler (Slurm). Resource reservation, working directories, and genomic data storage protocols](slides/xxxx.pdf)
+- **Talk 4:** [Running processes using a job scheduler (Slurm). Resource reservation, working directories, and genomic data storage protocols](slides/talk4_filesystems_slurm.pdf)
 - **Exercise 5:** [Running processes using a job scheduler (Slurm). Resource reservation, working directories, and genomic data storage protocols](exercises/05_slurm/handson_srun.md) -- [Download pdf](exercises/xxx.pdf)
 - **Talk 5:** [Software installation in HPC. EasyBuild, Conda, Mamba. Introduction to container usage in HPC.](slides/xxxx.pdf)
 - **Exercise 6:** [Software installation in HPC. EasyBuild, Conda, Mamba. Introduction to container usage in HPC](exercises/06_software_management_hpc/handson_software_management.md) -- [Download pdf](exercises/xxxx.pdf)
