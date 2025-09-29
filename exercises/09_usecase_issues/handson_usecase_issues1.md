@@ -478,7 +478,7 @@ cd 09-use-cases
 ```bash
 #!/bin/bash
 #SBATCH --job-name=nf_bacass_test
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/09-use-cases
+#SBATCH --chdir=/scratch/hpc_course/XXXXX_HPC-COURSE_${USER}/ANALYSIS/09-use-cases -> CAMBIAR POR RUTA COMPLETA SEGUN TU USUARIO Y FECHA
 #SBATCH --partition=short_idx
 #SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=1
@@ -487,11 +487,12 @@ cd 09-use-cases
 
 # You need to modify the --chdir above to point to your ANALYSIS directory
 module purge
-module load Nextflow/23.10.0
-module load singularity/3.7.1
+module load Nextflow/24.04.2
+module load singularity
 
 mkdir -p 01-nextflow-bacass-results-test
 nextflow run nf-core/bacass \
+  -r 2.4.0 \
   -profile test,singularity \
   -c nextflow.config \
   --outdir 01-nextflow-bacass-results-test \
@@ -506,7 +507,7 @@ nextflow run nf-core/bacass \
 
 ```bash
 cd /data/courses/hpc_course/
-bash ~/bin/hpc_cp.sh "data->scratch" *HPC-COURSE_${USER} --scratch-base /scratch/bi/ --data-base /data/ucct/bi/tmp/
+bash ~/bin/hpc_cp.sh "data->scratch" *HPC-COURSE_${USER}
 ```
 
 - Nos movemos a scratch y lanzamos el trabajo.
@@ -514,6 +515,8 @@ bash ~/bin/hpc_cp.sh "data->scratch" *HPC-COURSE_${USER} --scratch-base /scratch
 ```bash
 # Lo hemos configurado antes en nuestro bashrc
 scratch
+cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/09-use-cases
+mkdir logs
 sbatch ./bacass_test.sbatch
 ```
 
@@ -535,7 +538,7 @@ CSV
 
 3. Generar `samplesheet.csv` a partir de `samples_id.txt` y `00-reads/`
 
-Si durante una sesión previa has generado `ANALYSIS/samples_id.txt` (una ID por línea) y has dejado los FASTQ en `ANALYSIS/00-reads/` con el patrón `<ID>_R1.fastq.gz` y `<ID>_R2.fastq.gz`, puedes crear el `samplesheet.csv` automáticamente:
+Durante una sesión previa hemos generado `ANALYSIS/samples_id.txt` (una ID por línea) y has dejado los FASTQ en `ANALYSIS/00-reads/` con el patrón `<ID>_R1.fastq.gz` y `<ID>_R2.fastq.gz`, puedes crear el `samplesheet.csv` automáticamente:
 
 ```bash
 # Muevete a un nodo de computo a scratch
@@ -559,18 +562,19 @@ Crea el script sbatch master que controlará la ejecución de nextflow. Llamarem
 #SBATCH --job-name=nf_bacass
 #SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/09-use-cases
 #SBATCH --partition=short_idx
-#SBATCH --time=24:00:00
+#SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=2G
 #SBATCH --output=logs/%x-%j.logs
 
 # Tienes que ajustar --chdir para que apunte a tu ANALYSIS en la configuración de arriba
 module purge
-module load Nextflow/24.01.0
+module load Nextflow/24.04.2
 module load singularity
 
 mkdir -p 02-nextflow-bacass-results
 nextflow run nf-core/bacass \
+  -r 2.4.0 \
   -profile test,singularity \
   -c nextflow.config \
   --input samplesheet.csv \
@@ -628,7 +632,6 @@ mkdir -p "$HOME/software/nfcore" "$HOME/containers/singularity"
 
 # Crea un entorno con micromamba para nf-core/tools
 # (ver práctica de Software Management para instalar/activar micromamba)
-eval "$(micromamba shell hook -s bash)"
 micromamba create -y -n nf-core python=3.10 pip
 micromamba activate nf-core
 python -m pip install --upgrade pip
