@@ -480,10 +480,10 @@ module load fastp/0.20.0-GCC-8.3.0
 mkdir -p 01-openmp-mpi-results
 
 # Setup de variables
-R1=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample01_R1.fastq.gz
-R2=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample01_R2.fastq.gz
-OUTR1=01-openmp-mpi-results/sample01.clean.R1.fastq.gz
-OUTR2=01-openmp-mpi-results/sample01.clean.R2.fastq.gz
+R1=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz
+R2=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz
+OUTR1=01-openmp-mpi-results/virus1.clean.R1.fastq.gz
+OUTR2=01-openmp-mpi-results/virus1.clean.R2.fastq.gz
 
 # Ejecutamos el comando
 fastp -i "$R1" -I "$R2" -o "$OUTR1" -O "$OUTR2" \
