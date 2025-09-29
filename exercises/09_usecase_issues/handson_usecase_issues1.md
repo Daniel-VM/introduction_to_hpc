@@ -645,18 +645,21 @@ grep -q NXF_SINGULARITY_CACHEDIR ~/.bashrc || echo 'export NXF_SINGULARITY_CACHE
 # (ajusta la revisión -r a la versión estable disponible en tu entorno)
 # Puedes usar el entorno activo o llamar con micromamba run como se muestra:
 micromamba activate nf-core
+module load Nextflow singularity
 nf-core pipelines download nf-core/fetchngs \
   -r 1.12.0 \
   --container-system singularity \
   --container-cache-utilisation amend \
   --compress none \
+  --force \
   --outdir "$HOME/software/nfcore/fetchngs"
 
-nf-core nf-core download nf-core/taxprofiler \
+nf-core pipelines download nf-core/taxprofiler \
   -r 2.2.0 \
-  --container singularity \
+  --container-system singularity \
   --container-cache-dir "$HOME/containers/singularity" \
   --compress none \
+  --force \
   --outdir "$HOME/software/nfcore/taxprofiler"
 
 ```
@@ -664,10 +667,10 @@ nf-core nf-core download nf-core/taxprofiler \
 1. Estructura de carpetas del proyecto
 
 ```bash
-# Muevete a un nodo de computo a scratch
-scratch
 # Ruta base del ejercicio
-BASE="/scratch/hpc_course/*HPC-COURSE-TAXPROFILER_${USER}"
+cd /data/courses/hpc_course/
+BASE="$(date +%Y%m%d)_HPC-COURSE-TAXPROFILER_${USER}"
+mkdir $BASE
 mkdir -p "$BASE"/{RAW,ANALYSIS,TMP,RESULTS,DOC,REFERENCES}
 mkdir -p "$BASE/RAW/logs"
 # Subestructura de análisis
@@ -691,10 +694,10 @@ EOF
 3. Descargar datos con nf-core/fetchngs (a RAW/) via sbatch
 
 ```bash
-cat > fetchngs.sbatch << 'SLURM'
+cat > fetchngs.sbatch << "SLURM"
 #!/usr/bin/env bash
 #SBATCH --job-name=fetchngs
-#SBATCH --chdir=$BASE/RAW
+#SBATCH --chdir="$(date +%Y%m%d)_HPC-COURSE-TAXPROFILER_${USER}" -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES
 #SBATCH --partition=short_idx
 #SBATCH --time=04:00:00
 #SBATCH --cpus-per-task=2
@@ -703,7 +706,7 @@ cat > fetchngs.sbatch << 'SLURM'
 
 set -euo pipefail
 module purge
-module load Nextflow/23.10.0
+module load Nextflow/24.04.2
 module load singularity/3.7.1
 
 # Usa caché de imágenes en $HOME
@@ -716,13 +719,23 @@ nextflow run "$HOME/software/nfcore/fetchngs" \
   --outdir "$BASE/RAW" \
   -resume
 SLURM
+```
 
+4. Copiamos a scratch
+
+```bash
+hpc_cp.sh "data->scratch" $(date +%Y%m%d)_HPC-COURSE-TAXPROFILER_${USER}"
+```
+5. Lanzamos el pipeline
+
+```bash
+scratch
 sbatch fetchngs.sbatch
 ```
 
-Verifica que en `RAW/` tienes los FASTQ descargados y el `samplesheet.csv` generado por fetchngs (si aplica a tu versión), que te puede servir de referencia.
+Realiza la monitorización del job y vigila los logs. Cuando termine, verifica que en `RAW/` tienes los FASTQ descargados y el `samplesheet.csv` generado por fetchngs (si aplica a tu versión), que te puede servir de referencia.
 
-4. Preparar `ANALYSIS/00-reads/` y el samplesheet para taxprofiler
+1. Preparar `ANALYSIS/00-reads/` y el samplesheet para taxprofiler
 
 - Copia o enlaza los FASTQ de `RAW/` a `ANALYSIS/00-reads/` (ajusta patrones si tus ficheros difieren):
 
