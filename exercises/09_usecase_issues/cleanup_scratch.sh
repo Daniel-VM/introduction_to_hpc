@@ -34,7 +34,7 @@
 Usage: $(basename "$0") [options]
 
   -m, --mode   Cleanup mode: temps (default) or stale
-  -d, --days   Age in days (default: 2). With 0, no age filter (list all)
+  -d, --days   Age in days (stale mode only; default 2). With 0, no age filter
   -b, --base   Base directory (default: /scratch/hpc_course)
   -k, --keep   Name pattern to keep (repeatable; stale mode only)
   -f, --force  Perform deletion (default: dry-run)
@@ -99,12 +99,13 @@ check_directories() {
 
   DELETABLE=()
   BLOCKED_REPORT=()
-
+  
+  # check if no dirs to check and return early
   ((${#dirs[@]})) || return 0
 
   local list_file
-  list_file="$(mktemp "$(pwd)/.cleanup_scratch.check.XXXXXX")"
-  printf '%s\n' "${dirs[@]}" > "$list_file"
+  list_file="$(mktemp "$(pwd)/.cleanup_scratch.check.XXXXXX")"  # Persist list for the compute node
+  printf '%s\n' "${dirs[@]}" > "$list_file"                      # One path per line (read back inside srun)
 
   mapfile -t CHECK_RESULTS < <(
     srun "${SRUN_ARGS[@]}" bash -s "$list_file" <<'EOF'
@@ -113,12 +114,12 @@ set -euo pipefail
 LIST_FILE=$1
 
 while IFS= read -r dir; do
-  [[ -z "$dir" ]] && continue
+  [[ -z "$dir" ]] && continue              # Skip empty lines
 
   parent=${dir%/*}
   [[ -z "$parent" ]] && parent='/'
 
-  if ! test -w "$parent" -a -x "$parent"; then
+  if ! test -w "$parent" -a -x "$parent"; then       # Need w+x on parent to remove child
     who=$(stat -c '%U:%G %A' "$parent" 2>/dev/null || echo '?')
     printf 'BLOCK|%s|NON-WRITABLE PARENT: %s [%s]\n' "$dir" "$parent" "$who"
     continue
@@ -127,22 +128,22 @@ while IFS= read -r dir; do
   first_block=$(find "$dir" -type d \
     \( ! -writable -o ! -executable \) -printf '%M %u:%g %p\n' -quit 2>/dev/null || true)
   if [[ -n "$first_block" ]]; then
-    printf 'BLOCK|%s|INNER DIR WITHOUT PERMS: %s\n' "$dir" "$first_block"
+    printf 'BLOCK|%s|INNER DIR WITHOUT PERMS: %s\n' "$dir" "$first_block"  # Report first offending directory
     continue
   fi
 
   immutable_path=$(command -v lsattr >/dev/null 2>&1 && lsattr -Rd "$dir" 2>/dev/null | awk '/\si\s/ {sub(/^.*\s/, ""); print; exit}' || true)
   if [[ -n "$immutable_path" ]]; then
-    printf 'BLOCK|%s|IMMUTABLE ATTRIBUTE: %s (+i)\n' "$dir" "$immutable_path"
+    printf 'BLOCK|%s|IMMUTABLE ATTRIBUTE: %s (+i)\n' "$dir" "$immutable_path"  # Immutable items cannot be removed
     continue
   fi
 
-  printf 'OK|%s|\n' "$dir"
+  printf 'OK|%s|\n' "$dir"                    # Directory passes all checks
 done < "$LIST_FILE"
 EOF
   )
 
-  rm -f -- "$list_file"
+  rm -f -- "$list_file"  # Drop temporary manifest
 
   local line status path reason
   for line in "${CHECK_RESULTS[@]}"; do
@@ -155,27 +156,17 @@ EOF
   done
 }
 
-  # Build -mtime expression if DAYS>0; with DAYS=0 no age filter
-  MTIME_EXPR=()
-  if [[ ${DAYS} -gt 0 ]]; then
-    MTIME_EXPR=( -mtime +"$DAYS" )
-  fi
-  # Human-readable age description
-  if [[ ${DAYS} -gt 0 ]]; then
-    AGE_DESC="older than ${DAYS} days"
-  else
-    AGE_DESC="without age filter"
-  fi
+if [[ "$MODE" == "temps" ]]; then
+  AGE_DESC="without age filter (temps mode ignores --days)"
 
-  if [[ "$MODE" == "temps" ]]; then
-    echo "${CYAN}[srun:${SRUN_PART}]${RESET} Searching temporary folders (${AGE_DESC}) in ${BASE} (work*, tmp*, .nextflow*) excluding .Trash-*, lost+found, .snapshot(s)"
-    # Collect candidates (listing on compute node)
-    mapfile -t CANDIDATES < <(
-      srun "${SRUN_ARGS[@]}" \
-        find "$BASE" -maxdepth 3 \
-          \( -path '*/.Trash-*' -o -name 'lost+found' -o -path '*/.snapshot' -o -path '*/.snapshots' \) -prune -o \
-          \( -name 'work' -o -name 'work_*' -o -name 'tmp' -o -name 'tmp_*' -o -name '.nextflow*' \) \
-          -type d ${MTIME_EXPR[@]:-} -print | sort
+  echo "${CYAN}[srun:${SRUN_PART}]${RESET} Searching temporary folders (${AGE_DESC}) in ${BASE} (work*, tmp*, .nextflow*) excluding .Trash-*, lost+found, .snapshot(s)"
+  # Collect candidates (listing on compute node)
+  mapfile -t CANDIDATES < <(
+    srun "${SRUN_ARGS[@]}" \
+      find "$BASE" -maxdepth 3 \
+        \( -path '*/.Trash-*' -o -name 'lost+found' -o -path '*/.snapshot' -o -path '*/.snapshots' \) -prune -o \
+        \( -name 'work' -o -name 'work_*' -o -name 'tmp' -o -name 'tmp_*' -o -name '.nextflow*' \) \
+        -type d -print | sort
     )
 
     if ((${#CANDIDATES[@]}==0)); then
@@ -215,8 +206,16 @@ EOF
       echo "${BLUE}(simulation mode: add --force to delete)${RESET}"
     fi
 
-  elif [[ "$MODE" == "stale" ]]; then
-    echo "${CYAN}[srun:${SRUN_PART}]${RESET} Searching top-level folders ${AGE_DESC} in ${BASE} (excluding .Trash-*, lost+found, .snapshot(s))"
+elif [[ "$MODE" == "stale" ]]; then
+  MTIME_EXPR=()
+  if [[ ${DAYS} -gt 0 ]]; then
+    MTIME_EXPR=( -mtime +"$DAYS" )
+    AGE_DESC="older than ${DAYS} days"
+  else
+    AGE_DESC="without age filter"
+  fi
+
+  echo "${CYAN}[srun:${SRUN_PART}]${RESET} Searching top-level folders ${AGE_DESC} in ${BASE} (excluding .Trash-*, lost+found, .snapshot(s))"
     # Collect top-level candidates (listing on compute node)
     mapfile -t CANDIDATES < <(
       srun "${SRUN_ARGS[@]}" \

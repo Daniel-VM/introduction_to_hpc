@@ -404,10 +404,15 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
   ```bash
   scratch
   mkdir -p TEST_FOLDER_${USER}/work
-  touch -d '3 days ago' TEST_FOLDER_${USER}
   ```
 
-  El `touch -d '3 days ago'` fuerza que la carpeta `TEST_FOLDER` tenga una fecha de modificación superior a 2 días, permitiendo comprobar que el script identifica y limpia correctamente directorios antiguos.
+  El modo `temps` no aplica filtro de antigüedad, por lo que detectará inmediatamente la carpeta `work`. Si además queremos generar un caso para el modo `stale`, podemos envejecer la carpeta completa:
+
+  ```bash
+  touch -d '3 days ago' TEST_FOLDER_${USER} TEST_FOLDER_${USER}/work
+  ```
+
+  Con ello `stale` mostrará el directorio principal como candidato por tener más de 2 días sin actividad.
 
 - Plantilla mínima de job SLURM (batch)
 
