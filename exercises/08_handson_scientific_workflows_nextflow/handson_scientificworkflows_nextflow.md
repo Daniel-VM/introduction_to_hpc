@@ -65,7 +65,21 @@ Ejercicios que vamos a **realizar** en esta sesión:
 
 ### 1) Prepara carpeta y config mínima
 
-Crea `nextflow.config` en tu carpeta de trabajo:
+Crea una carpeta de trabajo llamada `08-scientific-workflows-nextflow`
+
+```bash
+mkdir 08-scientific-workflows-nextflow
+```
+
+Muévete a esta carpeta:
+
+```bash
+cd 08-scientific-workflows-nextflow/
+```
+
+Crea un archivo llamado `nextflow.config` y copia/pega el contenido que verás a continuación y guarda el archivo:
+
+> Nota: Puedes utilizar el comando `nano nextflow.config`
 
 ```groovy
 // El gestor de paquetes que usaremos será Singularity:
@@ -76,9 +90,9 @@ singularity {
 
 process {
   executor      = 'slurm'      // Con este parámetro hacemos saber a Nextflow que ejecutará en Slurm
-  queue         = 'short_idx'  // Indica el nombre de la cola
-  cpus          = 1            // CPUs por tarea
-  memory        = '2 GB'       // Memoria por tarea
+  queue         = 'middle_idx'  // Indica el nombre de la cola
+  cpus          = 2            // CPUs por tarea
+  memory        = '6 GB'       // Memoria por tarea
   time          = '1h'        // Límite por tarea
   jobName       = { "${task.process} (${task.name})" }  // Nombre legible en la cola
   errorStrategy = { task.exitStatus in [140,143,137,138,104,134,139] ? 'retry' : 'finish' }
@@ -89,30 +103,23 @@ process {
 }
 ```
 
-> **Notas**
->
-> * No necesitas `sbatch`; Nextflow hablará con Slurm por ti.
-
-### 2) Lanza **nf-demo**
+### 2) Crea un script SBATCH para ejecutar Nextflow en el sistema de colas de SLURM
 
 Vamos a crear un script `sbatch` con el comando de Nextflow a ejecutar. Hay que entender una cosa. Por un lado, está el script `sbatch` que actúa como **master** para la ejecución de las tareas que Nextflow irá lanzando al sistema de colas. Por ello, es importante que la ejecución de este master no se vea interrumpida, ya que si eso pasa no se lanzarán más trabajos. Por otro lado, como este master solo controla la ejecución del comando de Nextflow, pero no lanza las tareas pesadas, no es necesario que le demos muchos recursos más allá del tiempo.
-
 
 
 ```bash
 #!/bin/bash
 #SBATCH --job-name=nf_demo
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/10-scientific-workflows-nextflow
-#SBATCH --partition=short_idx
-#SBATCH --time=24:00:00
-#SBATCH --cpus-per-task=1                 # Recursos SOLO para el controlador de Nextflow
+#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow
+#SBATCH --partition=middle_idx
+#SBATCH --time=12:00:00
+#SBATCH --cpus-per-task=2                 # Recursos SOLO para el controlador de Nextflow
 #SBATCH --mem=2G
-#SBATCH --output=logs/%x-%j.out
-#SBATCH --error=logs/%x-%j.err
 
 # Carga las dependencias para ejecutar Nextflow
 module purge
-module load Nextflow/23.10.0
+module load Nextflow/24.04.2
 module load singularity/3.7.1
 
 mkdir -p 01-nextflow-demo-results
@@ -132,7 +139,6 @@ Ejecutemos el script sbatch:
 ```bash
 sbatch nextflow_demo.sbatch
 ```
-
 
 **Monitoreo**
 

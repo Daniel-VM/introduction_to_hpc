@@ -42,6 +42,8 @@ Partiremos de un **script base** que ejecuta **FastQC** sobre dos FASTQ pequeño
 cd /data/courses/hpc_course/20250923_HPC-COURSE_alumno07/ANALYSIS
 mkdir 07-scripting-and-parallelization
 mkdir 07-scripting-and-parallelization/logs
+cd 07-scripting-and-parallelization
+nano fastqc_demo.sbatch 
 ```
 
 ### Script base
@@ -467,7 +469,7 @@ Veamos cómo construir el script. Se muestra **`fastp_openmp.sbatch`**:
 
 ```bash
 #!/bin/bash
-#SBATCH --job-name=fastp_omp
+#SBATCH --job-name=fastp_openmp
 #SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=4           # <- nº hilos/threads OpenMP
@@ -477,13 +479,13 @@ Veamos cómo construir el script. Se muestra **`fastp_openmp.sbatch`**:
 #SBATCH --error=logs/%x-%j.err
 
 module load fastp/0.20.0-GCC-8.3.0
-mkdir -p 01-openmp-mpi-results
+mkdir -p 03-openmp-fastp-results
 
 # Setup de variables
-R1=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz
-R2=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz
-OUTR1=01-openmp-mpi-results/virus1.clean.R1.fastq.gz
-OUTR2=01-openmp-mpi-results/virus1.clean.R2.fastq.gz
+R1=../00-reads/virus1_R1.fastq.gz
+R2=../00-reads/virus1_R2.fastq.gz
+OUTR1=03-openmp-fastp-results/virus1.clean.R1.fastq.gz
+OUTR2=03-openmp-fastp-results/virus1.clean.R2.fastq.gz
 
 # Ejecutamos el comando
 fastp -i "$R1" -I "$R2" -o "$OUTR1" -O "$OUTR2" \
@@ -497,11 +499,11 @@ fastp -i "$R1" -I "$R2" -o "$OUTR1" -O "$OUTR2" \
 sbatch fastp_openmp.sbatch
 squeue --me
 sacct -j <JOBID> -o JobID,AllocCPUS,State,Elapsed,MaxRSS,TotalCPU,NodeList
+scontrol show jobid <JOBID> 
 ```
 
 **PREGUNTAS**
 
-* ¿Ves **AllocCPUS=4** en `sacct` y un **TotalCPU** acorde (aprox. `Elapsed × hilos` si paraleliza bien)?
 * Cambia **`--cpus-per-task=1`** y relanza con otro nombre de reporte. ¿Qué cambia en **Elapsed**?
 * Vuelve a lanzar la tarea usando `--cpus-per-task 12` y `--cpus-per-task 32` → compara **Elapsed**.
 
@@ -517,7 +519,7 @@ Guarda como **`spades_openmp.sbatch`**:
 
 ```bash
 #!/bin/bash
-#SBATCH --job-name=spades_omp
+#SBATCH --job-name=spades_openmp
 #SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=16
@@ -527,18 +529,30 @@ Guarda como **`spades_openmp.sbatch`**:
 #SBATCH --error=logs/%x-%j.err
 
 module load SPAdes/3.15.2-GCC-10.2.0
-mkdir -p 01-openmp-mpi-results
-R1=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample01_R1.fastq.gz
-R2=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/sample01_R2.fastq.gz
 
-spades.py -1 "$R1" -2 "$R2" -o 01-openmp-mpi-results/spades_sample01 \
+mkdir -p 04-openmp-spades-results
+
+R1=../00-reads/ERR2261314_R1.fastq.gz
+R2=../00-reads/ERR2261314_R2.fastq.gz
+
+spades.py -1 "$R1" -2 "$R2" -o 04-openmp-spades-results/spades_sample01 \
     --threads "$SLURM_CPUS_PER_TASK" \
-    --mem 32
+    --mem $SLURM_MEM_PER_NODE
+```
+
+**Lanza y monitoriza**
+
+```bash
+sbatch spades_openmp.sbatch
+squeue --me
+sacct -j <JOBID> -o JobID,AllocCPUS,State,Elapsed,MaxRSS,TotalCPU,NodeList
+scontrol show jobid <JOBID> 
 ```
 
 **PREGUNTAS**
 
 * Explora la carpeta de resultados del análisis.
+* ¿Cuántos nodos ha reservado tu tarea y por qué? ¿Podrías indicar el nombre del nodo?
 * ¿Qué observas si aumentas `--cpus-per-task=32` y `--mem=64G`?
 
 ---
@@ -553,7 +567,36 @@ El software que vamos a usar es [**RAxML**](https://cme.h-its.org/exelixis/web/s
 
 > Cada proceso MPI es un ejecutable independiente que se **coordina** con el resto vía bibliotecas MPI. Slurm reserva los recursos; **`mpirun -np $SLURM_NTASKS`** se encarga de lanzar los procesos.
 
-#### Script de ejemplo
+#### Pasos: 
+
+1) Preparar el input (alineamiento PHYLIP)
+
+Vamos a crear un alineamiento pequeño (12 taxones × 60 sitios) en formato PHYLIP secuencial, suficiente para testear el paralelismo:
+
+```bash
+mkdir -p data
+cat > data/datos.phy << 'EOF'
+12 60
+Taxon_0001  ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT
+Taxon_0002  TGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCA
+Taxon_0003  AAAAAAAAAAAAAAACCCCCCCCCCCCCCCGGGGGGGGGGGGGGGTTTTTTTTTTTTTTT
+Taxon_0004  ATATATATATATATATATATATATATATATATATATATATATATATATATATATATATAT
+Taxon_0005  CGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCG
+Taxon_0006  AGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCT
+Taxon_0007  AACCAACCAACCAACCAACCAACCAACCAACCAACCAACCAACCAACCAACCAACCAACC
+Taxon_0008  GGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTT
+Taxon_0009  ACACACACACACACACACACACACACACACACACACACACACACACACACACACACACAC
+Taxon_0010  GAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGA
+Taxon_0011  CTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCT
+Taxon_0012  TTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAA
+EOF
+```
+Explicación del formato PHYLIP
+- 1ª línea: Ntaxa Nsitios (aquí 12 60).
+- Luego, una línea por taxón: nombre (≤10 chars), un espacio y la secuencia (todas del mismo largo).
+
+
+2) Crea el script Sbatch que ejecutará Ramxlm
 
 Guarda como **`raxml_mpi.sbatch`**:
 
@@ -565,7 +608,6 @@ Guarda como **`raxml_mpi.sbatch`**:
 #SBATCH --nodes=2                 # <-- nº de nodos
 #SBATCH --ntasks=8                # total procesos MPI
 #SBATCH --ntasks-per-node=4       # <-- nº procesos MPI por nodo
-#SBATCH --cpus-per-task=1         # (MPI puro: 1 CPU por proceso)
 #SBATCH --mem=8G
 #SBATCH --time=00:30:00
 #SBATCH --output=logs/%x-%j.out
@@ -574,8 +616,8 @@ Guarda como **`raxml_mpi.sbatch`**:
 module load RAxML/8.2.12-gompi-2020a-hybrid-avx2  # el módulo puede traer varios binarios
 
 RUNNAME="ML_bootstrap"
-mkdir -p 01-openmp-mpi-results
-RESULTS_DIR="01-openmp-mpi-results/raxml_${SLURM_JOB_ID}"
+mkdir -p 05-raxml_mpi-results
+RESULTS_DIR="/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/05-raxml_mpi-results/raxml_${SLURM_JOB_ID}"
 mkdir -p "$RESULTS_DIR"
 
 mpirun -np "$SLURM_NTASKS" raxmlHPC \
@@ -587,7 +629,7 @@ mpirun -np "$SLURM_NTASKS" raxmlHPC \
   -w "$RESULTS_DIR"
 ```
 
-> Se han definido 8 procesos MPI (`--ntasks=8`). Con `--nodes=2` y `--ntasks-per-node=4`, Slurm colocará 4 procesos en cada nodo. Los resultados se guardan **ordenados** en `01-openmp-mpi-results/raxml_<JobID>`.
+> Se han definido 8 procesos MPI (`--ntasks=8`). Con `--nodes=2` y `--ntasks-per-node=4`, Slurm colocará 4 procesos en cada nodo. Los resultados se guardan **ordenados** en `05-raxml_mpi-results/raxml_<JobID>`.
 
 **Parámetros clave de RAxML**
 `-s` (alineamiento PHYLIP), `-m` (modelo, p.ej. GTRGAMMA), `-p` (semilla), `-#` (nº de réplicas/árboles), `-n` (prefijo de salida), `-w` (directorio de trabajo/salida).
