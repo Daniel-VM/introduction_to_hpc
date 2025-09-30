@@ -25,23 +25,6 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   - `/local_scratch` → espacio temporal en cada nodo, se elimina al terminar el trabajo.
 - No almacenar información no relacionada con los cálculos autorizados.
 
-### Preparación de la práctica.
-
-1. Creamos la estructura de carpetas
-
-```bash
-cd /data/courses/hpc_course/<CARPETA HPC_COURSE>/ANALYSIS
-mkdir 06-software-management
-mkdir 06-software-management/singularity_images
-mkdir 06-software-management/fastp_results
-```
-
-2. Copiar los datos a scratch
-
-```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /data/courses/hpc_course/*HPC-COURSE*${USER}* /scratch/hpc_course
-```
-
 ## 1. Permisos: PC personal vs HPC
 
 - En este apartado vamos a **Comparar permisos de archivos y software** entre tu PC personal y el HPC y cómo gestionarlos.
@@ -69,7 +52,7 @@ srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh
 
   - El archivo se ha borrado sin problema. Pero ¿qué pasa si solo puede borrarlo root?
 
-  - Primero, iniciemos una sesión root:
+  - Primero, iniciemos una sesión root en nuestro ordenador personal:
 
   ```bash
   sudo su
@@ -133,14 +116,27 @@ srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh
     Verás `(bioenv)` a la izquierda del prompt indicando que está activado. `pip` se instala por defecto, así que podemos aprovecharlo para instalar librerías ya que ayuda a gestionar las dependencias:
 
     ```bash
+    pip install --upgrade pip # Upgrade pip version, default is too old
     pip install numpy rich requests # Instalar paquetes con pip
-    python3 -c 'import numpy' # Comprobar instalación
-    pip uninstall numpy
+    python3 -c 'import numpy as np; print(np.random.rand(10))' # Comprobar instalación
+    "Output (Numeros aleatorios)
+    [0.82817341 0.32560646 0.96031543 0.49938711 0.28076754 0.5633077
+    0.62029871 0.13840926 0.12178352 0.74080816]
+    "
+    ```
+    - Vamos a ver que pasa si lo desinstalamos:
+    ```bash
+    pip uninstall -y numpy # -y Evita que nos pregunte si estamos seguros 
     python3 -c 'import numpy' # Esperado -> ModuleNotFoundError
+    "Output
+    Traceback (most recent call last):
+    File "<string>", line 1, in <module>
+    ModuleNotFoundError: No module named 'numpy'
+    "
     deactivate # Salir del entorno virtual
     ```
 
-    Nota: Puedes salir en cualquier momento con `deactivate`.
+    Nota: Puedes salir en cualquier momento del entorno virtual con `deactivate`.
 
 - **¿Cómo trabajar con entornos virtuales en nuestro HPC?**
   En este ejercicio usaremos **seqkit** para inspeccionar archivos de secuencias.
@@ -166,12 +162,24 @@ srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh
     source bioenv/bin/activate
     pip list # Comando para ver qué paquetes están instalados por pip
 
-    # Output esperado:
-    # Package    Version
-    # ---------- -------
-    # pip        25.2
-    # setuptools 80.9.0
-    # wheel      0.45.1
+    "Output
+
+    Package            Version
+    ------------------ ---------
+    certifi            2025.4.26
+    charset-normalizer 2.0.12
+    commonmark         0.9.1
+    dataclasses        0.8
+    idna               3.10
+    numpy              1.19.5
+    pip                21.3.1
+    Pygments           2.14.0
+    requests           2.27.1
+    rich               12.6.0
+    setuptools         39.2.0
+    typing_extensions  4.1.1
+    urllib3            1.26.20n
+    "
     ```
 
     No es nuestro caso, pero podemos intentar instalarlo con pip.
@@ -188,7 +196,7 @@ srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh
 
     Como `seqkit` no está en PyPI, usaremos **micromamba**.<br> <br>
 
-- **Micromamba:** Nuestro gestor de entornos favorito, ya que es especialmente rápido y ligero. Para descargarlo en vuestro _Home_ podéis utilizar el siguiente comando:
+- **Micromamba:** Nuestro gestor de entornos favorito, ya que es especialmente rápido y ligero. Para descargarlo en vuestro _Home_ podéis utilizar el siguiente comando (recuerda salir de `bioenv` primero):
 
 ```bash
 curl -Ls https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xvj bin/micromamba
@@ -314,7 +322,7 @@ channel_priority: strict
 - Con esto ya tendríamos un entorno virtual, pero nosotros vamos a ir más allá, creando un entorno virtual personalizado con `micromamba create`:
 
 ```bash
-micromamba create -y -n bioenv python==3.12.0 pip twine -c conda-forge
+micromamba create -y -n mamba_env python==3.12.0 pip twine -c conda-forge
 ```
   
 - Output:
@@ -325,11 +333,11 @@ micromamba create -y -n bioenv python==3.12.0 pip twine -c conda-forge
   # 
   # To activate this environment, use:
   # 
-  #     micromamba activate bioenv
+  #     micromamba activate mamba_env
   # 
   # Or to execute a single command in this environment, use:
   # 
-  #    micromamba run -n bioenv mycommand
+  #    micromamba run -n mamba_env mycommand
 ```
   
 - Vamos a explicar cada parámetro en profundidad:
@@ -344,12 +352,12 @@ micromamba create -y -n bioenv python==3.12.0 pip twine -c conda-forge
   - Activemos nuestro entorno virtual:
   
   ```bash
-  micromamba activate bioenv
+  micromamba activate mamba_env
   ```
   
-  - Tus paquetes ahora están aislados del   sistema global. Verás `(bioenv)` añadido en la esquina   izquierda del prompt de tu terminal como indicador de que   el entorno está activado.
+  - Tus paquetes ahora están aislados del   sistema global. Verás `(mamba_env)` añadido en la esquina   izquierda del prompt de tu terminal como indicador de que   el entorno está activado.
   
-  - Puedes probar `pip list`   ahora, ya que estará disponible dentro del entorno   virtual. Esto listará todos los paquetes instalados con   pip. Intenta hacer lo mismo en el anterior virtualenv   `bioenv` para ver qué ocurre (_pista: primero necesitarás   salir con `micromamba deactivate`_).
+  - Puedes probar `pip list`   ahora, ya que estará disponible dentro del entorno   virtual. Esto listará todos los paquetes instalados con   pip. Intenta hacer lo mismo en el anterior virtualenv   `mamba_env` para ver qué ocurre (_pista: primero necesitarás   salir con `micromamba deactivate`_).
   
   - Veamos si `seqkit` está disponible en pip o micromamba para poder instalarlo:
   Pip no tiene un comando oficial para buscar un paquete, debes ir a su página web y usar el navegador para encontrarlo [https://pypi.org/search](<https://pypi.org/>  search). Es crucial inspeccionarlo antes de instalar, ya que podría haber un paquete con el mismo nombre que el que quieres pero con diferente funcionalidad.
@@ -415,11 +423,11 @@ micromamba create -y -n bioenv python==3.12.0 pip twine -c conda-forge
   
   Para continuar con la siguiente sección, **vuelve a añadir   el canal bioconda** e **instala seqkit otra vez** por tu   cuenta.
   
-  - **Consejo**: si quieres instalar paquetes de   Python, usa `pip install` ya que es el repositorio de   paquetes de Python más grande, pero para herramientas más   complejas como `bedtools` utiliza **micromamba** o   **conda**.
+  - **Consejo**: si quieres instalar paquetes de   Python, usa `pip install` ya que es el repositorio de   paquetes de Python más grande, pero para herramientas más   complejas como `bedtools` o ``fastp utiliza **micromamba** o   **conda**.
 
   - Ahora que ya tenemos instalado `seqkit`, vamos a hacer una pequeña prueba para ver que funciona:
   ```bash
-  micromamba activate bioenv
+  micromamba activate mamba_env
   seqkit version
   "Output
   seqkit v2.10.1
@@ -427,12 +435,14 @@ micromamba create -y -n bioenv python==3.12.0 pip twine -c conda-forge
   ```
 
   ```bash
+  # zcat permite leer archivos comprimidos
   srun zcat /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz | seqkit stats
   "Output
   
   file  format  type  num_seqs     sum_len  min_len  avg_len  max_len
   -     FASTQ   DNA    142,672  15,874,146       35    111.3      151
   "
+  micromamba deactivate
   ```
 
 ### (Extra) Cómo compartir entornos virtuales entre usuarios con micromamba
@@ -483,6 +493,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 Type 'q()' to quit R.
 
 > Aquí podréis lanzar comandos de R 
+ctrl+D para salir y pulsar "n" (no guardar) 
 "
 ``` 
 Aunque esto pueda parecer engorroso, si sólo tuvieramos una sóla versión de R instalada a nivel de sistema, impediría a los usuarios ejecutar software que requiera de versiones concretas de R para su funcionamiento.
@@ -526,6 +537,8 @@ Use "module keyword key1 key2 ..." to search for all possible modules matching a
 - Si quieres comprobar **qué módulos están activos** en tu sesión, puedes ejecutar `module list`.
 Cuando termines de usar un módulo, puedes ejecutar `module unload <module_name>` para descargarlo de tu sesión, o `module purge` para descargar todos los módulos activos.
 
+**Puedes combinar modules y entornos virtuales**: Por ejemplo, puedes iniciar el entorno `mamba_env` de micromamba y se mantendrán cargados los módulos que tuvieras cargados, o cargar módulos desde dentro, como prefieras.
+
 ## 3. Contenedores: Docker & Singularity
 
 - **¿Por qué contenedores?**
@@ -546,8 +559,24 @@ En nuestro caso, Singularity se accede a través de **módulos de EasyBuild**:
 ```bash
 module load singularity
 singularity search fastp
-```
 
+"Output
+Found 6 container images for amd64 matching "fastp":
+
+        library://abourdais/default/fastplast:lastest
+
+        library://edwardbirdlab/fastp/fastp:1.0
+
+        library://hud/mgnext/fastp:0.20.1
+
+        library://jiayiliujiayi/condas/fastp:0.23.2
+
+        library://marcniebel/repo/fastp:1.0.0
+
+        library://wallaulabs/viralflow/fastp:0.23.4
+"
+```
+- Estos son repositorios comunitarios de singularity. Como podéis ver las versiones están muy limitadas y no todas las ubicaciones están contrastadas. Nosotros recomendamos otras opciones, especialmente pensadas para software científico, que veremos en el siguiente punto.
 ---
 
 ### 3.1 Descargar y ejecutar un contenedor de Singularity
