@@ -417,6 +417,24 @@ micromamba create -y -n bioenv python==3.12.0 pip twine -c conda-forge
   
   - **Consejo**: si quieres instalar paquetes de   Python, usa `pip install` ya que es el repositorio de   paquetes de Python más grande, pero para herramientas más   complejas como `bedtools` utiliza **micromamba** o   **conda**.
 
+  - Ahora que ya tenemos instalado `seqkit`, vamos a hacer una pequeña prueba para ver que funciona:
+  ```bash
+  micromamba activate bioenv
+  seqkit version
+  "Output
+  seqkit v2.10.1
+  "
+  ```
+
+  ```bash
+  srun zcat /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz | seqkit stats
+  "Output
+  
+  file  format  type  num_seqs     sum_len  min_len  avg_len  max_len
+  -     FASTQ   DNA    142,672  15,874,146       35    111.3      151
+  "
+  ```
+
 ### (Extra) Cómo compartir entornos virtuales entre usuarios con micromamba
 
   - Configura `.condarc` para utilizar un directorio de entornos común para otros usuarios:
