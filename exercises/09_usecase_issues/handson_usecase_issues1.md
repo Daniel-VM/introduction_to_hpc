@@ -684,14 +684,38 @@ cd "$BASE/RAW"
 - Crea un fichero con los IDs SRA (uno por línea):
 
 ```bash
-cat > sra_ids.txt << 'EOF'
+cat > sra_ids.csv << 'EOF'
 ERR2261314
 ERR2261315
 ERR2261318
 EOF
 ```
 
-3. Descargar datos con nf-core/fetchngs (a RAW/) via sbatch
+3. Copia o genera el fichero `nextflow.config` en la carpeta `DOC`.
+
+```bash
+// El gestor de paquetes que usaremos será Singularity:
+singularity {
+  enabled    = true
+  autoMounts = true
+}
+
+process {
+  executor      = 'slurm'      // Con este parámetro hacemos saber a Nextflow que ejecutará en Slurm
+  queue         = 'short_idx'  // Indica el nombre de la cola
+  cpus          = 1            // CPUs por tarea
+  memory        = '2 GB'       // Memoria por tarea
+  time          = '1h'        // Límite por tarea
+  jobName       = { "${task.process} (${task.name})" }  // Nombre legible en la cola    
+  errorStrategy = { task.exitStatus in [140,143,137,138,104,134,139] ? 'retry' : 'finish' }
+  maxRetries    = 1
+  maxErrors     = -1
+  // Opcional: restringe nodos o añade flags del clúster
+  // clusterOptions = '--nodelist=ideafix[01-10]'
+}
+```
+
+4. Descargar datos con nf-core/fetchngs (a RAW/) via sbatch
 
 ```bash
 cat > fetchngs.sbatch << "SLURM"
@@ -702,7 +726,7 @@ cat > fetchngs.sbatch << "SLURM"
 #SBATCH --time=04:00:00
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=4G
-#SBATCH --output=$BASE/RAW/logs/logs_%x-%j.log
+#SBATCH --output=$(date +%Y%m%d)_HPC-COURSE-TAXPROFILER_${USER}/RAW/logs/logs_%x-%j.log -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES
 
 set -euo pipefail
 module purge
@@ -713,9 +737,11 @@ module load singularity/3.7.1
 export NXF_SINGULARITY_CACHEDIR="$HOME/containers/singularity"
 
 # Ejecuta el pipeline descargado en $HOME/software/nfcore/fetchngs
-nextflow run "$HOME/software/nfcore/fetchngs" \
+nextflow run "$HOME/software/nfcore/fetchngs/1_12_0/main.nf" \
   -profile singularity \
-  --input sra_ids.txt \
+  -c ../DOC/nextflow.config \
+  --input sra_ids.csv \
+  --download_method sratools \
   --outdir "$(date +%Y%m%d)_HPC-COURSE-TAXPROFILER_${USER}" -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES" \
   -resume
 SLURM
