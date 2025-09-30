@@ -565,7 +565,36 @@ El software que vamos a usar es [**RAxML**](https://cme.h-its.org/exelixis/web/s
 
 > Cada proceso MPI es un ejecutable independiente que se **coordina** con el resto vía bibliotecas MPI. Slurm reserva los recursos; **`mpirun -np $SLURM_NTASKS`** se encarga de lanzar los procesos.
 
-#### Script de ejemplo
+#### Pasos: 
+
+1) Preparar el input (alineamiento PHYLIP)
+
+Vamos a crear un alineamiento pequeño (12 taxones × 60 sitios) en formato PHYLIP secuencial, suficiente para testear el paralelismo:
+
+```bash
+mkdir -p data
+cat > data/datos.phy << 'EOF'
+12 60
+Taxon_0001  ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT
+Taxon_0002  TGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCATGCA
+Taxon_0003  AAAAAAAAAAAAAAACCCCCCCCCCCCCCCGGGGGGGGGGGGGGGTTTTTTTTTTTTTTT
+Taxon_0004  ATATATATATATATATATATATATATATATATATATATATATATATATATATATATATAT
+Taxon_0005  CGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCGCG
+Taxon_0006  AGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCT
+Taxon_0007  AACCAACCAACCAACCAACCAACCAACCAACCAACCAACCAACCAACCAACCAACCAACC
+Taxon_0008  GGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTTGGTT
+Taxon_0009  ACACACACACACACACACACACACACACACACACACACACACACACACACACACACACAC
+Taxon_0010  GAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGA
+Taxon_0011  CTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCT
+Taxon_0012  TTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAA
+EOF
+```
+Explicación del formato PHYLIP
+- 1ª línea: Ntaxa Nsitios (aquí 12 60).
+- Luego, una línea por taxón: nombre (≤10 chars), un espacio y la secuencia (todas del mismo largo).
+
+
+2) Crea el script Sbatch que ejecutará Ramxlm
 
 Guarda como **`raxml_mpi.sbatch`**:
 
@@ -577,7 +606,6 @@ Guarda como **`raxml_mpi.sbatch`**:
 #SBATCH --nodes=2                 # <-- nº de nodos
 #SBATCH --ntasks=8                # total procesos MPI
 #SBATCH --ntasks-per-node=4       # <-- nº procesos MPI por nodo
-#SBATCH --cpus-per-task=1         # (MPI puro: 1 CPU por proceso)
 #SBATCH --mem=8G
 #SBATCH --time=00:30:00
 #SBATCH --output=logs/%x-%j.out
@@ -587,7 +615,7 @@ module load RAxML/8.2.12-gompi-2020a-hybrid-avx2  # el módulo puede traer vario
 
 RUNNAME="ML_bootstrap"
 mkdir -p 05-raxml_mpi-results
-RESULTS_DIR="05-raxml_mpi-results/raxml_${SLURM_JOB_ID}"
+RESULTS_DIR="/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/05-raxml_mpi-results/raxml_${SLURM_JOB_ID}"
 mkdir -p "$RESULTS_DIR"
 
 mpirun -np "$SLURM_NTASKS" raxmlHPC \
