@@ -91,7 +91,7 @@ Si ves `Permission denied`, vuelve a `/data`, edita allí y sincroniza de nuevo.
 
 ### Preparación de la práctica
 
-Seguiremos dentro de `ANALYSIS/07-scripting-and-parallelization`, carpeta creada en la Práctica 04 y que ya cuelga de tu espacio `*HPC-COURSE_${USER}`. Aquí agruparemos los scripts `sbatch`, el subdirectorio `logs/` con las salidas de Slurm y las carpetas de resultados que iremos generando. El primer bloque de ejercicios se basa en FastQC: trabajaremos con los FASTQ `virus1_R1.fastq.gz` y `virus1_R2.fastq.gz` (ubicados en `ANALYSIS/00-reads/`) para producir informes de control de calidad en `01-fastqc-demo-results` y entender el ciclo completo de envío, monitorización y revisión de logs en Slurm.
+Seguiremos dentro de `ANALYSIS/07-scripting-and-parallelization`, carpeta creada en la Práctica 04 y que ya cuelga de tu espacio `*HPC-COURSE_${USER}`. Aquí agruparemos los scripts `sbatch`, el subdirectorio `logs/` con las salidas de Slurm y las carpetas de resultados que iremos generando. Si no ves `logs/`, créalo una única vez con `mkdir -p logs`. El primer bloque de ejercicios se basa en FastQC: trabajaremos con los FASTQ `virus1_R1.fastq.gz` y `virus1_R2.fastq.gz` (ubicados en `ANALYSIS/00-reads/`) para producir informes de control de calidad en `01-fastqc-demo-results` y entender el ciclo completo de envío, monitorización y revisión de logs en Slurm.
 
 Vamos a situarnos en la carpeta de trabajo en /data:
 
@@ -106,7 +106,6 @@ Guarda como **`fastqc_demo.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_demo
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -133,64 +132,51 @@ fastqc \
 echo "[INFO] Finished at $(date)"
 ```
 
-**IMPORTANTE**: De aquí en adelante tendrás que sustituir en el script de sbatch la cadena de caracteres `*HPC-COURSE_${USER}` que se encuentra en la directiva `#SBATCH --chdir=...` por el nombre de tu carpeta de carpeta de trabajo en el HPC. Por ejemplo:
-
-```bash
-Sustituye esto:
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
-
-por:
-#SBATCH --chdir=/scratch/hpc_course/20250929_HPC-COURSE_alumno10/ANALYSIS/07-scripting-and-parallelization
-```
-
-2. Copiar los datos desde /data a /scratch
-
-```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
-  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ /scratch/hpc_course/
-```
-
-> Repite el `rsync` cada vez que modifiques ficheros en `/data` antes de lanzar nuevos trabajos desde `/scratch`.
-
----
-
 ### Ejercicio 1 — Ejecución correcta
 
 **Objetivo**
 Ejecutar el script tal cual, comprobar el nodo, los logs y el estado final.
 
 **Pasos**
-0. Sitúate en la carpeta de trabajo en `/scratch`
+0. **Sincroniza** tu carpeta de trabajo (desde `/data`) antes de cada envío:
+
+```bash
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
+  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
+            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
+```
+
+1. **Sitúate** en la carpeta de trabajo en `/scratch`
 
 ``` bash
 cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 ```
 
-1. Enviar el trabajo
+2. **Enviar** el trabajo
 
 ```bash
-sbatch fastqc_demo.sbatch
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_demo.sbatch
 ```
 
-2. Monitorizar en cola
+3. Monitorizar en cola
 
 ```bash
 squeue --me
 ```
 
-3. Ver detalles (nodo, recursos, razón si está en PD)
+4. Ver detalles (nodo, recursos, razón si está en PD)
 
 ```bash
 scontrol show job <JOBID> | grep 'JobName\|NumNodes\|NumCPUs\|TRES\|Nodes\|Reason\|Submit\|Start\|TimeLimit'
 ```
 
-4. Al finalizar, revisar histórico y uso
+5. Al finalizar, revisar histórico y uso
 
 ```bash
 sacct -j <JOBID> -o JobID,State,Elapsed,MaxRSS,TotalCPU,ExitCode
 ```
 
-5. Leer logs
+6. Leer logs
 
 ```bash
 less /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/logs/fastqc_demo-<JOBID>.out
@@ -218,7 +204,6 @@ En este caso modificamos el script, lo guardamos como **`fastqc_failcmd.sbatch`*
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_fail
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -241,7 +226,13 @@ echo "[INFO] Finished at $(date)"
 Ejecuta y monitoriza:
 
 ```bash
-sbatch fastqc_failcmd.sbatch
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
+  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
+            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
+```
+
+```bash
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_failcmd.sbatch
 
 sacct -j <JOBID> -o JobID,State,Elapsed,ExitCode
 
@@ -272,7 +263,6 @@ Script: **`fastqc_overask.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_overask
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=530G                       # << imposible en este nodo
@@ -297,7 +287,13 @@ echo "[INFO] Finished at $(date)"
 Monitoriza:
 
 ```bash
-sbatch fastqc_overask.sbatch
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
+  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
+            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
+```
+
+```bash
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_overask.sbatch
 squeue --me
 scontrol show job <JOBID> | egrep 'Reason|Req|MinCPUs|TRES|Nodes|Partition|QOS'
 ```
@@ -336,7 +332,6 @@ Script: **`array_demo.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=array_demo
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --array=1-2
 #SBATCH --cpus-per-task=1
@@ -386,7 +381,6 @@ A continuación, vamos a crear el script sbatch **`fastqc_array_samplesid.sbatch
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_from_ids
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=6G
@@ -414,7 +408,14 @@ echo "[INFO] Sample=${SAMPLE} R1=${R1} R2=${R2}"
 Lanza el array ajustando el rango al número de líneas de `samples_id.txt`:
 
 ```bash
-sbatch --array=1-$(wc -l < /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/samples_id.txt) fastqc_array_samplesid.sbatch
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
+  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
+            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
+```
+
+```bash
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization \
+       --array=1-$(wc -l < /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/samples_id.txt) fastqc_array_samplesid.sbatch
 ```
 
 Los resultados se guardan en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/` y los logs por tarea en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/logs/`.
@@ -475,7 +476,6 @@ Veamos cómo construir el script. Se muestra **`fastp_openmp.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastp_openmp
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=4           # <- nº hilos/threads OpenMP
 #SBATCH --mem=16G
@@ -500,8 +500,18 @@ fastp -i "$R1" -I "$R2" -o "$OUTR1" -O "$OUTR2" \
 
 **Lanza y monitoriza**
 
+Primero sincronizamos el archivo que se encuentra en /data para que esté accesible desde /scratch.
+
 ```bash
-sbatch fastp_openmp.sbatch
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
+  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
+            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
+```
+
+Ejecuta y monitoriza los trabajos:
+
+```bash
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastp_openmp.sbatch
 squeue --me
 sacct -j <JOBID> -o JobID,AllocCPUS,State,Elapsed,MaxRSS,TotalCPU,NodeList
 scontrol show jobid <JOBID> 
@@ -525,7 +535,6 @@ Guarda como **`spades_openmp.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=spades_openmp
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
@@ -548,7 +557,7 @@ spades.py -1 "$R1" -2 "$R2" -o 04-openmp-spades-results/spades_sample01 \
 **Lanza y monitoriza**
 
 ```bash
-sbatch spades_openmp.sbatch
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization spades_openmp.sbatch
 squeue --me
 sacct -j <JOBID> -o JobID,AllocCPUS,State,Elapsed,MaxRSS,TotalCPU,NodeList
 scontrol show jobid <JOBID> 
@@ -608,7 +617,6 @@ Guarda como **`raxml_mpi.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=raxml_mpi
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --nodes=2                 # <-- nº de nodos
 #SBATCH --ntasks=8                # total procesos MPI
@@ -642,7 +650,7 @@ mpirun -np "$SLURM_NTASKS" raxmlHPC \
 Lanza y monitoriza los trabajos que se ejecutan. 
 
 ```bash
-sbatch raxml_mpi.sbatch
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization raxml_mpi.sbatch
 watch squeue --me
 sacct -j <JOBID> -o JobID,JobName,State,Elapsed,AllocCPUS,NodeList
 ```
