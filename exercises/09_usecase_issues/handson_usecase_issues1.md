@@ -203,7 +203,7 @@ Vamos a ver como se puede emplear [**Ganglia**](http://ganglia.isciii.es/) como 
 - Diagnosticar cuellos de botella.
 - Comprobar si los trabajos se están ejecutando correctamente o si saturan el sistema.
 
-Dentro de Ganglia podemos seleccionar el cluster que queremos monitorizar, en este caso seleccionamos XTutatis del desplegable `Cluster > Xtutatis`. 
+Dentro de Ganglia podemos seleccionar el cluster que queremos monitorizar, en este caso seleccionamos XTutatis del desplegable `Cluster > Xtutatis`.
 
 Observamos los siguientes gráficos:
 
@@ -655,9 +655,9 @@ nf-core pipelines download nf-core/fetchngs \
   --outdir "$HOME/software/nfcore/fetchngs"
 
 nf-core pipelines download nf-core/taxprofiler \
-  -r 2.2.0 \
+  -r 1.2.4 \
   --container-system singularity \
-  --container-cache-dir "$HOME/containers/singularity" \
+  --container-cache-utilisation amend \
   --compress none \
   --force \
   --outdir "$HOME/software/nfcore/taxprofiler"
@@ -680,7 +680,7 @@ cd "$BASE/RAW"
 
 2. Preparar IDs y consultar documentación
 
-- Documentación: lee los parámetros en https://github.com/nf-core/fetchngs (rama estable/dev según disponibilidad) y https://nf-co.re/taxprofiler (parámetros de entrada y selección de profilers).
+- Documentación: lee los parámetros en <https://github.com/nf-core/fetchngs> (rama estable/dev según disponibilidad) y <https://nf-co.re/taxprofiler> (parámetros de entrada y selección de profilers).
 - Crea un fichero con los IDs SRA (uno por línea):
 
 ```bash
@@ -716,7 +716,7 @@ export NXF_SINGULARITY_CACHEDIR="$HOME/containers/singularity"
 nextflow run "$HOME/software/nfcore/fetchngs" \
   -profile singularity \
   --input sra_ids.txt \
-  --outdir "$BASE/RAW" \
+  --outdir "$(date +%Y%m%d)_HPC-COURSE-TAXPROFILER_${USER}" -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES" \
   -resume
 SLURM
 ```
@@ -724,12 +724,14 @@ SLURM
 4. Copiamos a scratch
 
 ```bash
-hpc_cp.sh "data->scratch" $(date +%Y%m%d)_HPC-COURSE-TAXPROFILER_${USER}"
+hpc_cp.sh "data->scratch" XXXXXXX_HPC-COURSE-TAXPROFILER_${USER}
 ```
+
 5. Lanzamos el pipeline
 
 ```bash
 scratch
+cd *_HPC-COURSE-TAXPROFILER_${USER}/RAW
 sbatch fetchngs.sbatch
 ```
 

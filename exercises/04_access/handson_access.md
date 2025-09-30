@@ -83,9 +83,6 @@ Muestra información sobre cada paso de la conexión SSH. Útil para identificar
 Output:
 
 ```bash
-Output:
-
-```bash
  ✘  smonzon@PC-M007021  ssh -v -p 32122 smonzon@portutatis.isciii.es 
 OpenSSH_9.6p1 Ubuntu-3ubuntu13.13, OpenSSL 3.0.13 30 Jan 2024
 debug1: Reading configuration data /home/smonzon/.ssh/config
@@ -386,7 +383,13 @@ El comando `ssh-keygen` genera una nueva clave pública/privada en el directorio
 
 #### Subir archivo con `scp`
 
-- Descargamos los datos de la práctica
+- Descargamos los datos de la práctica en nuestro ordenador local. Bien en [zenodo](https://zenodo.org/records/17207071) o por línea de comandos:
+
+```bash
+wget --content-disposition -P hpc_isciii_data https://zenodo.org/api/records/17207071/files-archive
+cd hpc_isciii_data
+unzip 17207071.zip
+```
 
 - Abrimos WSL
 

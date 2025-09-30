@@ -27,6 +27,19 @@ if [[ -n "$SRUN_EXTRA" ]]; then
   SRUN_ARGS+=("${_EXTRA_ARR[@]}")
 fi
 
+USE_SRUN=1
+if [[ -n "${SLURM_JOB_ID:-}" ]]; then
+  USE_SRUN=0
+fi
+
+run_compute() {
+  if (( USE_SRUN )); then
+    srun "${SRUN_ARGS[@]}" "$@"
+  else
+    "$@"
+  fi
+}
+
 usage() {
   cat <<EOF
 Usage: $(basename "$0") [scratch->data|data->scratch] <relative_path> [options]
@@ -39,6 +52,7 @@ Options:
 
 Notes:
   - The copy runs on a compute node via srun to respect scratch policies.
+  - If you already have an allocation (e.g. interactive srun), the commands run directly there.
   - The destination parent directory is created on the compute node.
 
 Examples:
@@ -95,12 +109,22 @@ echo "Mode: $MODE"
 echo "Source:      $SRC"
 echo "Destination: $DST"
 
+if (( USE_SRUN )); then
+  echo "Runner:      srun (${SRUN_PART}, ${SRUN_TIME}, ${SRUN_CPUS} CPU, ${SRUN_MEM} RAM)"
+else
+  echo "Runner:      inside current allocation (job ${SLURM_JOB_ID:-unknown})"
+fi
+
 # Run mkdir and rsync on a compute node
 PARENT_DIR=$(dirname "$DST")
 echo "Creating destination parent on compute node: $PARENT_DIR"
-srun "${SRUN_ARGS[@]}" mkdir -p -- "$PARENT_DIR"
+run_compute mkdir -p -- "$PARENT_DIR"
 
-echo "Running rsync on compute node..."
-srun "${SRUN_ARGS[@]}" rsync "${RSYNC_OPTS[@]}" -- "$SRC" "$DST"
+if (( USE_SRUN )); then
+  echo "Running rsync on compute node..."
+else
+  echo "Running rsync within existing allocation..."
+fi
+run_compute rsync "${RSYNC_OPTS[@]}" -- "$SRC" "$DST"
 
 echo "Done."
