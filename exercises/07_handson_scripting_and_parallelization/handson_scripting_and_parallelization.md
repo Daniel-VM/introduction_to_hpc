@@ -42,6 +42,8 @@ Partiremos de un **script base** que ejecuta **FastQC** sobre dos FASTQ pequeño
 cd /data/courses/hpc_course/20250923_HPC-COURSE_alumno07/ANALYSIS
 mkdir 07-scripting-and-parallelization
 mkdir 07-scripting-and-parallelization/logs
+cd 07-scripting-and-parallelization
+nano fastqc_demo.sbatch 
 ```
 
 ### Script base
