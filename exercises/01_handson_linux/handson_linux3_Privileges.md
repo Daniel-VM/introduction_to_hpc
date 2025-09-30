@@ -91,7 +91,7 @@ ll #o ls -l
 
 ```bash
 pwd
-chgrp bioinfo ho*
+chgrp hpccourse ho*
 ll #o ls -l
 ```
 
@@ -110,7 +110,7 @@ ll #o ls -l
 
 ```bash
 ll
-chown -R user:bi .
+chown -R user:hpccourse .
 ll
 ```
 
@@ -151,3 +151,4 @@ ls
 ```
 Visita Webminal o copy.sh para practicar en casa: http://www.webminal.org/ o http://copy.sh/v86/?profile=archlinux
 ```
+
