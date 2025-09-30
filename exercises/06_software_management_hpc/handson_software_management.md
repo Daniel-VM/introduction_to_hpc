@@ -13,6 +13,18 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
     - [3.1 Descargar y ejecutar un contenedor de Singularity](#31-descargar-y-ejecutar-un-contenedor-de-singularity)
     - [3.2 Otros conceptos importantes sobre singularity](#32-otros-conceptos-importantes-sobre-singularity)
 
+### Notas importantes
+
+- El acceso se realiza al nodo de login `portutatis.isciii.es` mediante el puerto `32122`.
+- No se deben ejecutar cálculos en el nodo de login, solo gestionar ficheros y enviar trabajos a la cola.
+- Los datos de usuario se organizan en diferentes espacios de trabajo:
+
+  - `/home/usuario` → scripts y ficheros pequeños.
+  - `/data/unidad` → datos y resultados de proyectos.
+  - `/scratch/unidad` → ejecución temporal de trabajos (se eliminan ficheros inactivos a los 5 días).
+  - `/local_scratch` → espacio temporal en cada nodo, se elimina al terminar el trabajo.
+- No almacenar información no relacionada con los cálculos autorizados.
+
 ### Preparación de la práctica.
 
 1. Creamos la estructura de carpetas
