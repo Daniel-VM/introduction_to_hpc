@@ -13,6 +13,35 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
     - [3.1 Descargar y ejecutar un contenedor de Singularity](#31-descargar-y-ejecutar-un-contenedor-de-singularity)
     - [3.2 Otros conceptos importantes sobre singularity](#32-otros-conceptos-importantes-sobre-singularity)
 
+### Notas importantes
+
+- El acceso se realiza al nodo de login `portutatis.isciii.es` mediante el puerto `32122`.
+- No se deben ejecutar cálculos en el nodo de login, solo gestionar ficheros y enviar trabajos a la cola.
+- Los datos de usuario se organizan en diferentes espacios de trabajo:
+
+  - `/home/usuario` → scripts y ficheros pequeños.
+  - `/data/unidad` → datos y resultados de proyectos.
+  - `/scratch/unidad` → ejecución temporal de trabajos (se eliminan ficheros inactivos a los 5 días).
+  - `/local_scratch` → espacio temporal en cada nodo, se elimina al terminar el trabajo.
+- No almacenar información no relacionada con los cálculos autorizados.
+
+### Preparación de la práctica.
+
+1. Creamos la estructura de carpetas
+
+```bash
+cd /data/courses/hpc_course/<CARPETA HPC_COURSE>/ANALYSIS
+mkdir 06-software-management
+mkdir 06-software-management/singularity_images
+mkdir 06-software-management/fastp_results
+```
+
+2. Copiar los datos a scratch
+
+```bash
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /data/courses/hpc_course/*HPC-COURSE*${USER}* /scratch/hpc_course
+```
+
 ## 1. Permisos: PC personal vs HPC
 
 - En este apartado vamos a **Comparar permisos de archivos y software** entre tu PC personal y el HPC y cómo gestionarlos.
@@ -388,32 +417,114 @@ micromamba create -y -n bioenv python==3.12.0 pip twine -c conda-forge
   
   - **Consejo**: si quieres instalar paquetes de   Python, usa `pip install` ya que es el repositorio de   paquetes de Python más grande, pero para herramientas más   complejas como `bedtools` utiliza **micromamba** o   **conda**.
 
-### 2.1 Cómo compartir entornos virtuales entre usuarios del HPC
+  - Ahora que ya tenemos instalado `seqkit`, vamos a hacer una pequeña prueba para ver que funciona:
+  ```bash
+  micromamba activate bioenv
+  seqkit version
+  "Output
+  seqkit v2.10.1
+  "
+  ```
 
-- Con micromamba:
+  ```bash
+  srun zcat /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz | seqkit stats
+  "Output
+  
+  file  format  type  num_seqs     sum_len  min_len  avg_len  max_len
+  -     FASTQ   DNA    142,672  15,874,146       35    111.3      151
+  "
+  ```
 
-  - Configura `.condarc` para utilizar el mismo directorio de entornos que el resto de alumnos:
+### (Extra) Cómo compartir entornos virtuales entre usuarios con micromamba
+
+  - Configura `.condarc` para utilizar un directorio de entornos común para otros usuarios:
 
     ```bash
     nano ~/.condarc
     envs_dirs:
        - RUTA_POSIBLE/micromamba/envs
     ```
+  A partir de ahora, tendrás disponibles todos los entornos creados y guardados en esa localización. Y todos los usuarios que hagan lo mismo tendrán acceso a la misma lista de entornos.
 
-  - Buscar y activar `hpc_course_bioenv`:
+### 2.2 Otros gestores: Easybuild
 
-    ```bash
-    micromamba env list
-    micromamba activate hpc_course_bioenv
-    ```
+- Easybuild es un gestor de software especialmente pensado para sistemas HPC como el nuestro. Este gestor permite a los administradores empaquetar software en módulos o `modules`. Esto hace accesibles a los usuarios múltiples versiones de un mismo software de forma rápida y eficaz.
+<br>
+- Vamos a probar un ejemplo con R. Intentemos iniciar una sesión de R:
+```bash
+R
+# Output
+# -bash: R: command not found
+``` 
+- Como podemos ver, R no está instalado a nivel de sistema (no es accesible directamente para los usuarios). Sin embargo, podemos acceder a R en el HPC a través de `modules`
 
-  - Comparar con módulos del sistema:
+```bash
+module load R/4.1.3
+R
+"
+Output
 
-    ```bash
-    module overview
-    module load R/4.1.3
-    R --help
-    ```
+R version 4.1.3 (2022-03-10) -- "One Push-Up"
+Copyright (C) 2022 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> Aquí podréis lanzar comandos de R 
+"
+``` 
+Aunque esto pueda parecer engorroso, si sólo tuvieramos una sóla versión de R instalada a nivel de sistema, impediría a los usuarios ejecutar software que requiera de versiones concretas de R para su funcionamiento.
+
+- **¿Cómo listar los módulos accesibles en el HPC?**.
+Para ello bastará con utilizar `module avail`. En el output veremos una gran lista de módulos, agrupados por categorías, entre ellas:
+      - `bio`: Software bioinformático
+      - `data`: Software de gestión de datos como MariaDB o XML
+      - `tools`: Herramientas variadas como compresores de archivos
+      - ``lang``:lenguajes de programación.
+      - `math`: software de cálculo/matemático. 
+      - `vis`: software de visualizacion genérico o de datos.
+Para cada módulo veremos el nombre del módulo seguido por `/` y la versión del software contenido (ej: `python/3.6.9`).
+- Podemos utilizar `module avail <regex>` para buscar modulos por su nombre o parte de éste. Por ejemplo, para buscar todas las versiones de R disponibles:
+```bash
+module avail python/
+
+"
+Output
+
+------------------- /opt/modulefiles/eb/bio ------------------
+   bx-python/0.8.9-foss-2020a-Python-3.8.2
+
+------------------- /opt/modulefiles/eb/lang -------------------
+   Python/2.7.18-GCCcore-9.3.0     Python/3.7.4-GCCcore-8.3.0    Python/3.8.6-GCCcore-10.2.0         Python/3.9.5-GCCcore-10.3.0
+   Python/2.7.18-GCCcore-10.2.0    Python/3.8.2-GCCcore-9.3.0    Python/3.9.5-GCCcore-10.3.0-bare    Python/3.10.4-GCCcore-11.3.0-bare (D)
+
+  Where:
+   D:  Default Module
+
+If the avail list is too long consider trying:
+
+"module --default avail" or "ml -d av" to just list the default modules.
+"module overview" or "ml ov" to display the number of modules for each name.
+
+Use "module spider" to find all possible modules and extensions.
+Use "module keyword key1 key2 ..." to search for all possible modules matching any of the "keys".
+"
+```
+
+- Si quieres comprobar **qué módulos están activos** en tu sesión, puedes ejecutar `module list`.
+Cuando termines de usar un módulo, puedes ejecutar `module unload <module_name>` para descargarlo de tu sesión, o `module purge` para descargar todos los módulos activos.
 
 ## 3. Contenedores: Docker & Singularity
 
@@ -423,10 +534,10 @@ micromamba create -y -n bioenv python==3.12.0 pip twine -c conda-forge
 - **Práctica:**
   Desafortunadamente, no tenemos Docker disponible en nuestro HPC. **Singularity** es un buen reemplazo de Docker ya que gestiona contenedores y además está **específicamente diseñado para sistemas HPC**.
 
-- En este ejercicio usaremos **bedtools** para convertir algunos archivos bam de nuevo a fastq. Busquemos un contenedor de Singularity con el software requerido:
+- En este ejercicio usaremos **fastp** para convertir algunos archivos bam de nuevo a fastq. Busquemos un contenedor de Singularity con el software requerido:
 
 ```bash
-singularity search bedtools
+singularity search fastp
 ```
 
 Espera, parece que Singularity no está disponible... Así es, porque para mantener la reproducibilidad los HPC no tienen tanto software instalado a nivel de sistema.
@@ -434,14 +545,8 @@ En nuestro caso, Singularity se accede a través de **módulos de EasyBuild**:
 
 ```bash
 module load singularity
-singularity search bedtools
+singularity search fastp
 ```
-
-Si quieres comprobar **qué módulos están activos** en tu sesión, puedes ejecutar `module list`.
-Cuando termines de usar un módulo, puedes ejecutar `module unload <module_name>` para descargarlo de tu sesión, o `module purge` para descargar todos los módulos activos.
-
-**¿Cómo listar los módulos accesibles en el HPC?**.
-Para ello bastará con utilizar `module avail`. Si por otra parte queremos buscar módulos con un nombre concreto, podemos utilizar `module spider <module>` o `module keyword <module>`
 
 ---
 
@@ -476,19 +581,30 @@ singularity exec https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae
 Si queremos simplemente descargar la imagen para tenerla accesible en local, podemos utilizar `singularity pull`:
 
 ```bash
-singularity pull <destination_file> https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
+singularity pull /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/06-software-management/singularity_images/fastp.img https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
 ```
 
 Como ya sabéis, siempre es mejor lanzar los trabajos con `srun`. Lo mismo aplica para procesos con containers:
 
 ```bash
-srun singularity exec --bind /scratch/RUTA_EJEMPLO https://depot.galaxyproject.org/singularity/bedtools:2.27.1--0 \
-bedtools bamtofastq -i RUTA_EJEMPLO_ARCHIVO -fq RUTA_EJEMPLO_FASTQ 
+# Sustituir <CARPETA_HPC_COURSE> por el nombre de vuestra carpeta
+srun singularity exec --bind /scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/00-reads/ /scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/singularity_images/fastp.img \
+fastp -i virus1_R1.fastq.gz -I virus1_R2.fastq.gz  -o /scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/fastp_results/trimmed_virus1_R2.fastq.gz -O /scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/fastp_results/trimmed_virus1_R1.fastq.gz
 ```
 
 Al hacer `--bind <PATH>`, lo que pongamos en `<PATH>` será accesible dentro del contenedor. Por defecto se incluye la carpeta en la que nos encontremos al momento de lanzar singularity.
 
 ### 3.2 Otros conceptos importantes sobre singularity
+
+- Nota: Al igual que lo explicado con micromamba, con singularity también es posible compartir ubicación de imagenes o containers.
+Singularity utiliza por defecto dos variables para el guardado de cache (imagenes guardadas al lanzar exec y run) y imagenes (pull). En este caso, podemos modificarlas por defecto configurando nuestro ``~/.bashrc``:
+
+```bash
+# Añadiremos estas lineas a nuestro ~/.bashrc
+export SINGULARITY_CACHEDIR=/<shared_path>/containers/singularity/singularity_cache
+export SINGULARITY_PULLFOLDER=/<shared_path>/containers/singularity/singularity_image
+```
+Después, hacemos `source ~/.bashrc` para aplicar los cambios
 
 - Para uso únicamente interactivo dentro de una imagen, ejecuta:
 

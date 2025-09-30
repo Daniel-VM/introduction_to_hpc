@@ -86,12 +86,12 @@ ll #o ls -l
 
 #### 4. Cambiar el grupo
 
-1. Cambiar el grupo de los ficheros que empiece por `ho` al grupo `bioinfo`
+1. Cambiar el grupo de los ficheros que empiece por `ho` al grupo `hpccourse`
 2. Listar el contenido y visualizar para ver los cambios.
 
 ```bash
 pwd
-chgrp bioinfo ho*
+chgrp hpccourse ho*
 ll #o ls -l
 ```
 
@@ -110,7 +110,7 @@ ll #o ls -l
 
 ```bash
 ll
-chown -R user:bi .
+chown -R user:hpccourse .
 ll
 ```
 
@@ -151,3 +151,5 @@ ls
 ```
 Visita Webminal o copy.sh para practicar en casa: http://www.webminal.org/ o http://copy.sh/v86/?profile=archlinux
 ```
+
+
