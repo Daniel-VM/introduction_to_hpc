@@ -610,18 +610,21 @@ singularity exec https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae
 Si queremos simplemente descargar la imagen para tenerla accesible en local, podemos utilizar `singularity pull`:
 
 ```bash
-singularity pull /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/06-software-management/singularity_images/fastp.img https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
+singularity pull /data/courses/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/singularity_images/fastp.img https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
 ```
 
 Como ya sabéis, siempre es mejor lanzar los trabajos con `srun`. Lo mismo aplica para procesos con containers:
 
 ```bash
 # Sustituir <CARPETA_HPC_COURSE> por el nombre de vuestra carpeta
-srun singularity exec --bind /scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/00-reads/ /scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/singularity_images/fastp.img \
-fastp -i virus1_R1.fastq.gz -I virus1_R2.fastq.gz  -o /scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/fastp_results/trimmed_virus1_R2.fastq.gz -O /scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/fastp_results/trimmed_virus1_R1.fastq.gz
+srun singularity exec \
+--bind /scratch/hpc_course/<CARPETA_HPC_COURSE>/RAW:/reads \
+--bind /scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/fastp_results/:/out \
+/scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/singularity_images/fastp.img  \
+fastp -i /reads/virus1_R1.fastq.gz -I /reads/virus1_R2.fastq.gz -o /out/trimmed_virus1_R1.fastq.gz -O /out/trimmed_virus1_R2.fastq.gz
 ```
 
-Al hacer `--bind <PATH>`, lo que pongamos en `<PATH>` será accesible dentro del contenedor. Por defecto se incluye la carpeta en la que nos encontremos al momento de lanzar singularity.
+Al hacer `--bind <PATH>`, lo que pongamos en `<PATH>` será accesible dentro del contenedor, con el nombre/ruta que le pongamos después de `:`. Por ejemplo en este caso `/scratch/hpc_course/<CARPETA_HPC_COURSE>/RAW` será accesible en el contenedor como `/reads`
 
 ### 3.2 Otros conceptos importantes sobre singularity
 
