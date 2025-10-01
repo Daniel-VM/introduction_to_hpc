@@ -434,7 +434,7 @@ micromamba create -y -n mamba_env python==3.12.0 pip twine -c conda-forge
 
   ```bash
   # zcat permite leer archivos comprimidos
-  srun zcat /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz | seqkit stats
+  srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:02:00 zcat /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz | seqkit stats
   "Output
   
   file  format  type  num_seqs     sum_len  min_len  avg_len  max_len
@@ -615,7 +615,7 @@ Como ya sabéis, siempre es mejor lanzar los trabajos con `srun`. Lo mismo aplic
 
 ```bash
 # Sustituir <CARPETA_HPC_COURSE> por el nombre de vuestra carpeta
-srun singularity exec \
+srun --partition=short_idx --cpus-per-task=1 --mem=2G --time=00:05:00 singularity exec \
 --bind /scratch/hpc_course/<CARPETA_HPC_COURSE>/RAW:/reads \
 --bind /scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/fastp_results/:/out \
 /scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/singularity_images/fastp.img  \
