@@ -343,11 +343,12 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
 
 - Script `hpc_cp.sh`: copiar entre scratch y data con rsync (vía srun)
 
-  Usa el script proporcionado en esta carpeta: `exercises/09_usecase_issues/hpc_cp.sh`.
+  Usa el script proporcionado en este enlace: <a href="./hpc_cp.sh" target="_blank">exercises/09_usecase_issues/hpc_cp.sh</a>.
+
   Cópialo al nodo de acceso como `~/bin/hpc_cp.sh` y dale permisos: `chmod +x ~/bin/hpc_cp.sh`. P.e desde tu máquina local donde tengas los scripts:
   
   ```bash
-    scp -P 32122 *.sh profesor00@portutatis.isciii.es:/home/hpc_course/profesor00/bin
+  scp -P 32122 *.sh profesor00@portutatis.isciii.es:/home/hpc_course/profesor00/bin
   ```
 
   Uso:
@@ -379,6 +380,8 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
 
 - Función `scratch()`: abre sesión interactiva ya colocada en `/scratch/hpc_course`
 
+  Añadir al final de `~/.bashrc` y recargar con `source ~/.bashrc`:
+
   ```bash
   scratch() {
     srun --partition=short_idx \
@@ -397,7 +400,7 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
 
   Por defecto solo muestra lo que borraría (modo "dry-run"). Para ejecutar el borrado, añade `--force`.
 
-  Coger el script de la carpeta de la práctica y guardar en el nodo de acceso como `~/bin/cleanup_scratch.sh` y dar permisos: `chmod +x ~/bin/cleanup_scratch.sh`.
+  Coger el script de la carpeta de la práctica <a href="./cleanup_scratch.sh" target="_blank">cleanup_scratch.sh</a> y guardar en el nodo de acceso como `~/bin/cleanup_scratch.sh` y dar permisos: `chmod +x ~/bin/cleanup_scratch.sh`.
 
   Para probarlo podemos crear una carpeta falseando su fecha de modificación, y dentro crear una carpeta temporal y una de resultados:
 
@@ -415,9 +418,9 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
   Con ello `stale` mostrará el directorio principal como candidato por tener más de 2 días sin actividad.
 
   ```bash
-  cleanup_scratch -m temps
-  cleanup_scratch -m stale
-  cleanup_scratch -m stale -f
+  cleanup_scratch.sh -m temps
+  cleanup_scratch.sh -m stale
+  cleanup_scratch.sh -m stale -f
   ```
 
 - Plantilla mínima de job SLURM (batch)
@@ -501,13 +504,13 @@ nextflow run nf-core/bacass \
 
 > El perfil `test` trae un dataset diminuto embebido en el pipeline (o referenciado desde su repositorio) y valores por defecto adecuados para comprobar que todo funciona en Slurm.
 
-- Recordad copiar el fichero `nextflow.config` de la práctica anterior y copiarlo en el directorio de trabajo.
+- Recordad copiar el fichero <a href="../08_handson_scientific_workflows_nextflow/nextflow.config" target="_blank">`nextflow.config`</a> de la práctica anterior y copiarlo en el directorio de trabajo.
 
 - Sincronizamos a `/scratch`
 
 ```bash
 cd /data/courses/hpc_course/
-bash ~/bin/hpc_cp.sh "data->scratch" *HPC-COURSE_${USER}
+bash ~/bin/hpc_cp.sh "data->scratch" <DATE>HPC-COURSE_<USER>
 ```
 
 - Nos movemos a scratch y lanzamos el trabajo.
@@ -516,7 +519,7 @@ bash ~/bin/hpc_cp.sh "data->scratch" *HPC-COURSE_${USER}
 # Lo hemos configurado antes en nuestro bashrc
 scratch
 cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/09-use-cases
-mkdir logs
+mkdir -p logs
 sbatch ./bacass_test.sbatch
 ```
 
