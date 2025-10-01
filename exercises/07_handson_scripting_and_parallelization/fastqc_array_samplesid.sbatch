@@ -11,7 +11,7 @@ module load FastQC/0.11.9-Java-11
 IDS_FILE="../samples_id.txt"
 READS_DIR="../00-reads"
 
-RESULTS_ROOT="02-fastqc-array-results"
+RESULTS_ROOT="03-fastqc-array-results"
 mkdir -p "$RESULTS_ROOT"
 OUTDIR="${RESULTS_ROOT}/fastqc_from_ids_${SLURM_ARRAY_JOB_ID}"
 mkdir -p "$OUTDIR/logs"

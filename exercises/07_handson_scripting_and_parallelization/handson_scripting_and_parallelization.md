@@ -256,7 +256,7 @@ tail /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-paralleli
 *Ejemplo de error esperado en `.err`:*
 
 ```
-/var/spool/slurmd/job4906011/slurm_script: line 21: fastqc: command not found
+/var/spool/slurmd/job4906011/slurm_script: line 21: fastp: command not found
 ```
 
 **PREGUNTA:**
