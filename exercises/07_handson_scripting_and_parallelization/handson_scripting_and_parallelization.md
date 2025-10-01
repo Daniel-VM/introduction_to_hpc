@@ -59,29 +59,29 @@ Pasos recomendados para organizar la práctica:
 2. **Descarga o crea los scripts `sbatch`** usando la versión RAW de GitHub (o abre `nano` y pega el contenido). Ejemplo con `wget` para cada archivo:
 
    ```bash
-   wget -O fastqc_demo.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/fastqc_demo.sbatch
-   wget -O fastqc_failcmd.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/fastqc_failcmd.sbatch
-   wget -O fastqc_overask.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/fastqc_overask.sbatch
-   wget -O array_demo.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/array_demo.sbatch
-   wget -O fastqc_array_samplesid.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/fastqc_array_samplesid.sbatch
-   wget -O fastp_openmp.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/fastp_openmp.sbatch
-   wget -O spades_openmp.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/spades_openmp.sbatch
-   wget -O raxml_mpi.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/raxml_mpi.sbatch
+   wget -O fastqc_demo.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastqc_demo.sbatch
+   wget -O fastqc_failcmd.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastqc_failcmd.sbatch
+   wget -O fastqc_overask.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastqc_overask.sbatch
+   wget -O array_demo.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/array_demo.sbatch
+   wget -O fastqc_array_samplesid.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastqc_array_samplesid.sbatch
+   wget -O fastp_openmp.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastp_openmp.sbatch
+   wget -O spades_openmp.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/spades_openmp.sbatch
+   wget -O raxml_mpi.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/raxml_mpi.sbatch
    ```
 
    Revisa cada archivo y adapta rutas o recursos si el docente te lo indica.
 
 3. **Prepara el fichero auxiliar `samples_id.txt`** (si todavía no existe) en `ANALYSIS/`:
 
-   ```bash
-   cat > ../samples_id.txt <<'EOF'
-ERR2261314
-ERR2261315
-ERR2261318
-virus1
-virus2
-EOF
-   ```
+    ```bash
+    cat > ../samples_id.txt <<'EOF'
+    ERR2261314
+    ERR2261315
+    ERR2261318
+    virus1
+    virus2
+    EOF
+    ```
 
    Puedes modificar la lista si quieres procesar otros identificadores.
 
