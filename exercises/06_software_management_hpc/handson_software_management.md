@@ -436,7 +436,7 @@ micromamba create -y -n mamba_env python==3.12.0 pip twine -c conda-forge
 
   ```bash
   # zcat permite leer archivos comprimidos
-  srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:02:00 zcat /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz | seqkit stats
+  srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:02:00 zcat /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/RAW/virus1_R1.fastq.gz | seqkit stats
   "Output
   
   file  format  type  num_seqs     sum_len  min_len  avg_len  max_len
