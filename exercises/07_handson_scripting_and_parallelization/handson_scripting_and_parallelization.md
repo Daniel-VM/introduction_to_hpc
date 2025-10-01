@@ -41,39 +41,59 @@ El clúster separa los espacios de trabajo en dos zonas con permisos distintos:
 
 Pasos recomendados para organizar la práctica:
 
-1. **Prepara** la estructura base en `/data/courses/hpc_course` (solo la primera vez).
-2. **Sincroniza** una única vez al inicio hacia `/scratch` (y repite al final para devolver resultados).
-3. **Abre** una sesión interactiva y ejecuta `sbatch`/`srun` desde `/scratch/hpc_course/...`.
+1. **Edita** todos los scripts `sbatch` en `/data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization`.
+2. **Sincroniza** esa carpeta a `/scratch` cuando vayas a lanzar trabajos (y repite al final para devolver los resultados a `/data`).
+3. **Ejecuta** siempre `sbatch`/`srun` desde la ruta equivalente en `/scratch/hpc_course/...`.
 
-> Abre tu sesión interactiva con `srun --partition=short_idx --cpus-per-task=2 --mem=2G --time=00:30:00 --pty bash` cuando llegues a la preparación inicial.
+> Los esqueletos de los scripts están publicados en https://github.com/BU-ISCIII/introduction_to_hpc/tree/main/exercises/07_handson_scripting_and_parallelization. Copia su contenido fielmente y respeta los nombres de archivo.
 
 ### Preparación inicial
 
-1. Comprueba (o crea) tu carpeta en `/data`:
+1. **Crea (si hace falta) la carpeta de trabajo en `/data`** y entra en ella:
 
    ```bash
-   ls -l /data/courses/hpc_course/*HPC-COURSE_${USER}/{ANALYSIS,RAW}
-   mkdir -p /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
+   mkdir -p /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/logs
+   cd /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
    ```
 
-2. Lanza una única sincronización hacia `/scratch`:
+2. **Descarga o crea los scripts `sbatch`** usando la versión RAW de GitHub (o abre `nano` y pega el contenido). Ejemplo con `wget` para cada archivo:
+
+   ```bash
+   wget -O fastqc_demo.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/fastqc_demo.sbatch
+   wget -O fastqc_failcmd.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/fastqc_failcmd.sbatch
+   wget -O fastqc_overask.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/fastqc_overask.sbatch
+   wget -O array_demo.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/array_demo.sbatch
+   wget -O fastqc_array_samplesid.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/fastqc_array_samplesid.sbatch
+   wget -O fastp_openmp.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/fastp_openmp.sbatch
+   wget -O spades_openmp.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/spades_openmp.sbatch
+   wget -O raxml_mpi.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/main/exercises/07_handson_scripting_and_parallelization/raxml_mpi.sbatch
+   ```
+
+   Revisa cada archivo y adapta rutas o recursos si el docente te lo indica.
+
+3. **Prepara el fichero auxiliar `samples_id.txt`** (si todavía no existe) en `ANALYSIS/`:
+
+   ```bash
+   cat > ../samples_id.txt <<'EOF'
+ERR2261314
+ERR2261315
+ERR2261318
+virus1
+virus2
+EOF
+   ```
+
+   Puedes modificar la lista si quieres procesar otros identificadores.
+
+4. **Sincroniza con `/scratch`** antes de ejecutar nada:
 
    ```bash
    srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
-     rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization \
-             /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/
+     rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
+             /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
    ```
 
-3. Abre tu shell interactiva y trabaja desde `/scratch` el resto de la práctica:
-
-   ```bash
-   srun --partition=short_idx --cpus-per-task=2 --mem=2G --time=00:30:00 --pty bash
-   cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
-   mkdir -p logs
-   ```
-
-> A partir de aquí, todos los comandos se ejecutan en esta shell interactiva dentro de `/scratch`.
-
+A partir de ahora trabaja desde `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization` y mantén los nombres de archivo tal como figuran en el repositorio original.
 
 ### Ejercicio 1 — Ejecución correcta
 
@@ -81,7 +101,7 @@ Pasos recomendados para organizar la práctica:
 Ejecutar el script tal cual, comprobar el nodo, los logs y el estado final.
 
 **Pasos**
-1. Mantente en la shell interactiva abierta durante la preparación; el directorio de trabajo debe ser `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization` (usa `pwd` si lo necesitas).
+1. Sitúate en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization` (compruébalo con `pwd` o `ls`).
 
 2. **Enviar** el trabajo
 
