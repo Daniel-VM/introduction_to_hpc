@@ -103,7 +103,6 @@ That’s why HPC systems:
 
 * Organize software into modules, virtual environments or containers so you can choose versions without interfering with others.
 * This latter approach also helps to keep reproducibility.
-* Contained privileges: Users are free to install packages only in their home or scratch directories, where they can’t affect other users.
 
 ```bash
 # Load reproducible environment with EasyBuild
