@@ -80,13 +80,13 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   pwd
   ls
   touch myfile.txt
-  ls
+  ls -l myfile.txt # Veremos que los permisos son unicamente de nuestro usuario
   chown root:root myfile.txt
   ```
 
   - **Output:** Aparecerá `"Operation not permitted"`, porque no tienes privilegios root en el HPC.
 
-  - Ahora intenta cambiar la propiedad a un grupo común del laboratorio: `chown alumnoXX:hpccourse myfile.txt`. Vemos que en ese caso sí que funciona porque pertenecemos a ese grupo y el propietario sigue siendo el mismo.
+  - Ahora intenta cambiar la propiedad a un grupo común del laboratorio: `chown alumnoXX:hpccourse myfile.txt`. Podremos ver con `ls -l` que en ese caso sí que funciona porque pertenecemos a ese grupo y el propietario sigue siendo el mismo.
 
   - **Discusión:**
 
