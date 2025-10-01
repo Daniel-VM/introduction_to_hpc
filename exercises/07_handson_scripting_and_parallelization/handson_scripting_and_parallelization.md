@@ -7,11 +7,29 @@ BU-ISCIII
 Bienvenido a la sesión práctica sobre scripting y paralelización en nuestro HPC. En esta práctica aprenderás a lanzar scripts `sbatch` al sistema de colas, escalarás cargas de trabajo pesadas y repetitivas usando Job Arrays y finalmente compararás estrategias de parallelización en HPC con OpenMP vs MPI.
 
 - [Curso Práctico de Iniciación al uso del Entorno de Alta Computación](#curso-práctico-de-iniciación-al-uso-del-entorno-de-alta-computación)
-  - [Práctica 9: Scripting and Parallelization on HPC (Slurm)](#práctica-9-scripting-and-parallelization-on-hpc-slurm)
+  - [Práctica 7: Scripting and Parallelization on HPC (Slurm)](#práctica-7-scripting-and-parallelization-on-hpc-slurm)
   - [1. Envío de trabajos con `sbatch` (Slurm)](#1-envío-de-trabajos-con-sbatch-slurm)
+    - [Descripción](#descripción)
+    - [Notas importantes](#notas-importantes)
+    - [Flujo de trabajo con `/data` y `/scratch`](#flujo-de-trabajo-con-data-y-scratch)
+    - [Preparación inicial](#preparación-inicial)
+    - [Ejercicio 1 — Ejecución correcta](#ejercicio-1--ejecución-correcta)
+    - [Ejercicio 2 — Fallo del comando (archivo inexistente)](#ejercicio-2--fallo-del-comando-archivo-inexistente)
+    - [Ejercicio 3 — Pendiente por recursos imposibles (over-ask)](#ejercicio-3--pendiente-por-recursos-imposibles-over-ask)
   - [2. Job Arrays (Slurm)](#2-job-arrays-slurm)
+    - [Descripción](#descripción-1)
+    - [Ejercicio 1 — Intro con Job Arrays](#ejercicio-1--intro-con-job-arrays)
+    - [Ejercicio 2 — Job Array con lista de IDs (samples\_id.txt)](#ejercicio-2--job-array-con-lista-de-ids-samples_idtxt)
   - [3. OpenMP vs MPI](#3-openmp-vs-mpi)
-
+    - [Descripción](#descripción-2)
+    - [Notas importantes](#notas-importantes-1)
+    - [Ejercicio 1 — OpenMP en software de ensamblado (**SPAdes**)](#ejercicio-1--openmp-en-software-de-ensamblado-spades)
+    - [Ejercicio 2 — MPI con **RAxML**](#ejercicio-2--mpi-con-raxml)
+      - [Objetivo](#objetivo)
+      - [Pasos](#pasos)
+      - [Consejos rápidos para interpretar resultados](#consejos-rápidos-para-interpretar-resultados)
+    - [Sincronización final](#sincronización-final)
+    - [Mini-decisión “qué uso”](#mini-decisión-qué-uso)
 
 ## 1. Envío de trabajos con `sbatch` (Slurm)
 
@@ -26,13 +44,13 @@ Partiremos de un **script base** que ejecuta **FastQC** sobre dos FASTQ pequeño
 
 ### Notas importantes
 
-* **No** ejecutes trabajos pesados en el nodo de login. Usa siempre `sbatch` (o `srun`).
-* Ajusta `--time`, `--cpus-per-task` y `--mem` a lo **mínimo razonable**.
-* Los **JOBID** cambian en cada envío; **toma nota** del número que te devuelve `sbatch`.
-* Si tu entorno no tiene FastQC o los FASTQ de prueba, pide al docente la ruta de datos del curso.
-* Comandos clave: `sbatch`, `squeue`, `scontrol show job <jobid>`, `sacct -j <jobid> -o ...`, `less`, `tail -n +1`.
+- **No** ejecutes trabajos pesados en el nodo de login. Usa siempre `sbatch` (o `srun`).
+- Ajusta `--time`, `--cpus-per-task` y `--mem` a lo **mínimo razonable**.
+- Los **JOBID** cambian en cada envío; **toma nota** del número que te devuelve `sbatch`.
+- Si tu entorno no tiene FastQC o los FASTQ de prueba, pide al docente la ruta de datos del curso.
+- Comandos clave: `sbatch`, `squeue`, `scontrol show job <jobid>`, `sacct -j <jobid> -o ...`, `less`, `tail -n +1`.
 
-> Recurso adicional: http://ganglia.isciii.es/ ofrece una interfaz web para visualizar el estado de nodos y trabajos en tiempo real. Úsalo como apoyo mientras monitorizas con `squeue`/`sacct`.
+> Recurso adicional: <http://ganglia.isciii.es/> ofrece una interfaz web para visualizar el estado de nodos y trabajos en tiempo real. Úsalo como apoyo mientras monitorizas con `squeue`/`sacct`.
 
 ### Flujo de trabajo con `/data` y `/scratch`
 
@@ -47,7 +65,7 @@ Pasos recomendados para organizar la práctica:
 2. **Sincroniza** esa carpeta a `/scratch` cuando vayas a lanzar trabajos (y repite al final para devolver los resultados a `/data`).
 3. **Ejecuta** siempre `sbatch`/`srun` desde la ruta equivalente en `/scratch/hpc_course/...`.
 
-> Los esqueletos de los scripts están publicados en https://github.com/BU-ISCIII/introduction_to_hpc/tree/main/exercises/07_handson_scripting_and_parallelization. Copia su contenido fielmente y respeta los nombres de archivo.
+> Los esqueletos de los scripts están publicados en <https://github.com/BU-ISCIII/introduction_to_hpc/tree/main/exercises/07_handson_scripting_and_parallelization>. Copia su contenido fielmente y respeta los nombres de archivo.
 
 ### Preparación inicial
 
@@ -61,6 +79,7 @@ Pasos recomendados para organizar la práctica:
 2. **Prepara el fichero auxiliar que usaremos más adelante `samples_id.txt`** (si todavía no existe) en `ANALYSIS/`:
 
 Nos movemos a la carpeta en nuestra carpeta compartida dentro del hpc
+
 ```bash
 cd /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS
 ```
@@ -87,10 +106,10 @@ cat ../samples_id.txt | xargs -I % echo "ln -s ../../RAW/%_*2*.fastq.gz %_R2.fas
 
 > Nota: Puedes modificar la lista si quieres procesar otros identificadores.
 
-
 3. **Descarga o crea los scripts `sbatch`** usando la versión RAW de GitHub (o abre `nano` y pega el contenido). Ejemplo con `wget` para cada archivo:
 
   Dirígete a la carpeta de la práctica:
+
    ```bash
   cd /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
    ```
@@ -119,7 +138,7 @@ cat ../samples_id.txt | xargs -I % echo "ln -s ../../RAW/%_*2*.fastq.gz %_R2.fas
 
 A partir de ahora trabaja desde `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization` y mantén los nombres de archivo tal como figuran en el repositorio original.
 
---- 
+---
 
 ### Ejercicio 1 — Ejecución correcta
 
@@ -127,6 +146,7 @@ A partir de ahora trabaja desde `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSI
 Ejecutar el script tal cual, comprobar el nodo, los logs y el estado final.
 
 **Pasos**
+
 1. Sitúate en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization` (compruébalo con `pwd` o `ls`).
 
 2. **Enviar** el trabajo
@@ -192,7 +212,6 @@ sacct -j <JOBID> -o JobID,State,Elapsed,MaxRSS,TotalCPU,ExitCode
 > • `State`: estado final (COMPLETED, FAILED, TIMEOUT, etc.).
 > • `Elapsed`: tiempo transcurrido real.
 > • `ExitCode`: código de salida devuelto por el script (0 indica éxito).
-
 
 6. Leer logs
 
@@ -306,7 +325,6 @@ Cuando los recursos no pueden ser asignados, por ejemplo, por una solicitud de r
 scancel <JOBID>
 ```
 
-
 **PREGUNTA:**
 ¿Qué **Reason** muestra el trabajo en **PD**?
 ¿Qué parámetro ajustarías para que **empiece**?
@@ -360,12 +378,11 @@ Ejecuta el job:
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization array_demo.sbatch
 ```
 
-
 **PREGUNTAS**
 
-* ¿Cuántas muestras se procesan en el array?
-* ¿Qué valores de ArrayID y TaskID ves en los logs?
-* ¿Qué `MaxRSS` observas en `sacct`?
+- ¿Cuántas muestras se procesan en el array?
+- ¿Qué valores de ArrayID y TaskID ves en los logs?
+- ¿Qué `MaxRSS` observas en `sacct`?
 
 ---
 
@@ -432,8 +449,8 @@ Mientras que los logs por tarea se guardan en `/scratch/hpc_course/*HPC-COURSE_$
 
 En esta sesión vamos a profundizar en las estrategias de paralelización de tareas que podemos hacer en nuestro HPC. Según nuestras necesidades y, sobre todo, según las características del programa que vayamos a ejecutar en el sistema de colas, tendremos que configurar el script **sbatch** de acuerdo a si queremos:
 
-* Ejecutar tareas en un **único nodo**, explotando sus **CPUs/hilos** y **memoria** → **OpenMP**.
-* Ejecutar tareas en **varios nodos**, explotando las **CPUs** y la **memoria** de cada nodo → **MPI**.
+- Ejecutar tareas en un **único nodo**, explotando sus **CPUs/hilos** y **memoria** → **OpenMP**.
+- Ejecutar tareas en **varios nodos**, explotando las **CPUs** y la **memoria** de cada nodo → **MPI**.
 
 - **OpenMP (memoria compartida)**: varios **hilos** dentro de **un proceso** en **un nodo** → la mayoría de bioinformática (fastp, Bowtie2, BWA, SPAdes, Minimap2…).
   *Traducción a Slurm:* `--cpus-per-task`, `--mem`, `--time` + pasar `--threads/$SLURM_CPUS_PER_TASK` al programa.
@@ -445,11 +462,11 @@ La idea es: **probar OpenMP y MPI** con comandos reales, ver en `squeue/sacct` c
 
 ### Notas importantes
 
-* OpenMP en Slurm: pide **`--cpus-per-task`**, **`--mem`**, **`--time`** y pasa el nº de hilos al programa (suele ser `-t/--threads/-p/-w` o `OMP_NUM_THREADS`).
+- OpenMP en Slurm: pide **`--cpus-per-task`**, **`--mem`**, **`--time`** y pasa el nº de hilos al programa (suele ser `-t/--threads/-p/-w` o `OMP_NUM_THREADS`).
 
-* MPI en Slurm: pide **`--nodes`**, **`--ntasks`** (y opcional **`--ntasks-per-node`**) y **lanza con `mpirun -np $SLURM_NTASKS`**.
+- MPI en Slurm: pide **`--nodes`**, **`--ntasks`** (y opcional **`--ntasks-per-node`**) y **lanza con `mpirun -np $SLURM_NTASKS`**.
 
-* Comandos útiles:
+- Comandos útiles:
   `squeue -u $USER -o "%8i %22j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"`,
   `scontrol show job <jobid> | egrep 'Nodes|NumCPUs|TRES|Reason|Start|RunTime'`,
   `sacct -j <jobid> -o JobID,JobName,State,Elapsed,MaxRSS,AllocCPUS,NodeList,TotalCPU`.
@@ -495,9 +512,9 @@ scontrol show jobid <JOBID>
 
 **PREGUNTAS**
 
-* Explora la carpeta de resultados del análisis.
-* ¿Cuántos nodos ha reservado tu tarea y por qué? ¿Podrías indicar el nombre del nodo?
-* ¿Qué observas si aumentas `--cpus-per-task=32` y `--mem=64G`?
+- Explora la carpeta de resultados del análisis.
+- ¿Cuántos nodos ha reservado tu tarea y por qué? ¿Podrías indicar el nombre del nodo?
+- ¿Qué observas si aumentas `--cpus-per-task=32` y `--mem=64G`?
 
 ---
 
@@ -511,7 +528,7 @@ El software que vamos a usar es [**RAxML**](https://cme.h-its.org/exelixis/web/s
 
 > Cada proceso MPI es un ejecutable independiente que se **coordina** con el resto vía bibliotecas MPI. Slurm reserva los recursos; **`mpirun -np $SLURM_NTASKS`** se encarga de lanzar los procesos.
 
-#### Pasos: 
+#### Pasos
 
 1) Preparar el input (alineamiento PHYLIP)
 
@@ -538,10 +555,11 @@ Taxon_0012  TTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAA
 EOF
 exit
 ```
+
 Explicación del formato PHYLIP
+
 - 1ª línea: Ntaxa Nsitios (aquí 12 60).
 - Luego, una línea por taxón: nombre (≤10 chars), un espacio y la secuencia (todas del mismo largo).
-
 
 2) Crea el script Sbatch que ejecutará Ramxlm
 
@@ -580,7 +598,7 @@ mpirun -np "$SLURM_NTASKS" raxmlHPC \
 **Parámetros clave de RAxML**
 `-s` (alineamiento PHYLIP), `-m` (modelo, p.ej. GTRGAMMA), `-p` (semilla), `-#` (nº de réplicas/árboles), `-n` (prefijo de salida), `-w` (directorio de trabajo/salida).
 
-Lanza y monitoriza los trabajos que se ejecutan. 
+Lanza y monitoriza los trabajos que se ejecutan.
 
 ```bash
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization raxml_mpi.sbatch
@@ -590,18 +608,17 @@ sacct -j <JOBID> -o JobID,JobName,State,Elapsed,AllocCPUS,NodeList
 
 **PREGUNTAS**
 
-* Observa la columna **NodeList**.
-* ¿Se han usado realmente **2 nodos**? ¿Cuántas **tareas (ntasks)** ves por nodo?
-* Si cambias a `--nodes=1 --ntasks=4`, ¿qué cambia en `NodeList` y en **Elapsed**?
+- Observa la columna **NodeList**.
+- ¿Se han usado realmente **2 nodos**? ¿Cuántas **tareas (ntasks)** ves por nodo?
+- Si cambias a `--nodes=1 --ntasks=4`, ¿qué cambia en `NodeList` y en **Elapsed**?
 
 ---
 
 #### Consejos rápidos para interpretar resultados
 
-* **OpenMP**: espera ver **`AllocCPUS`** igual a los hilos que pides, **`TotalCPU ≈ Elapsed × hilos`** (si el programa escala), y **`MaxRSS`** coherente con la memoria reservada.
-* **MPI**: fíjate en **`NodeList`** y **`AllocCPUS`** (suma de procesos). El **Elapsed** depende del reparto de trabajo entre procesos y la comunicación entre nodos.
-* Si algo tarda **más** al subir hilos o procesos: puede haber **cuellos de E/S**, **sincronización** entre procesos, **over-subscription** o **modelo de paralelización** del propio software que no escale en ese rango.
-
+- **OpenMP**: espera ver **`AllocCPUS`** igual a los hilos que pides, **`TotalCPU ≈ Elapsed × hilos`** (si el programa escala), y **`MaxRSS`** coherente con la memoria reservada.
+- **MPI**: fíjate en **`NodeList`** y **`AllocCPUS`** (suma de procesos). El **Elapsed** depende del reparto de trabajo entre procesos y la comunicación entre nodos.
+- Si algo tarda **más** al subir hilos o procesos: puede haber **cuellos de E/S**, **sincronización** entre procesos, **over-subscription** o **modelo de paralelización** del propio software que no escale en ese rango.
 
 ---
 
@@ -616,5 +633,5 @@ rsync -avh /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-par
 
 ### Mini-decisión “qué uso”
 
-* **OpenMP**: “**mismo** proceso, **multi-hilo**, **un nodo**” → casi todo lo bio.
-* **MPI**: “**muchos** procesos, **varios nodos**” → filogenia grande, simulaciones, matrices gigantes.
+- **OpenMP**: “**mismo** proceso, **multi-hilo**, **un nodo**” → casi todo lo bio.
+- **MPI**: “**muchos** procesos, **varios nodos**” → filogenia grande, simulaciones, matrices gigantes.
