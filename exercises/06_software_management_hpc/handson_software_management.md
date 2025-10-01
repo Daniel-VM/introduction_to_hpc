@@ -500,6 +500,7 @@ Aunque esto pueda parecer engorroso, si sólo tuvieramos una sóla versión de R
 
 - **¿Cómo listar los módulos accesibles en el HPC?**.
 Para ello bastará con utilizar `module avail`. En el output veremos una gran lista de módulos, agrupados por categorías, entre ellas:
+
       - `bio`: Software bioinformático
       - `data`: Software de gestión de datos como MariaDB o XML
       - `tools`: Herramientas variadas como compresores de archivos
