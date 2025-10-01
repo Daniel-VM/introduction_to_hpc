@@ -32,6 +32,8 @@ Partiremos de un **script base** que ejecuta **FastQC** sobre dos FASTQ pequeño
 * Si tu entorno no tiene FastQC o los FASTQ de prueba, pide al docente la ruta de datos del curso.
 * Comandos clave: `sbatch`, `squeue`, `scontrol show job <jobid>`, `sacct -j <jobid> -o ...`, `less`, `tail -n +1`.
 
+> Recurso adicional: http://ganglia.isciii.es/ ofrece una interfaz web para visualizar el estado de nodos y trabajos en tiempo real. Úsalo como apoyo mientras monitorizas con `squeue`/`sacct`.
+
 ### Flujo de trabajo con `/data` y `/scratch`
 
 El clúster separa los espacios de trabajo en dos zonas con permisos distintos:
