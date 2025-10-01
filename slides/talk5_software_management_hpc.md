@@ -56,7 +56,7 @@ sudo apt install 7zip
 
 ---
 
-## 1. Software management: HPC vs Personal PC
+## 1.3 Software management: HPC vs Personal PC
 
 On a personal computer (for example, your Windows laptop) installing software is straightforward:
 
@@ -85,13 +85,13 @@ On **HPC**:
 ```bash
 # Use modules instead of local installation
 module avail
-module load python/3.10
-python -m pip install --user numpy
+module load Python/3.10.4
+python -c "print('hello world')"
 ```
 
 ---
 
-## Software management: HPC principles
+## 2. Software management: HPC principles
 
 On a personal machine, you can afford to “break” your setup and reinstall. On an HPC the situation is completely different:
 
@@ -114,8 +114,6 @@ micromamba create -n analysis-env r-base=4.2.0
 micromamba activate analysis-env
 ```
 
-# 2. Introduction to Virtualization
-
 ## Virtual Environments
 
 A virtual environment is an isolated workspace on your computer where you can install software without interfering with the global system.
@@ -124,15 +122,6 @@ Examples: Python venv, Conda, Micromamba environments, R virtual libraries.
 
 * **Pro**: No root permissions needed.
 * **Con**: Doesn’t virtualize the OS, system or hardware. Only manages the software layer.
-
-### How to create python virtual environments
-
-```bash
-# Python has built-in virtual environment tool called venv
-python3 -m venv myenv
-source myenv/bin/activate
-pip install numpy pandas
-```
 
 ## Virtual Envs usage in HPC
 
@@ -147,14 +136,17 @@ On an HPC cluster, you usually don’t have admin/root permissions. That means:
 ```bash
 # BAD (not allowed in HPC)
 pip install numpy
-
-# GOOD (inside environment)
-micromamba create -n py39 python=3.9
-micromamba activate py39
-pip install numpy
 ```
 
-# 3. Software Managers
+```bash
+# Python has built-in virtual environment tool called venv
+python3 -m venv myenv
+source myenv/bin/activate
+pip install numpy pandas # GOOD (inside environment)
+python -c "import numpy as np; print(np.random.rand(10))"
+```
+
+# 2.1 Software Managers
 
 ## EasyBuild
 
@@ -184,35 +176,11 @@ Nextflow run main.nf
 
 ```bash
 # Conda
-conda create -n rnaseq python=3.10 numpy pandas
-conda activate rnaseq
+conda create -n qc_env python=3.10 -c bioconda
+conda activate qc_env
 
 # Install software from Bioconda channel
-conda install -c bioconda fastqc
-
-# Micromamba (faster, lighter)
-micromamba create -n rnaseq python=3.10 numpy pandas
-micromamba activate rnaseq
-```
-
-## Conda: Channels
-
-* Not everything can be installed with `conda install`.
-* The desired software must be accessed through a **conda channel**.
-* Conda channels are repositories (URLs) where Conda looks for packages.
-* The base channel is `defaults`, but there are community-driven channels like **conda-forge** or **bioconda**. Anyone can create a channel.
-
-### Example: Installing from channels
-
-```bash
-# From defaults
-conda install numpy
-
-# From conda-forge
-conda install -c conda-forge r-ggplot2
-
-# From bioconda (bioinformatics tools)
-conda install -c bioconda fastqc
+conda install -c bioconda seqkit
 ```
 
 ## Mamba
@@ -225,15 +193,35 @@ conda install -c bioconda fastqc
 ### How to use Micromamba:
 
 ```bash
-# Create environment with Micromamba
-micromamba create -n testenv python=3.9 numpy pandas
-micromamba activate testenv
+# Create environment with Micromamba (faster, lighter)
+micromamba create -n qc_env python=3.10
+micromamba activate qc_env
 
 # Install packages
-micromamba install -n testenv -c bioconda fastqc
+micromamba install -c bioconda seqkit
 ```
 
-## HPC Shared Environments
+### Conda/Mamba: Channels
+
+* Not everything can be installed with `conda install`.
+* The desired software must be accessed through a **conda channel**.
+* Conda channels are repositories (URLs) where Conda looks for packages.
+* The base channel is `defaults`, but there are community-driven channels like **conda-forge** or **bioconda**. Anyone can create a channel.
+
+### Example: Installing from channels
+
+```bash
+# From defaults
+micromamba install seqkit # No result
+
+# From bioconda (bioinformatics tools)
+micromamba install -c bioconda seqkit
+
+# From conda-forge
+micromamba install -c conda-forge r-ggplot2
+```
+
+### HPC Shared Environments
 
 * If each user creates its own environments in the HPC, there may be differences in results due to software versions.
 * Using shared environments avoids differences in analysis results due to environment differences.
@@ -266,7 +254,7 @@ envs_dirs:
 * Pip is the default package manager for Python.
 * It is the official tool for installing packages from the Python Package Index ([https://pypi.org/](https://pypi.org/)).
 * Pip’s sole purpose is to install, update, and remove Python packages from PyPI.
-* Pip itself does not have built-in environment management like Conda, but you can install it in a Conda environment.
+* Pip itself **does not have built-in environment management** like Conda, but you can install it in a Conda environment.
 
 ### Example: Using Pip
 
@@ -286,7 +274,7 @@ micromamba activate pyenv
 pip install scipy
 ```
 
-# Introduction to Virtualization
+# 3. Introduction to Virtualization
 
 What is Virtualization?
 
@@ -301,7 +289,7 @@ What is Virtualization?
 VBoxManage createvm --name UbuntuTest --register
 
 # Container example (lighter weight)
-docker run -it ubuntu:20.04 bash
+docker run -it ubuntu:22.04 bash
 ```
 
 ## Virtual Machines
@@ -331,7 +319,7 @@ VBoxManage startvm "UbuntuLab"
 
 ```bash
 # Docker container (local machine only)
-docker run -it ubuntu:22.04 bash
+docker run -v /home/${USER}/Documents:/mnt/documents -it ubuntu:22.04 bash
 
 # Singularity container (HPC-friendly)
 module load singularity
@@ -354,7 +342,7 @@ singularity pull docker://biocontainers/fastqc:v0.11.9_cv8
 du -sh fastqc_v0.11.9.sif
 ```
 
-# 4. Introduction to Containers: Docker & Singularity
+# 3.1 Introduction to Containers: Docker & Singularity
 
 ## Docker
 
