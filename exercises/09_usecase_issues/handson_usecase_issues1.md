@@ -16,7 +16,7 @@ BU-ISCIII
       - [6. Permisos de las distintas particiones](#6-permisos-de-las-distintas-particiones)
       - [7. Gestión de ficheros](#7-gestión-de-ficheros)
       - [9. Lanzar un pipeline de Nextflow en un caso real: Ejecución, revisión e interpretación](#9-lanzar-un-pipeline-de-nextflow-en-un-caso-real-ejecución-revisión-e-interpretación)
-      - [10. BONUS: Caso práctico: Descarga con nf-core/fetchngs y clasificación taxnómica con nf-core/taxprofiler](#10-bonus-caso-práctico-descarga-con-nf-corefetchngs-y-clasificación-taxnómica-con-nf-coretaxprofiler)
+      - [10. BONUS: Caso práctico: Descarga con nf-core/fetchngs y preprocesamiento con fastp](#10-bonus-caso-práctico-descarga-con-nf-corefetchngs-y-preprocesamiento-con-fastp)
 
 ### Descripción
 
@@ -623,11 +623,11 @@ process {
 }
 ```
 
-#### 10. BONUS: Caso práctico: Descarga con nf-core/fetchngs y clasificación taxnómica con nf-core/taxprofiler
+#### 10. BONUS: Caso práctico: Descarga con nf-core/fetchngs y preprocesamiento con fastp
 
-Objetivo: descargar tres runs SRA con `nf-core/fetchngs` (ERR2261314, ERR2261315, ERR2261318) dentro de `RAW/`, preparar `00-reads/` y ejecutar `nf-core/taxprofiler` usando solo Kraken2 con Singularity y la base de datos de Kraken proporcionada.
+Objetivo: descargar tres runs SRA con `nf-core/fetchngs` (ERR2261314, ERR2261315, ERR2261318) dentro de `RAW/`, preparar `00-reads/` y ejecutar `fstp` usando solo Singularity.
 
-0. Preparación: nf-core/tools (micromamba) y contenedores en tu $HOME
+1. Preparación: nf-core/tools (micromamba) y contenedores en tu $HOME
 
 ```bash
 # Directorios en tu $HOME para código y contenedores
@@ -656,15 +656,6 @@ nf-core pipelines download nf-core/fetchngs \
   --compress none \
   --force \
   --outdir "$HOME/software/nfcore/fetchngs"
-
-nf-core pipelines download nf-core/taxprofiler \
-  -r 1.2.4 \
-  --container-system singularity \
-  --container-cache-utilisation amend \
-  --compress none \
-  --force \
-  --outdir "$HOME/software/nfcore/taxprofiler"
-
 ```
 
 1. Estructura de carpetas del proyecto
@@ -672,18 +663,18 @@ nf-core pipelines download nf-core/taxprofiler \
 ```bash
 # Ruta base del ejercicio
 cd /data/courses/hpc_course/
-BASE="$(date +%Y%m%d)_HPC-COURSE-TAXPROFILER_${USER}"
+BASE="$(date +%Y%m%d)_HPC-COURSE-FASTP_${USER}"
 mkdir $BASE
 mkdir -p "$BASE"/{RAW,ANALYSIS,TMP,RESULTS,DOC,REFERENCES}
 mkdir -p "$BASE/RAW/logs"
 # Subestructura de análisis
-mkdir -p "$BASE/ANALYSIS"/{00-reads,01-taxprofiler,logs}
+mkdir -p "$BASE/ANALYSIS"/{00-reads,01-fastp,logs}
 cd "$BASE/RAW"
 ```
 
 2. Preparar IDs y consultar documentación
 
-- Documentación: lee los parámetros en <https://github.com/nf-core/fetchngs> (rama estable/dev según disponibilidad) y <https://nf-co.re/taxprofiler> (parámetros de entrada y selección de profilers).
+- Documentación: lee los parámetros en <https://github.com/nf-core/fetchngs> (rama estable/dev según disponibilidad).
 - Crea un fichero con los IDs SRA (uno por línea):
 
 ```bash
@@ -694,7 +685,7 @@ ERR2261318
 EOF
 ```
 
-3. Copia o genera el fichero `nextflow.config` en la carpeta `DOC`.
+1. Copia o genera el fichero `nextflow.config` en la carpeta `DOC`.
 
 ```bash
 // El gestor de paquetes que usaremos será Singularity:
@@ -724,17 +715,17 @@ process {
 cat > fetchngs.sbatch << "SLURM"
 #!/usr/bin/env bash
 #SBATCH --job-name=fetchngs
-#SBATCH --chdir="$(date +%Y%m%d)_HPC-COURSE-TAXPROFILER_${USER}" -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES
+#SBATCH --chdir="/scratch/hpc_course/$(date +%Y%m%d)_HPC-COURSE-FASTP_${USER}/RAW" -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES
 #SBATCH --partition=short_idx
 #SBATCH --time=04:00:00
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=4G
-#SBATCH --output=$(date +%Y%m%d)_HPC-COURSE-TAXPROFILER_${USER}/RAW/logs/logs_%x-%j.log -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES
+#SBATCH --output=logs/logs_%x-%j.log
 
 set -euo pipefail
 module purge
 module load Nextflow/24.04.2
-module load singularity/3.7.1
+module load singularity
 
 # Usa caché de imágenes en $HOME
 export NXF_SINGULARITY_CACHEDIR="$HOME/containers/singularity"
@@ -745,7 +736,7 @@ nextflow run "$HOME/software/nfcore/fetchngs/1_12_0/main.nf" \
   -c ../DOC/nextflow.config \
   --input sra_ids.csv \
   --download_method sratools \
-  --outdir "$(date +%Y%m%d)_HPC-COURSE-TAXPROFILER_${USER}" -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES" \
+  --outdir "$(date +%Y%m%d)_HPC-COURSE-FASTP_${USER}" -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES" \
   -resume
 SLURM
 ```
@@ -753,103 +744,62 @@ SLURM
 4. Copiamos a scratch
 
 ```bash
-hpc_cp.sh "data->scratch" XXXXXXX_HPC-COURSE-TAXPROFILER_${USER}
+hpc_cp.sh "data->scratch" XXXXXXX_HPC-COURSE-FASTP_${USER}
 ```
 
 5. Lanzamos el pipeline
 
 ```bash
 scratch
-cd *_HPC-COURSE-TAXPROFILER_${USER}/RAW
+cd *_HPC-COURSE-FASTP_${USER}/RAW
 sbatch fetchngs.sbatch
 ```
 
 Realiza la monitorización del job y vigila los logs. Cuando termine, verifica que en `RAW/` tienes los FASTQ descargados y el `samplesheet.csv` generado por fetchngs (si aplica a tu versión), que te puede servir de referencia.
 
-1. Preparar `ANALYSIS/00-reads/` y el samplesheet para taxprofiler
+1. Preparar `ANALYSIS/00-reads/`
 
 - Copia o enlaza los FASTQ de `RAW/` a `ANALYSIS/00-reads/` (ajusta patrones si tus ficheros difieren):
 
 ```bash
-ln -s "$BASE/RAW"/*fastq.gz "$BASE/ANALYSIS/00-reads/"
+cd $(date +%Y%m%d)_HPC-COURSE-FASTP_${USER}/ANALYSIS/00-reads
+ln -s ../../RAW/*.fastq.gz .
 ```
 
-- Crea un `samplesheet.csv` para taxprofiler con el esquema nf-core estándar (una muestra por fila). Si los runs son pareados quedarán como R1/R2; si son single-end, usa solo la columna `fastq_1`.
+- Crea un `samples_id.txt`:
 
 ```bash
-cd "$BASE/ANALYSIS"
+cd "*_HPC-COURSE-FASTP_${USER}/ANALYSIS"
 cat > samples_id.txt << 'EOF'
 ERR2261314
 ERR2261315
 ERR2261318
 EOF
 
-{
-  echo "sample,fastq_1,fastq_2"
-  while read -r ID; do
-    R1="00-reads/${ID}_1.fastq.gz"; R2="00-reads/${ID}_2.fastq.gz"
-    if [[ -f "$R2" ]]; then
-      echo "$ID,$R1,$R2"
-    else
-      echo "$ID,$R1,"
-    fi
-  done < samples_id.txt
-} > samplesheet.csv
 ```
 
-5. Ejecutar nf-core/taxprofiler (solo Kraken2) con Singularity
-
-- Te proporcionaremos la ruta de la base de datos Kraken2, por ejemplo en la variable `KRAKEN2_DB`.
-- Crea un script `sbatch` para lanzar el controlador de Nextflow; las tareas pesadas las distribuirá a Slurm.
+1. Crear un script de sbatch para ejecutar fastp en la carpeta 01-fastp. Utiliza la imagen de singularity que te descargaste en la pŕactica 6.
 
 ```bash
-mkdir -p "$BASE/ANALYSIS/01-taxprofiler/logs"
-cd "$BASE/ANALYSIS/01-taxprofiler"
-
-cat > run_taxprofiler.sbatch << 'SLURM'
 #!/usr/bin/env bash
-#SBATCH --job-name=taxprofiler
-#SBATCH --chdir=$BASE/ANALYSIS/01-taxprofiler
+#SBATCH --job-name=fastp
+#SBATCH --chdir="/scratch/hpc_course/$(date +%Y%m%d)_HPC-COURSE-FASTP_${USER}" -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES
 #SBATCH --partition=short_idx
-#SBATCH --time=12:00:00
+#SBATCH --time=04:00:00
 #SBATCH --cpus-per-task=2
-#SBATCH --mem=8G
-#SBATCH --output=$BASE/ANALYSIS/01-taxprofiler/logs/%x-%j.log
+#SBATCH --mem=4G
+#SBATCH --output=$(date +%Y%m%d)_HPC-COURSE-FASTP_${USER}/RAW/logs/logs_%x-%j.log -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES
 
 set -euo pipefail
-module purge
-module load Nextflow/24.01.0
+
 module load singularity
 
-export KRAKEN2_DB="/data/courses/hpc_course/references/kraken2_db"
-
-# Usa caché de imágenes en $HOME
-export NXF_SINGULARITY_CACHEDIR="$HOME/containers/singularity"
-
-mkdir -p results
-
-# Ejecuta el pipeline descargado en $HOME/software/nfcore/taxprofiler usando SOLO Kraken2
-nextflow run "$HOME/software/nfcore/taxprofiler" \
-  -profile singularity \
-  --input "$BASE/ANALYSIS/samplesheet.csv" \
-  --outdir "$BASE/ANALYSIS/01-taxprofiler/results" \
-  RESTO DE PARÁMETROS
-  -resume
-
-# Usa los parámetros necesarios para activar solo Kraken2
-# p. ej.: --run_kraken2 true --run_malt false --run_kaiju false ... (consulta la documentación)
-SLURM
-
-sbatch run_taxprofiler.sbatch
+# Ejecuta el pipeline descargado en $HOME/software/nfcore/fetchngs
+sample=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "../samples_id.txt")
+singularity exec ../06-software-management/singularity_images/fastp.img fastp -c 2 -i ../00-reads/${sample}_R1.fastq.gz -I ../00-reads/${sample}_R2.fastq.gz -o ../01-fastp/trimmed_${sample}_R1.fastq.gz -O ../01-fastp/trimmed_${sample}_R2.fastq.gz" 
 ```
 
-6. Comprobaciones y resultados
+2. Comprobaciones y resultados
 
 - Monitoriza los jobs: `squeue --me -o "%.18i %.40j %.2t %.10M %R"`
-- Revisa logs en `ANALYSIS/01-taxprofiler/` y resultados en `ANALYSIS/01-taxprofiler/results/`.
-- Valida que no se han ejecutado otros profilers (solo Kraken2) revisando `pipeline_info/` y los subdirectorios de resultados.
-
-PREGUNTAS
-
-- ¿Qué ficheros genera fetchngs aparte de los FASTQ? ¿Cómo los reutilizarías?
-- ¿Cómo variarías el número de CPUs/memoria por proceso en taxprofiler sin editar el pipeline?
+- Revisa logs.
