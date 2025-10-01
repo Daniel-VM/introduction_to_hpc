@@ -137,6 +137,20 @@ process {
 }
 ```
 
+Ahora sincroniza la carpeta para que puedas disponer de ella en `/scratch`:
+
+```bash
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
+  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow \
+            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/
+```
+
+Por último dirígete a la carpeta de esta práctica en `/scratch`:
+
+```bash
+cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/
+```
+
 ### 2) Script SBATCH para ejecutar Nextflow en el sistema de colas de SLURM
 
 Comprueba que el script `nextflow_demo.sbatch` que has guardado en `/data` contiene lo siguiente (es el "master" que controlará Nextflow en Slurm):
@@ -148,6 +162,8 @@ Comprueba que el script `nextflow_demo.sbatch` que has guardado en `/data` conti
 #SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=2                 # Recursos SOLO para el controlador de Nextflow
 #SBATCH --mem=2G
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
 
 # Carga las dependencias para ejecutar Nextflow
 module purge
@@ -166,13 +182,7 @@ nextflow run nf-core/demo \
 
 > Nota: Entre sus capas de abstracción, Nextflow tiene la propiedad de descargarse **workflows** listos (datos de prueba, perfiles de testing, etc.) desde repositorios como GitHub. En este caso, antes de lanzar `nf-core/demo`, si no existe en el clúster, lo descargará y luego lo ejecutará.
 
-Ejecutemos el propietario `sbatch`. Recuerda sincronizar antes de lanzar:
-
-```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
-  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/ \
-            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/
-```
+Ejecutemos el script de `sbatch`. (Si es posible, antes de lanzar el trabajo, abre otra terminal ejecuta: `watch squeue --me`)
 
 ```bash
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow nextflow_demo.sbatch
@@ -185,7 +195,7 @@ Ahora es el momento de monitorizar las tareas. En Nextflow tenemos que visualiza
 * El *standard output* se guardará en el archivo que hayamos definido en `--output` (en este ejemplo: `%x-%j.out`). Ejemplo de un *standard output* de Nextflow.:
 
 ```bash
-tail -f /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/logs/nf_demo-<JOBID>.out
+more /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/logs/nf_demo-<JOBID>.out
 ```
 
 ```bash

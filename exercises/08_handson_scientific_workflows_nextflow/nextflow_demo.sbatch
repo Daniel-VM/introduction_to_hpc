@@ -4,6 +4,8 @@
 #SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=2                 # Recursos SOLO para el controlador de Nextflow
 #SBATCH --mem=2G
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
 
 # Carga las dependencias para ejecutar Nextflow
 module purge
