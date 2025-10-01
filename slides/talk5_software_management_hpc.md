@@ -162,7 +162,7 @@ EasyBuild is an open-source framework designed specifically for building and ins
 module load Nextflow
 
 # Now we can call Nextflow right away from our terminal
-Nextflow run main.nf
+nextflow help
 ```
 
 ## Conda / Mamba
@@ -176,11 +176,12 @@ Nextflow run main.nf
 
 ```bash
 # Conda
-conda create -n qc_env python=3.10 -c bioconda
+conda create -n qc_env python=3.10
 conda activate qc_env
 
 # Install software from Bioconda channel
-conda install -c bioconda seqkit
+conda install tqdm
+seq 10000000 | tqdm > /dev/null
 ```
 
 ## Mamba
@@ -190,7 +191,7 @@ conda install -c bioconda seqkit
 * Designed to solve Conda’s main weakness: slowness, especially in dependency resolution.
 * **Micromamba** is a lightweight (10mb), and self-contained version of Mamba (installed in our HPC).
 
-### How to use Micromamba:
+### Micromamba works exactly like conda (but faster):
 
 ```bash
 # Create environment with Micromamba (faster, lighter)
@@ -198,7 +199,8 @@ micromamba create -n qc_env python=3.10
 micromamba activate qc_env
 
 # Install packages
-micromamba install -c bioconda seqkit
+micromamba install tqdm
+seq 10000000 | tqdm > /dev/null
 ```
 
 ### Conda/Mamba: Channels
@@ -366,7 +368,7 @@ singularity run https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3
 
 ```bash
 # VM image (several GB)
-du -sh ubuntu-vm.vdi
+du -sh linux-lite-7.6-64bit.iso
 
 # Container image (hundreds of MB, faster to deploy)
 singularity pull https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
