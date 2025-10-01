@@ -587,7 +587,7 @@ Existen muchos repositorios de contenedores, siendo [https://hub.docker.com](htt
 - [biocontainers registry](https://biocontainers.pro/registry)
 - [sequera containers](https://seqera.io/containers/)
 
-El comando `singularity run` ya descarga la imagen antes de ejecutarla, lo cual usaremos en este ejercicio para correr un contenedor de bedtools directamente desde el repositorio de Galaxy.
+El comando `singularity run` ya descarga la imagen antes de ejecutarla, lo cual usaremos en este ejercicio para correr un contenedor de fastp directamente desde el repositorio de Galaxy.
 
 **Cómo usar `singularity run/exec`:**
 
