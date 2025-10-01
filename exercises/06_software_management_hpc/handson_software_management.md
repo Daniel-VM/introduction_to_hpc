@@ -126,7 +126,9 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
     0.62029871 0.13840926 0.12178352 0.74080816]
     "
     ```
+
     - Vamos a ver que pasa si lo desinstalamos:
+
     ```bash
     pip uninstall -y numpy # -y Evita que nos pregunte si estamos seguros 
     python3 -c 'import numpy' # Esperado -> ModuleNotFoundError
@@ -426,6 +428,7 @@ micromamba create -y -n mamba_env python==3.12.0 pip twine -c conda-forge
   - **Consejo**: si quieres instalar paquetes de   Python, usa `pip install` ya que es el repositorio de   paquetes de Python más grande, pero para herramientas más   complejas como `bedtools` o ``fastp utiliza **micromamba** o   **conda**.
 
   - Ahora que ya tenemos instalado `seqkit`, vamos a hacer una pequeña prueba para ver que funciona:
+
   ```bash
   micromamba activate mamba_env
   seqkit version
@@ -436,7 +439,7 @@ micromamba create -y -n mamba_env python==3.12.0 pip twine -c conda-forge
 
   ```bash
   # zcat permite leer archivos comprimidos
-  srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:02:00 zcat /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/RAW/virus1_R1.fastq.gz | seqkit stats
+  srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:02:00 zcat /data/courses/hpc_course/*HPC-COURSE_${USER}/RAW/virus1_R1.fastq.gz | seqkit stats
   "Output
   
   file  format  type  num_seqs     sum_len  min_len  avg_len  max_len
@@ -447,13 +450,14 @@ micromamba create -y -n mamba_env python==3.12.0 pip twine -c conda-forge
 
 ### (Extra) Cómo compartir entornos virtuales entre usuarios con micromamba
 
-  - Configura `.condarc` para utilizar un directorio de entornos común para otros usuarios:
+- Configura `.condarc` para utilizar un directorio de entornos común para otros usuarios:
 
     ```bash
     nano ~/.condarc
     envs_dirs:
        - RUTA_POSIBLE/micromamba/envs
     ```
+
   A partir de ahora, tendrás disponibles todos los entornos creados y guardados en esa localización. Y todos los usuarios que hagan lo mismo tendrán acceso a la misma lista de entornos.
 
 ### 2.2 Otros gestores: Easybuild
@@ -461,11 +465,13 @@ micromamba create -y -n mamba_env python==3.12.0 pip twine -c conda-forge
 - Easybuild es un gestor de software especialmente pensado para sistemas HPC como el nuestro. Este gestor permite a los administradores empaquetar software en módulos o `modules`. Esto hace accesibles a los usuarios múltiples versiones de un mismo software de forma rápida y eficaz.
 <br>
 - Vamos a probar un ejemplo con R. Intentemos iniciar una sesión de R:
+
 ```bash
 R
 # Output
 # -bash: R: command not found
-``` 
+```
+
 - Como podemos ver, R no está instalado a nivel de sistema (no es accesible directamente para los usuarios). Sin embargo, podemos acceder a R en el HPC a través de `modules`
 
 ```bash
@@ -495,7 +501,8 @@ Type 'q()' to quit R.
 > Aquí podréis lanzar comandos de R 
 ctrl+D para salir y pulsar "n" (no guardar) 
 "
-``` 
+```
+
 Aunque esto pueda parecer engorroso, si sólo tuvieramos una sóla versión de R instalada a nivel de sistema, impediría a los usuarios ejecutar software que requiera de versiones concretas de R para su funcionamiento.
 
 - **¿Cómo listar los módulos accesibles en el HPC?**.
@@ -505,10 +512,11 @@ Para ello bastará con utilizar `module avail`. En el output veremos una gran li
       - `data`: Software de gestión de datos como MariaDB o XML
       - `tools`: Herramientas variadas como compresores de archivos
       - ``lang``:lenguajes de programación.
-      - `math`: software de cálculo/matemático. 
+      - `math`: software de cálculo/matemático.
       - `vis`: software de visualizacion genérico o de datos.
 Para cada módulo veremos el nombre del módulo seguido por `/` y la versión del software contenido (ej: `python/3.6.9`).
 - Podemos utilizar `module avail <regex>` para buscar modulos por su nombre o parte de éste. Por ejemplo, para buscar todas las versiones de R disponibles:
+
 ```bash
 module avail python/
 
@@ -577,8 +585,8 @@ Found 6 container images for amd64 matching "fastp":
         library://wallaulabs/viralflow/fastp:0.23.4
 "
 ```
+
 - Estos son repositorios comunitarios de singularity. Como podéis ver las versiones están muy limitadas y no todas las ubicaciones están contrastadas. Nosotros recomendamos otras opciones, especialmente pensadas para software científico, que veremos en el siguiente punto.
----
 
 ### 3.1 Descargar y ejecutar un contenedor de Singularity
 
@@ -637,6 +645,7 @@ Singularity utiliza por defecto dos variables para el guardado de cache (imagene
 export SINGULARITY_CACHEDIR=/<shared_path>/containers/singularity/singularity_cache
 export SINGULARITY_PULLFOLDER=/<shared_path>/containers/singularity/singularity_image
 ```
+
 Después, hacemos `source ~/.bashrc` para aplicar los cambios
 
 - Para uso únicamente interactivo dentro de una imagen, ejecuta:
