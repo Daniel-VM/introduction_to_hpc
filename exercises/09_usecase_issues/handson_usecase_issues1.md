@@ -362,7 +362,7 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
   Notas:
   - Ejecuta `rsync` mediante `srun` en un nodo de cómputo (respeta políticas de scratch).
   - Crea el directorio destino en el nodo de cómputo antes de sincronizar.
-  - Los mensajes del script están en inglés.
+  - Siempre lanza el script desde el NODO DE ACCESO.
 
   Ejemplos:
   - `hpc_cp.sh "scratch->data" 20250929_HPC-COURSE_profesor00/` copia `/scratch/hpc_course/20250929_HPC-COURSE_profesor00/` a `/data/courses/hpc_course/20250929_HPC-COURSE_profesor00/`.
@@ -413,6 +413,7 @@ Scripts y alias propuestos (guardar en `~/bin` o añadir a `~/.bashrc`):
 
   ```bash
   touch -d '3 days ago' TEST_FOLDER_${USER}
+  exit # IMPORTANTE SALIR AL NODO DE ACCESO PARA LANZAR EL SCRIPT DE CLEANUP. SINO NO FUNCIONARÁ
   ```
 
   Con ello `stale` mostrará el directorio principal como candidato por tener más de 2 días sin actividad.
