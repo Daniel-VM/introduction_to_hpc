@@ -56,7 +56,44 @@ Pasos recomendados para organizar la práctica:
    cd /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
    ```
 
-2. **Descarga o crea los scripts `sbatch`** usando la versión RAW de GitHub (o abre `nano` y pega el contenido). Ejemplo con `wget` para cada archivo:
+2. **Prepara el fichero auxiliar que usaremos más adelante `samples_id.txt`** (si todavía no existe) en `ANALYSIS/`:
+
+Nos movemos a la carpeta en nuestra carpeta compartida dentro del hpc
+```bash
+cd /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS
+```
+
+Creamos las carpetas que vamos a necesitar:
+
+```bash
+mkdir -p 00-reads
+```
+
+Vamos a crear un archivo con los nombres de los muestras
+
+```bash
+ls ../RAW/*.fastq.gz | cut -d "/" -f 3 | cut -d "_" -f 1 | sort -u > samples_id.txt
+```
+
+Por último creamos enlaces simbólicos para cada muestra de forma homogéne en 00-reads para tenerlo a mano
+
+```bash
+cd 00-reads 
+cat ../samples_id.txt | xargs -I % echo "ln -s ../../RAW/%_*1*.fastq.gz %_R1.fastq.gz" | bash
+cat ../samples_id.txt | xargs -I % echo "ln -s ../../RAW/%_*2*.fastq.gz %_R2.fastq.gz" | bash
+```
+
+> Nota: Puedes modificar la lista si quieres procesar otros identificadores.
+
+
+3. **Descarga o crea los scripts `sbatch`** usando la versión RAW de GitHub (o abre `nano` y pega el contenido). Ejemplo con `wget` para cada archivo:
+
+  Dirígete a la carpeta de la práctica:
+   ```bash
+  cd /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
+   ```
+
+  Descarga los scripts sbatch:
 
    ```bash
    wget -O fastqc_demo.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastqc_demo.sbatch
@@ -64,26 +101,11 @@ Pasos recomendados para organizar la práctica:
    wget -O fastqc_overask.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastqc_overask.sbatch
    wget -O array_demo.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/array_demo.sbatch
    wget -O fastqc_array_samplesid.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastqc_array_samplesid.sbatch
-   wget -O fastp_openmp.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastp_openmp.sbatch
    wget -O spades_openmp.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/spades_openmp.sbatch
    wget -O raxml_mpi.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/raxml_mpi.sbatch
    ```
 
    Revisa cada archivo y adapta rutas o recursos si el docente te lo indica.
-
-3. **Prepara el fichero auxiliar `samples_id.txt`** (si todavía no existe) en `ANALYSIS/`:
-
-    ```bash
-    cat > ../samples_id.txt <<'EOF'
-    ERR2261314
-    ERR2261315
-    ERR2261318
-    virus1
-    virus2
-    EOF
-    ```
-
-   Puedes modificar la lista si quieres procesar otros identificadores.
 
 4. **Sincroniza con `/scratch`** antes de ejecutar nada:
 
@@ -94,6 +116,8 @@ Pasos recomendados para organizar la práctica:
    ```
 
 A partir de ahora trabaja desde `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization` y mantén los nombres de archivo tal como figuran en el repositorio original.
+
+--- 
 
 ### Ejercicio 1 — Ejecución correcta
 
@@ -207,7 +231,7 @@ fastp \
 echo "[INFO] Finished at $(date)"
 ```
 
-Ejecuta y monitoriza (desde la shell interactiva en `/scratch`):
+Lanza el trabajo y monitoriza:
 
 ```bash
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_failcmd.sbatch
@@ -262,7 +286,7 @@ fastqc \
 echo "[INFO] Finished at $(date)"
 ```
 
-Monitoriza (desde la shell interactiva en `/scratch`):
+Lanza el trabajo y monitoriza:
 
 ```bash
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_overask.sbatch
@@ -323,6 +347,13 @@ fastqc -o "$OUTDIR" /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/vi
 echo "[INFO] JobID=${SLURM_JOBID}; Task=${SLURM_ARRAY_TASK_ID}; End=$(date)"
 ```
 
+Ejecuta el job:
+
+```bash
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization array_demo.sbatch
+```
+
+
 **PREGUNTAS**
 
 * ¿Cuántas muestras se procesan en el array?
@@ -345,9 +376,6 @@ virus1
 virus2
 ```
 
-Crea este archivo dentro de la carpeta `ANALYSIS` con el nombre: `samples_id.txt`
-
-
 A continuación, vamos a crear el script sbatch **`fastqc_array_samplesid.sbatch`** dentro de la carpeta `ANALYSIS/07-scripting-and-parallelization`
 
 ```bash
@@ -364,14 +392,15 @@ module load FastQC/0.11.9-Java-11
 IDS_FILE="../samples_id.txt"
 READS_DIR="../00-reads"
 
-RESULTS_ROOT="02-fastqc-array-results"
-mkdir -p "$RESULTS_ROOT"
-OUTDIR="${RESULTS_ROOT}/fastqc_from_ids_${SLURM_ARRAY_JOB_ID}"
-mkdir -p "$OUTDIR/logs"
-
 SAMPLE=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "$IDS_FILE")
 R1="${READS_DIR}/${SAMPLE}_R1.fastq.gz"
 R2="${READS_DIR}/${SAMPLE}_R2.fastq.gz"
+
+RESULTS_ROOT="03-fastqc-array-results"
+mkdir -p "$RESULTS_ROOT"
+OUTDIR="${RESULTS_ROOT}/fastqc_from_ids_${SLURM_ARRAY_JOB_ID}_${SLURM_ARRAY_TASK_ID}_${SAMPLE}"
+mkdir -p "$OUTDIR/logs"
+
 
 fastqc -o "$OUTDIR" "$R1" "$R2"
 echo "[INFO] Sample=${SAMPLE} R1=${R1} R2=${R2}"
@@ -384,9 +413,9 @@ sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and
        --array=1-$(wc -l < /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/samples_id.txt) fastqc_array_samplesid.sbatch
 ```
 
-Los resultados se guardan en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/`
+Los resultados se guardan en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/03-fastqc-array-results/fastqc_from_ids_<ArrayJobID>_<ArrayTaskID>_<SampleName>/`
 
-Mientras que los logs por tarea se guardan en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/logs/`.
+Mientras que los logs por tarea se guardan en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/03-fastqc-array-results/fastqc_from_ids_<ArrayJobID>_<ArrayTaskID>_<SampleName>/logs/`.
 
 ---
 
@@ -554,7 +583,6 @@ sacct -j <JOBID> -o JobID,JobName,State,Elapsed,AllocCPUS,NodeList
 * Observa la columna **NodeList**.
 * ¿Se han usado realmente **2 nodos**? ¿Cuántas **tareas (ntasks)** ves por nodo?
 * Si cambias a `--nodes=1 --ntasks=4`, ¿qué cambia en `NodeList` y en **Elapsed**?
-* ¿Qué ocurre si ejecutas el binario **sin** `mpirun` aunque hayas pedido `--ntasks` en Slurm?
 
 ---
 
@@ -575,28 +603,6 @@ Cuando termines todos los ejercicios, devuelve los resultados a `/data`:
 rsync -avh /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization \
           /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/
 ```
-
-### Errores típicos y cómo detectarlos
-
-**OpenMP**
-
-* **Olvidar pasar hilos** al programa (p. ej. `-w/--threads/-p`).
-  *Síntoma:* `AllocCPUS>1` pero **`AveCPU`** baja y no hay aceleración.
-  *Solución:* usa `"$SLURM_CPUS_PER_TASK"` en el flag correcto del programa.
-* **RAM insuficiente** al subir hilos.
-  *Síntoma:* `.err` con “Killed”/OOM; `State=OUT_OF_MEM` o `FAILED`.
-  *Solución:* aumenta `--mem`, o baja hilos, o revisa parámetros del programa.
-
-**MPI**
-
-* **Sin `mpirun`** (o ejecutable no MPI).
-  *Síntoma:* 1 proceso efectivo; mensajes de error/advertencia; uso de CPU bajo.
-  *Solución:* `mpirun -np $SLURM_NTASKS <binario-MPI>`.
-* **Demasiadas tareas por nodo**.
-  *Síntoma:* `PD (Resources)` largo o `Reason=ReqNodeNotAvail`, o contención.
-  *Solución:* ajusta `--ntasks-per-node` acorde al hardware/límites de la partición.
-
----
 
 ### Mini-decisión “qué uso”
 
