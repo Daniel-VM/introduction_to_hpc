@@ -26,7 +26,7 @@ chown username:group file.txt
 
 ---
 
-## 1. Software management basics: Why permissions exist
+## 1.1 Software management basics: Why permissions exist
 
 They exist to protect the operating system, applications, and data from accidental damage or malicious use:
 
@@ -35,30 +35,23 @@ They exist to protect the operating system, applications, and data from accident
 * Consistency: Admins control which versions of software are installed cluster-wide.
 * Performance: HPC software often needs to be built with optimized compilers and libraries.
 
-```bash
-# Load software through modules instead of custom install
-module avail
-module load Python/3.10.4
-python --version
-```
-
 ---
 
-## 1. Software management basics: Windows vs Linux
+## 1.2 Software management basics: Windows vs Linux
 
 Windows and linux work quite different when talking about software. In windows we ussually run programs through binary executable files (.exe) but in linux, the tools are more often executed through the Command Line Interface (CLI).
 
 On **Windows (PC)**:
 
 ```powershell
-installer.exe
+7zip.exe
 ```
 
-On **Linux/HPC**:
+On **Linux**:
 
 ```bash
-module load gcc/12.1.0
-gcc --version
+sudo apt install 7zip
+7z --help
 ```
 
 ---
