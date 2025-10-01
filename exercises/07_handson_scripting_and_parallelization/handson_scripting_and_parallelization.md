@@ -32,6 +32,8 @@ Partiremos de un **script base** que ejecuta **FastQC** sobre dos FASTQ pequeño
 * Si tu entorno no tiene FastQC o los FASTQ de prueba, pide al docente la ruta de datos del curso.
 * Comandos clave: `sbatch`, `squeue`, `scontrol show job <jobid>`, `sacct -j <jobid> -o ...`, `less`, `tail -n +1`.
 
+> Recurso adicional: http://ganglia.isciii.es/ ofrece una interfaz web para visualizar el estado de nodos y trabajos en tiempo real. Úsalo como apoyo mientras monitorizas con `squeue`/`sacct`.
+
 ### Flujo de trabajo con `/data` y `/scratch`
 
 El clúster separa los espacios de trabajo en dos zonas con permisos distintos:
@@ -169,8 +171,10 @@ sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and
 3. Monitorizar en cola
 
 ```bash
-squeue --me
+squeue -u $USER -o "%8i %22j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"
 ```
+
+> Los `squeue -u $USER -o "…"` que verás a lo largo de la práctica muestran varias columnas útiles: `%i` (JobID), `%j` (JobName), `%t` (State), `%P` (Partition), `%R` (Reason/NodeList), `%C` (CPUs asignadas) y `%c` (CPUs por tarea), entre otras.
 
 4. Ver detalles (nodo, recursos, razón si está en PD)
 
@@ -183,6 +187,14 @@ scontrol show job <JOBID> | grep 'JobName\|NumNodes\|NumCPUs\|TRES\|Nodes\|Reaso
 ```bash
 sacct -j <JOBID> -o JobID,State,Elapsed,MaxRSS,TotalCPU,ExitCode
 ```
+
+> Nota rápida sobre `sacct -j <JOBID> -o JobID,State,Elapsed,ExitCode`:
+> `-j <JOBID>` filtra el informe para ese identificador. `-o` elige las columnas a mostrar. Con este formato verás:
+> • `JobID`: identificador del trabajo o la tarea del array.
+> • `State`: estado final (COMPLETED, FAILED, TIMEOUT, etc.).
+> • `Elapsed`: tiempo transcurrido real.
+> • `ExitCode`: código de salida devuelto por el script (0 indica éxito).
+
 
 6. Leer logs
 
@@ -290,7 +302,7 @@ Lanza el trabajo y monitoriza:
 
 ```bash
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_overask.sbatch
-squeue --me
+squeue -u $USER -o "%8i %22j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"
 scontrol show job <JOBID> | egrep 'Reason|Req|MinCPUs|TRES|Nodes|Partition|QOS'
 ```
 
@@ -443,7 +455,7 @@ La idea es: **probar OpenMP y MPI** con comandos reales, ver en `squeue/sacct` c
 * MPI en Slurm: pide **`--nodes`**, **`--ntasks`** (y opcional **`--ntasks-per-node`**) y **lanza con `mpirun -np $SLURM_NTASKS`**.
 
 * Comandos útiles:
-  `squeue --me`,
+  `squeue -u $USER -o "%8i %22j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"`,
   `scontrol show job <jobid> | egrep 'Nodes|NumCPUs|TRES|Reason|Start|RunTime'`,
   `sacct -j <jobid> -o JobID,JobName,State,Elapsed,MaxRSS,AllocCPUS,NodeList,TotalCPU`.
 
@@ -481,7 +493,7 @@ spades.py -1 "$R1" -2 "$R2" -o 04-openmp-spades-results/spades_sample01 \
 
 ```bash
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization spades_openmp.sbatch
-squeue --me
+squeue -u $USER -o "%8i %22j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c"
 sacct -j <JOBID> -o JobID,AllocCPUS,State,Elapsed,MaxRSS,TotalCPU,NodeList
 scontrol show jobid <JOBID> 
 ```
@@ -574,7 +586,7 @@ Lanza y monitoriza los trabajos que se ejecutan.
 
 ```bash
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization raxml_mpi.sbatch
-watch squeue --me
+watch -n 2 "squeue -u $USER -o \"%8i %22j %4t %10u %20q %20P %10Q %5D %11l %11L %50R %10C %c\""
 sacct -j <JOBID> -o JobID,JobName,State,Elapsed,AllocCPUS,NodeList
 ```
 
