@@ -70,7 +70,7 @@ Pasos recomendados para organizar la práctica:
 
    ```bash
    srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
-     rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/ \
+     rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow \
              /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS
    ```
 
