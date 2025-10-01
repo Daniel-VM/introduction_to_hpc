@@ -2,7 +2,7 @@
 
 BU-ISCIII
 
-## Práctica 9: Scripting and Parallelization on HPC (Slurm)
+## Práctica 7: Scripting and Parallelization on HPC (Slurm)
 
 Bienvenido a la sesión práctica sobre scripting y paralelización en nuestro HPC. En esta práctica aprenderás a lanzar scripts `sbatch` al sistema de colas, escalarás cargas de trabajo pesadas y repetitivas usando Job Arrays y finalmente compararás estrategias de parallelización en HPC con OpenMP vs MPI.
 
@@ -36,70 +36,54 @@ Partiremos de un **script base** que ejecuta **FastQC** sobre dos FASTQ pequeño
 
 El clúster separa los espacios de trabajo en dos zonas con permisos distintos:
 
-- `/data`: almacenamiento persistente, con permisos de escritura. Aquí crearás y editarás tus scripts.
+- `/data`: almacenamiento persistente, con permisos de escritura. Úsalo para mantener la copia de referencia y guardar los resultados finales.
 - `/scratch`: almacenamiento temporal y de alto rendimiento, sin permisos de escritura directa desde el nodo de login. Los trabajos de Slurm **deben** ejecutarse desde aquí.
 
-Pasos recomendados en cada iteración de la práctica:
+Pasos recomendados para organizar la práctica:
 
-1. **Configura y edita** todo en `/data/courses/hpc_course`.
-2. **Sincroniza** tu carpeta a `/scratch` antes de lanzar trabajos.
-3. **Ejecuta** `sbatch`/`srun` desde `/scratch/hpc_course/...`.
+1. **Prepara** la estructura base en `/data/courses/hpc_course` (solo la primera vez).
+2. **Sincroniza** una única vez al inicio hacia `/scratch` (y repite al final para devolver resultados).
+3. **Abre** una sesión interactiva y ejecuta `sbatch`/`srun` desde `/scratch/hpc_course/...`.
 
-> Si necesitas abrir una sesión interactiva capaz de escribir en `/scratch`, solicita recursos con `srun -w ideafix05 --pty bash` y trabaja desde esa shell.
+> Abre tu sesión interactiva con `srun --partition=short_idx --cpus-per-task=2 --mem=2G --time=00:30:00 --pty bash` cuando llegues a la preparación inicial.
 
-#### Estructura mínima en `/data`
+### Preparación inicial
 
-En la [Práctica 04 — Access](https://github.com/BU-ISCIII/introduction_to_hpc/blob/5071c54f1533ee27f14c5d8f435ee963084927f2/exercises/04_access/handson_access.md#L516-L547) ya creaste la carpeta `<fecha>_HPC-COURSE_${USER}` dentro de `/data/courses/hpc_course` y copiaste a `RAW/` los ficheros de entrada. Comprueba que sigue disponible:
+1. Comprueba (o crea) tu carpeta en `/data`:
 
-```bash
-ls -l /data/courses/hpc_course/*HPC-COURSE_${USER}/{ANALYSIS,RAW}
-```
+   ```bash
+   ls -l /data/courses/hpc_course/*HPC-COURSE_${USER}/{ANALYSIS,RAW}
+   mkdir -p /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
+   ```
 
-Si no ves tu carpeta (por ejemplo, porque estás en un usuario nuevo), revisa esa práctica o repite el paso de inicialización:
+2. Lanza una única sincronización hacia `/scratch`:
 
-```bash
-cd /data/courses/hpc_course
-mkdir -p /data/courses/hpc_course/$(date +%Y%m%d)_HPC-COURSE_${USER}/{RAW,ANALYSIS,RESULTS,DOC,TMP,REFERENCES}
-mkdir -p _HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/logs
-```
+   ```bash
+   srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
+     rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization \
+             /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/
+   ```
 
-> A partir de aquí, podrás usar el comodín `*HPC-COURSE_${USER}` para referenciar tu carpeta sin recordar la fecha exacta.
+3. Abre tu shell interactiva y trabaja desde `/scratch` el resto de la práctica:
 
+   ```bash
+   srun --partition=short_idx --cpus-per-task=2 --mem=2G --time=00:30:00 --pty bash
+   cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
+   mkdir -p logs
+   ```
 
-Tras editar cualquier archivo en `/data`, sincroniza con `/scratch` (copia inicial y posteriores actualizaciones):
-
-```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
-  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ /scratch/hpc_course/
-```
-
-Puedes comprobar que **no** tienes permisos de escritura directa en `/scratch` desde el nodo de login:
-
-```bash
-cd /scratch/hpc_course/*HPC-COURSE_${USER}
-touch prueba.txt
-
-## Output esperado:
-touch: cannot touch 'prueba.txt': Permission denied
-```
-
-Si ves `Permission denied`, vuelve a `/data`, edita allí y sincroniza de nuevo. Repite el `rsync` siempre que modifiques algo antes de relanzar trabajos.
-> Nota: Cómo saber dónde me encuentro?: Ejecuta el comando `pwd`.
-
----
+> A partir de aquí, todos los comandos se ejecutan en esta shell interactiva dentro de `/scratch`.
 
 
-### Preparación de la práctica
+### Ejercicio 1 — Ejecución correcta
 
-Seguiremos dentro de `ANALYSIS/07-scripting-and-parallelization`, carpeta creada en la Práctica 04 y que ya cuelga de tu espacio `*HPC-COURSE_${USER}`. Aquí agruparemos los scripts `sbatch`, el subdirectorio `logs/` con las salidas de Slurm y las carpetas de resultados que iremos generando. Si no ves `logs/`, créalo una única vez con `mkdir -p logs`. El primer bloque de ejercicios se basa en FastQC: trabajaremos con los FASTQ `virus1_R1.fastq.gz` y `virus1_R2.fastq.gz` (ubicados en `ANALYSIS/00-reads/`) para producir informes de control de calidad en `01-fastqc-demo-results` y entender el ciclo completo de envío, monitorización y revisión de logs en Slurm.
+**Objetivo**
+Ejecutar el script tal cual, comprobar el nodo, los logs y el estado final.
 
-Vamos a situarnos en la carpeta de trabajo en /data:
+**Pasos**
+1. Mantente en la shell interactiva abierta durante la preparación; el directorio de trabajo debe ser `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization` (usa `pwd` si lo necesitas).
 
-```bash
-cd /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
-mkdir -p logs
-```
-### Script base
+2. **Enviar** el trabajo
 
 Guarda como **`fastqc_demo.sbatch`**:
 
@@ -132,27 +116,7 @@ fastqc \
 echo "[INFO] Finished at $(date)"
 ```
 
-### Ejercicio 1 — Ejecución correcta
-
-**Objetivo**
-Ejecutar el script tal cual, comprobar el nodo, los logs y el estado final.
-
-**Pasos**
-0. **Sincroniza** tu carpeta de trabajo (desde `/data`) antes de cada envío:
-
-```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
-  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
-            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
-```
-
-1. **Sitúate** en la carpeta de trabajo en `/scratch`
-
-``` bash
-cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
-```
-
-2. **Enviar** el trabajo
+Envía el trabajo:
 
 ```bash
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_demo.sbatch
@@ -223,13 +187,7 @@ fastp \
 echo "[INFO] Finished at $(date)"
 ```
 
-Ejecuta y monitoriza:
-
-```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
-  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
-            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
-```
+Ejecuta y monitoriza (desde la shell interactiva en `/scratch`):
 
 ```bash
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_failcmd.sbatch
@@ -284,13 +242,7 @@ fastqc \
 echo "[INFO] Finished at $(date)"
 ```
 
-Monitoriza:
-
-```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
-  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
-            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
-```
+Monitoriza (desde la shell interactiva en `/scratch`):
 
 ```bash
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_overask.sbatch
@@ -408,17 +360,13 @@ echo "[INFO] Sample=${SAMPLE} R1=${R1} R2=${R2}"
 Lanza el array ajustando el rango al número de líneas de `samples_id.txt`:
 
 ```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
-  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
-            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
-```
-
-```bash
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization \
        --array=1-$(wc -l < /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/samples_id.txt) fastqc_array_samplesid.sbatch
 ```
 
-Los resultados se guardan en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/` y los logs por tarea en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/logs/`.
+Los resultados se guardan en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/`
+
+Mientras que los logs por tarea se guardan en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/logs/`.
 
 ---
 
@@ -450,85 +398,11 @@ La idea es: **probar OpenMP y MPI** con comandos reales, ver en `squeue/sacct` c
   `scontrol show job <jobid> | egrep 'Nodes|NumCPUs|TRES|Reason|Start|RunTime'`,
   `sacct -j <jobid> -o JobID,JobName,State,Elapsed,MaxRSS,AllocCPUS,NodeList,TotalCPU`.
 
-* **Recuerda el flujo de carpetas**: edita scripts y prepara inputs en `/data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization`, sincroniza con
-
-  ```bash
-  srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
-    rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
-              /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
-  ```
-
-  y lanza los trabajos desde `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization`.
-
-
 ---
 
-### Ejercicio 1 — OpenMP básico con **fastp** (multi-hilo/thread en un nodo)
+### Ejercicio 1 — OpenMP en software de ensamblado (**SPAdes**)
 
-#### Objetivo
-
-Vamos a exprimir la estrategia **OpenMP**. Para ello utilizaremos un programa bioinformático que se encarga de eliminar las secuencias **adaptadoras** generadas durante el proceso de secuenciación (plataforma Illumina). Es decir, recorta estos adaptadores dejando la lectura de cada secuencia **limpia**. Es una etapa de pre-procesado de archivos FASTQ antes del análisis en sí. Para este caso usaremos el programa [**fastp**](https://github.com/OpenGene/fastp), que permite usar varios threads/hilos en un único nodo.
-
-Como hemos mencionado anteriormente, para poder utilizar la estrategia **OpenMP** debemos configurar en nuestro script `sbatch` los parámetros de Slurm: **`--cpus-per-task`**, `--mem`, `--time`.
-
-Veamos cómo construir el script. Se muestra **`fastp_openmp.sbatch`**:
-
-```bash
-#!/bin/bash
-#SBATCH --job-name=fastp_openmp
-#SBATCH --partition=short_idx
-#SBATCH --cpus-per-task=4           # <- nº hilos/threads OpenMP
-#SBATCH --mem=16G
-#SBATCH --time=00:30:00
-#SBATCH --output=logs/%x-%j.out
-#SBATCH --error=logs/%x-%j.err
-
-module load fastp/0.20.0-GCC-8.3.0
-mkdir -p 03-openmp-fastp-results
-
-# Setup de variables
-R1=../00-reads/virus1_R1.fastq.gz
-R2=../00-reads/virus1_R2.fastq.gz
-OUTR1=03-openmp-fastp-results/virus1.clean.R1.fastq.gz
-OUTR2=03-openmp-fastp-results/virus1.clean.R2.fastq.gz
-
-# Ejecutamos el comando
-fastp -i "$R1" -I "$R2" -o "$OUTR1" -O "$OUTR2" \
-    --thread="$SLURM_CPUS_PER_TASK" \
-    --detect_adapter_for_pe
-```
-
-**Lanza y monitoriza**
-
-Primero sincronizamos el archivo que se encuentra en /data para que esté accesible desde /scratch.
-
-```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
-  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
-            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
-```
-
-Ejecuta y monitoriza los trabajos:
-
-```bash
-sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastp_openmp.sbatch
-squeue --me
-sacct -j <JOBID> -o JobID,AllocCPUS,State,Elapsed,MaxRSS,TotalCPU,NodeList
-scontrol show jobid <JOBID> 
-```
-
-**PREGUNTAS**
-
-* Cambia **`--cpus-per-task=1`** y relanza con otro nombre de reporte. ¿Qué cambia en **Elapsed**?
-* Vuelve a lanzar la tarea usando `--cpus-per-task 12` y `--cpus-per-task 32` → compara **Elapsed**.
-
-> Nota: algunos programas **no** aceleran por encima de cierto nº de hilos. Puede ser porque el propio software **limite** los threads efectivos en tu dataset, o por cuellos de botella de **E/S** (lectura/escritura).
-
----
-
-### Ejercicio 2 — OpenMP en software de ensamblado (**SPAdes**)
-
-Vamos a volver a utilizar la estrategia OpenMP, pero esta vez con el software de ensamblado [**SPAdes**](https://github.com/ablab/spades). Este software se utiliza para la **reconstrucción** de un genoma a partir de las lecturas procesadas. Es una etapa que demanda **bastantes más recursos** computacionales que fastp.
+Vamos a utilizar la estrategia OpenMP con el software de ensamblado [**SPAdes**](https://github.com/ablab/spades). Este software se utiliza para la **reconstrucción** de un genoma a partir de las lecturas procesadas. Es una etapa que demanda **bastantes más recursos**.
 
 Guarda como **`spades_openmp.sbatch`**:
 
@@ -571,7 +445,7 @@ scontrol show jobid <JOBID>
 
 ---
 
-### Ejercicio 3 — MPI con **RAxML**
+### Ejercicio 2 — MPI con **RAxML**
 
 #### Objetivo
 
@@ -672,6 +546,15 @@ sacct -j <JOBID> -o JobID,JobName,State,Elapsed,AllocCPUS,NodeList
 
 
 ---
+
+### Sincronización final
+
+Cuando termines todos los ejercicios, devuelve los resultados a `/data`:
+
+```bash
+rsync -avh /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization \
+          /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/
+```
 
 ### Errores típicos y cómo detectarlos
 
