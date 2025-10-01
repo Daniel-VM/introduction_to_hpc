@@ -309,7 +309,7 @@ VBoxManage modifyvm "UbuntuLab" --memory 4096 --cpus 2
 VBoxManage startvm "UbuntuLab"
 ```
 
-## Containers (OS-level Virtualization)
+# 3.1 Introduction to Containers: Docker & Singularity
 
 * A container is a lightweight, standalone package that bundles together an application and everything it needs to run, but shares the host system’s kernel instead of emulating hardware.
 * **Pro**: Near-native performance, lightweight.
@@ -317,51 +317,19 @@ VBoxManage startvm "UbuntuLab"
 * **HPC usage**: Very common for packaging software to run without dependency issues.
 * **Examples**: Docker, Singularity.
 
-```bash
-# Docker container (local machine only)
-docker run -v /home/${USER}/Documents:/mnt/documents -it ubuntu:22.04 bash
-
-# Singularity container (HPC-friendly)
-module load singularity
-singularity exec docker://ubuntu:22.04 bash
-```
-
-## VMs vs Containers
-
-* VMs emulate full hardware + OS (heavy, slower).
-* Containers share the kernel, just isolate applications (fast, portable).
-
-### Lets see the size differences for each image
-
-```bash
-# VM image (several GB)
-du -sh ubuntu-vm.vdi
-
-# Container image (hundreds of MB, faster to deploy)
-singularity pull docker://biocontainers/fastqc:v0.11.9_cv8
-du -sh fastqc_v0.11.9.sif
-```
-
-# 3.1 Introduction to Containers: Docker & Singularity
-
 ## Docker
 
 * Docker is a popular platform designed for building, sharing, and running applications in containers.
 * By default, Docker containers run as the root user on the host system. This can pose a security risk in multi-user environments like an HPC.
 * Unfortunately, we cannot directly use Docker in our HPC but here is a small example on how to use it:
 
+
 ```bash
 # Pull an image
 docker pull ubuntu:22.04
 
-# Run interactively
-docker run -it ubuntu:22.04 bash
-
-# Build a custom image
-docker build -t mytool .
-
-# Save an image for export to HPC
-docker save mytool > mytool.tar
+# Run interactively (local machine only)
+docker run -v /home/${USER}/Documents:/mnt/documents -it ubuntu:22.04 bash
 ```
 
 ## Singularity
@@ -376,17 +344,33 @@ docker save mytool > mytool.tar
 # Load Singularity module
 module load singularity
 
-# Pull a container from DockerHub
-singularity pull docker://biocontainers/fastqc:v0.11.9_cv8
+# Pull a container
+singularity pull https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
 
 # Run FastQC inside container
-singularity exec fastqc_v0.11.9_cv8.sif fastqc --version
+singularity exec fastp%3A1.0.1--heae3180_0 fastp --help
 
 # Open shell inside container
-singularity shell fastqc_v0.11.9_cv8.sif
+singularity shell fastp%3A1.0.1--heae3180_0
 
 # Pull directly from Galaxy depot
-singularity pull https://depot.galaxyproject.org/singularity/fastqc:0.11.9--0
+singularity run https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
+```
+
+## VMs vs Containers
+
+* VMs emulate full hardware + OS (heavy, slower).
+* Containers share the kernel, just isolate applications (fast, portable).
+
+### Lets see the size differences for each image
+
+```bash
+# VM image (several GB)
+du -sh ubuntu-vm.vdi
+
+# Container image (hundreds of MB, faster to deploy)
+singularity pull https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
+du -sh fastp%3A1.0.1--heae3180_0
 ```
 
 # Essential Takeaways
