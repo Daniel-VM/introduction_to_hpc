@@ -192,9 +192,7 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
     # ERROR: No matching distribution found for seqkit
     ```
 
-    Parece que `seqkit` no está disponible en el repositorio de pip [https://pypi.org/](https://pypi.org/). En este caso, usaremos **micromamba** para crear un entorno aislado. Una vez activado el entorno, podremos instalar y usar `seqkit` de manera segura dentro de él.
-
-    Como `seqkit` no está en PyPI, usaremos **micromamba**.<br> <br>
+    Parece que `seqkit` no está disponible en el repositorio de pip [https://pypi.org/](https://pypi.org/). En este caso, usaremos **micromamba** para crear un entorno aislado ya que seqkit si se encuentra accesible en los repositorios de micromamba. Una vez activado el entorno, podremos instalar y usar `seqkit` de manera segura dentro de él. <br><br>
 
 - **Micromamba:** Nuestro gestor de entornos favorito, ya que es especialmente rápido y ligero. Para descargarlo en vuestro _Home_ podéis utilizar el siguiente comando (recuerda salir de `bioenv` primero):
 
