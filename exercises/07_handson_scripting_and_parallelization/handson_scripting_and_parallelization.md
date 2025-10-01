@@ -158,8 +158,6 @@ fastqc \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
   -o 01-fastqc-demo-results
-
-echo "[INFO] Finished at $(date)"
 ```
 
 Envía el trabajo:
@@ -239,8 +237,6 @@ fastp \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
   -o 01-fastqc-demo-results
-
-echo "[INFO] Finished at $(date)"
 ```
 
 Lanza el trabajo y monitoriza:
@@ -294,8 +290,6 @@ fastqc \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
   -o 01-fastqc-demo-results
-
-echo "[INFO] Finished at $(date)"
 ```
 
 Lanza el trabajo y monitoriza:
