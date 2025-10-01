@@ -72,7 +72,7 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
   rm testfile.txt
   ```
 
-  - En el HPC, intenta ejecutar `chown` en un archivo de tu directorio home:
+  - **En el HPC**, intenta ejecutar `chown` en un archivo de tu directorio home:
 
   ```bash
   # vamos a nuestro home
