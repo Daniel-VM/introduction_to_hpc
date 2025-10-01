@@ -333,7 +333,7 @@ Ahora que sabemos usar srun con su parametrización, vamos a aprender a usar los
 
 ```bash
 # Nos movemos a la carpeta en nuestra carpeta compartida dentro del hpc
-cd /data/courses/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS
+cd /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS
 # Creamos las carpetas que vamos a necesitar
 mkdir -p 00-reads 01-fastqc/logs
 # vamos a crear un archivo con los nombres de los muestras

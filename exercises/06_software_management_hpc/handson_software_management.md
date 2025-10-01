@@ -619,18 +619,18 @@ singularity exec https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae
 Si queremos simplemente descargar la imagen para tenerla accesible en local, podemos utilizar `singularity pull`:
 
 ```bash
-singularity pull /data/courses/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/singularity_images/fastp.img https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
+cd /data/courses/hpc_course/*_HPC-COURSE_${USER}/ANALYSIS/
+mkdir -p 06-software-management/singularity_images
+singularity pull 06-software-management/singularity_images/fastp.img https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
 ```
 
 Como ya sabéis, siempre es mejor lanzar los trabajos con `srun`. Lo mismo aplica para procesos con containers:
 
 ```bash
-# Sustituir <CARPETA_HPC_COURSE> por el nombre de vuestra carpeta
+cd 06-software-management
 srun --partition=short_idx --cpus-per-task=1 --mem=2G --time=00:05:00 singularity exec \
---bind /scratch/hpc_course/<CARPETA_HPC_COURSE>/RAW:/reads \
---bind /scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/fastp_results/:/out \
-/scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/singularity_images/fastp.img  \
-fastp -i /reads/virus1_R1.fastq.gz -I /reads/virus1_R2.fastq.gz -o /out/trimmed_virus1_R1.fastq.gz -O /out/trimmed_virus1_R2.fastq.gz
+--bind /data/courses/hpc_course/*_HPC-COURSE_${USER} \
+./singularity_images/fastp.img fastp -i ../00-reads/virus1_R1.fastq.gz -I ../00-reads/virus1_R2.fastq.gz -o trimmed_virus1_R1.fastq.gz -O trimmed_virus1_R2.fastq.gz
 ```
 
 Al hacer `--bind <PATH>`, lo que pongamos en `<PATH>` será accesible dentro del contenedor, con el nombre/ruta que le pongamos después de `:`. Por ejemplo en este caso `/scratch/hpc_course/<CARPETA_HPC_COURSE>/RAW` será accesible en el contenedor como `/reads`
