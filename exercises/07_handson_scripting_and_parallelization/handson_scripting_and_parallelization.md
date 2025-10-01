@@ -158,8 +158,6 @@ fastqc \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
   -o 01-fastqc-demo-results
-
-echo "[INFO] Finished at $(date)"
 ```
 
 Envía el trabajo:
@@ -239,8 +237,6 @@ fastp \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
   -o 01-fastqc-demo-results
-
-echo "[INFO] Finished at $(date)"
 ```
 
 Lanza el trabajo y monitoriza:
@@ -294,8 +290,6 @@ fastqc \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R1.fastq.gz \
   /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/virus1_R2.fastq.gz \
   -o 01-fastqc-demo-results
-
-echo "[INFO] Finished at $(date)"
 ```
 
 Lanza el trabajo y monitoriza:
@@ -332,7 +326,8 @@ Los **Job Arrays** permiten enviar un solo trabajo que se divide en **N tareas**
 
 ### Ejercicio 1 — Intro con Job Arrays
 
-Usaremos archivos tipo `virus1_R1.fastq.gz`, `virus2_R2.fastq.gz`...
+Trabajaremos con archivos que siguen el patrón `virus1_R1.fastq.gz`, `virus1_R2.fastq.gz`, `virus2_R1.fastq.gz`, y `virus2_R2.fastq.gz`. En este ejemplo solo hay dos muestras (`virus1` y `virus2`), de modo que el array necesita dos tareas. Por ello, en la directiva de `sbatch` declaramos `--array=1-2`, lo que hace que Slurm genere los índices 1 y 2 para recorrer ambas muestras (ver más abajo).
+
 Cada tarea del array procesará un par R1/R2.
 
 Script: **`array_demo.sbatch`**
