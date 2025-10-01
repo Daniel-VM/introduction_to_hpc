@@ -34,6 +34,48 @@ Ejercicios que vamos a **realizar** en esta sesión:
 2. Ejecutar **nf-demo** con Slurm.
 3. Probar un caso real con **nf-core/bacass**.
 
+### Flujo de trabajo con `/data` y `/scratch`
+
+Igual que en las prácticas anteriores, recuerda que **editamos y versionamos en `/data`** y **ejecutamos en `/scratch`**. En la [Práctica 04 — Access](https://github.com/BU-ISCIII/introduction_to_hpc/blob/5071c54f1533ee27f14c5d8f435ee963084927f2/exercises/04_access/handson_access.md#L516-L547) ya creaste tu carpeta `<fecha>_HPC-COURSE_${USER}` dentro de `/data/courses/hpc_course`. Comprueba que sigue presente y que contiene `ANALYSIS` y `RAW`:
+
+Pasos recomendados para organizar la práctica:
+
+1. **Edita** los archivos `nextflow.config` y `nextflow_demo.sbatch` en `/data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow`.
+2. **Sincroniza** esa carpeta a `/scratch` justo antes de lanzar Nextflow (y repite al finalizar para devolver resultados).
+3. **Ejecuta** siempre `sbatch` desde la ruta equivalente en `/scratch/hpc_course/...`.
+
+> Los esqueletos oficiales están en https://github.com/BU-ISCIII/introduction_to_hpc/tree/main/exercises/08_handson_scientific_workflows_nextflow. Copia sus contenidos y respeta los nombres de archivo.
+
+### Preparación inicial
+
+1. **Crea (si es necesario) la carpeta de trabajo en `/data`** y sitúate en ella:
+
+   ```bash
+   ls -l /data/courses/hpc_course/*HPC-COURSE_${USER}/{ANALYSIS,RAW}
+   cd /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS
+   mkdir -p 08-scientific-workflows-nextflow/logs
+   cd 08-scientific-workflows-nextflow
+   ```
+
+2. **Descarga o crea los archivos** usando la versión RAW del repositorio (puedes sustituir `wget` por tu editor preferido):
+
+   ```bash
+   wget -O nextflow.config https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/08_handson_scientific_workflows_nextflow/nextflow.config
+   wget -O nextflow_demo.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/08_handson_scientific_workflows_nextflow/nextflow_demo.sbatch
+   ```
+
+   Revisa ambos archivos y ajusta parámetros sólo si el docente lo indica.
+
+3. **Sincroniza con `/scratch`** antes de ejecutar Nextflow (lanza de nuevo este comando cada vez que edites algo en `/data`):
+
+   ```bash
+   srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
+     rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/ \
+             /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS
+   ```
+
+A partir de aquí trabaja desde `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow`.
+
 ---
 
 ## A) El “antes”: encadenar tareas a mano con Slurm
@@ -65,21 +107,13 @@ Ejercicios que vamos a **realizar** en esta sesión:
 
 ### 1) Prepara carpeta y config mínima
 
-Crea una carpeta de trabajo llamada `08-scientific-workflows-nextflow`
+Con la carpeta `08-scientific-workflows-nextflow` ya creada en `/data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS`, permanece dentro de ella para generar la configuración de Nextflow:
 
 ```bash
-mkdir 08-scientific-workflows-nextflow
+cd /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow
 ```
 
-Muévete a esta carpeta:
-
-```bash
-cd 08-scientific-workflows-nextflow/
-```
-
-Crea un archivo llamado `nextflow.config` y copia/pega el contenido que verás a continuación y guarda el archivo:
-
-> Nota: Puedes utilizar el comando `nano nextflow.config`
+Revisa el archivo `nextflow.config` (debería quedar así):
 
 ```groovy
 // El gestor de paquetes que usaremos será Singularity:
@@ -103,15 +137,13 @@ process {
 }
 ```
 
-### 2) Crea un script SBATCH para ejecutar Nextflow en el sistema de colas de SLURM
+### 2) Script SBATCH para ejecutar Nextflow en el sistema de colas de SLURM
 
-Vamos a crear un script `sbatch` con el comando de Nextflow a ejecutar. Hay que entender una cosa. Por un lado, está el script `sbatch` que actúa como **master** para la ejecución de las tareas que Nextflow irá lanzando al sistema de colas. Por ello, es importante que la ejecución de este master no se vea interrumpida, ya que si eso pasa no se lanzarán más trabajos. Por otro lado, como este master solo controla la ejecución del comando de Nextflow, pero no lanza las tareas pesadas, no es necesario que le demos muchos recursos más allá del tiempo.
-
+Comprueba que el script `nextflow_demo.sbatch` que has guardado en `/data` contiene lo siguiente (es el "master" que controlará Nextflow en Slurm):
 
 ```bash
 #!/bin/bash
 #SBATCH --job-name=nf_demo
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow
 #SBATCH --partition=middle_idx
 #SBATCH --time=12:00:00
 #SBATCH --cpus-per-task=2                 # Recursos SOLO para el controlador de Nextflow
@@ -134,10 +166,16 @@ nextflow run nf-core/demo \
 
 > Nota: Entre sus capas de abstracción, Nextflow tiene la propiedad de descargarse **workflows** listos (datos de prueba, perfiles de testing, etc.) desde repositorios como GitHub. En este caso, antes de lanzar `nf-core/demo`, si no existe en el clúster, lo descargará y luego lo ejecutará.
 
-Ejecutemos el script sbatch:
+Ejecutemos el propietario `sbatch`. Recuerda sincronizar antes de lanzar:
 
 ```bash
-sbatch nextflow_demo.sbatch
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
+  rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/ \
+            /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/
+```
+
+```bash
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow nextflow_demo.sbatch
 ```
 
 **Monitoreo**
@@ -147,7 +185,7 @@ Ahora es el momento de monitorizar las tareas. En Nextflow tenemos que visualiza
 * El *standard output* se guardará en el archivo que hayamos definido en `--output` (en este ejemplo: `%x-%j.out`). Ejemplo de un *standard output* de Nextflow.:
 
 ```bash
-tail -f logs/nf_demo-<JOBID>.out
+tail -f /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/logs/nf_demo-<JOBID>.out
 ```
 
 ```bash
@@ -168,7 +206,7 @@ Succeeded   : 8
 
 * Comando `watch squeue --me` para ver las tareas que van entrando al sistema de colas del HPC.
 
-* Por último tendrás que explorar los resultados. Como podrás observar, se habrá creado una carpeta `01-nextflow-demo-results/` (corresponde con los resultados finales del workflow) y `work/` (carpeta propia de Nextflow que almacena tanto datos intermedios como resultados finales).
+* Por último tendrás que explorar los resultados en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/`. Verás la carpeta `01-nextflow-demo-results/` (resultados finales del workflow) y `work/` (estructura interna de Nextflow con datos intermedios y salidas cacheadas).
 
 
 **PREGUNTAS:**
@@ -176,6 +214,16 @@ Succeeded   : 8
 * ¿Cuántas tareas se lanzaron y con qué **jobName** aparecen en `squeue`?
 * Explora detenidamente la carpeta `01-nextflow-demo-results/pipeline_info/` generada por el workflow. 
 * Lanza **otra vez** el comando anterior añadiendo `-resume`: ¿re-ejecuta todo?
+
+### Sincronización final
+
+Cuando termines la práctica, devuelve los resultados a `/data`:
+
+```bash
+rsync -avh /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/ \
+          /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/08-scientific-workflows-nextflow/
+```
+
 
 ## D) Comparativa explícita: manual vs Nextflow (qué gana el alumno)
 

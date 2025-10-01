@@ -2,7 +2,7 @@
 
 BU-ISCIII
 
-## Práctica 9: Scripting and Parallelization on HPC (Slurm)
+## Práctica 7: Scripting and Parallelization on HPC (Slurm)
 
 Bienvenido a la sesión práctica sobre scripting y paralelización en nuestro HPC. En esta práctica aprenderás a lanzar scripts `sbatch` al sistema de colas, escalarás cargas de trabajo pesadas y repetitivas usando Job Arrays y finalmente compararás estrategias de parallelización en HPC con OpenMP vs MPI.
 
@@ -32,28 +32,84 @@ Partiremos de un **script base** que ejecuta **FastQC** sobre dos FASTQ pequeño
 * Si tu entorno no tiene FastQC o los FASTQ de prueba, pide al docente la ruta de datos del curso.
 * Comandos clave: `sbatch`, `squeue`, `scontrol show job <jobid>`, `sacct -j <jobid> -o ...`, `less`, `tail -n +1`.
 
----
+### Flujo de trabajo con `/data` y `/scratch`
 
-### Preparación de la práctica
+El clúster separa los espacios de trabajo en dos zonas con permisos distintos:
 
-1. Creamos la estructura de carpetas
+- `/data`: almacenamiento persistente, con permisos de escritura. Úsalo para mantener la copia de referencia y guardar los resultados finales.
+- `/scratch`: almacenamiento temporal y de alto rendimiento, sin permisos de escritura directa desde el nodo de login. Los trabajos de Slurm **deben** ejecutarse desde aquí.
 
-```bash
-cd /data/courses/hpc_course/20250923_HPC-COURSE_alumno07/ANALYSIS
-mkdir 07-scripting-and-parallelization
-mkdir 07-scripting-and-parallelization/logs
-cd 07-scripting-and-parallelization
-nano fastqc_demo.sbatch 
-```
+Pasos recomendados para organizar la práctica:
 
-### Script base
+1. **Edita** todos los scripts `sbatch` en `/data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization`.
+2. **Sincroniza** esa carpeta a `/scratch` cuando vayas a lanzar trabajos (y repite al final para devolver los resultados a `/data`).
+3. **Ejecuta** siempre `sbatch`/`srun` desde la ruta equivalente en `/scratch/hpc_course/...`.
+
+> Los esqueletos de los scripts están publicados en https://github.com/BU-ISCIII/introduction_to_hpc/tree/main/exercises/07_handson_scripting_and_parallelization. Copia su contenido fielmente y respeta los nombres de archivo.
+
+### Preparación inicial
+
+1. **Crea (si hace falta) la carpeta de trabajo en `/data`** y entra en ella:
+
+   ```bash
+   mkdir -p /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/logs
+   cd /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
+   ```
+
+2. **Descarga o crea los scripts `sbatch`** usando la versión RAW de GitHub (o abre `nano` y pega el contenido). Ejemplo con `wget` para cada archivo:
+
+   ```bash
+   wget -O fastqc_demo.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastqc_demo.sbatch
+   wget -O fastqc_failcmd.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastqc_failcmd.sbatch
+   wget -O fastqc_overask.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastqc_overask.sbatch
+   wget -O array_demo.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/array_demo.sbatch
+   wget -O fastqc_array_samplesid.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastqc_array_samplesid.sbatch
+   wget -O fastp_openmp.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/fastp_openmp.sbatch
+   wget -O spades_openmp.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/spades_openmp.sbatch
+   wget -O raxml_mpi.sbatch https://raw.githubusercontent.com/BU-ISCIII/introduction_to_hpc/refs/heads/main/exercises/07_handson_scripting_and_parallelization/raxml_mpi.sbatch
+   ```
+
+   Revisa cada archivo y adapta rutas o recursos si el docente te lo indica.
+
+3. **Prepara el fichero auxiliar `samples_id.txt`** (si todavía no existe) en `ANALYSIS/`:
+
+    ```bash
+    cat > ../samples_id.txt <<'EOF'
+    ERR2261314
+    ERR2261315
+    ERR2261318
+    virus1
+    virus2
+    EOF
+    ```
+
+   Puedes modificar la lista si quieres procesar otros identificadores.
+
+4. **Sincroniza con `/scratch`** antes de ejecutar nada:
+
+   ```bash
+   srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
+     rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
+             /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
+   ```
+
+A partir de ahora trabaja desde `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization` y mantén los nombres de archivo tal como figuran en el repositorio original.
+
+### Ejercicio 1 — Ejecución correcta
+
+**Objetivo**
+Ejecutar el script tal cual, comprobar el nodo, los logs y el estado final.
+
+**Pasos**
+1. Sitúate en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization` (compruébalo con `pwd` o `ls`).
+
+2. **Enviar** el trabajo
 
 Guarda como **`fastqc_demo.sbatch`**:
 
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_demo
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -80,65 +136,35 @@ fastqc \
 echo "[INFO] Finished at $(date)"
 ```
 
->IMPORTANTE: De aquí en adelante tendrás que sustituir en el script de sbatch la cadena de caracteres `*HPC-COURSE_${USER}` que se encuentra en la directiva `#SBATCH --chdir=...` por el nombre de tu carpeta de carpeta de trabajo en el HPC. Por ejemplo:
+Envía el trabajo:
 
 ```bash
-Sustituye esto:
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
-
-por:
-#SBATCH --chdir=/scratch/hpc_course/20250929_HPC-COURSE_alumno10/ANALYSIS/07-scripting-and-parallelization
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_demo.sbatch
 ```
 
-2. Copiar los datos desde /data a /scratch
-
-```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /data/courses/hpc_course/*HPC-COURSE*${USER}* /scratch/hpc_course
-```
-
----
-
-### Ejercicio 1 — Ejecución correcta
-
-**Objetivo**
-Ejecutar el script tal cual, comprobar el nodo, los logs y el estado final.
-
-**Pasos**
-0. Sitúate en la carpeta de trabajo en `/scratch`
-
-``` bash
-cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
-```
-
-1. Enviar el trabajo
-
-```bash
-sbatch fastqc_demo.sbatch
-```
-
-2. Monitorizar en cola
+3. Monitorizar en cola
 
 ```bash
 squeue --me
-squeue -j <JOBID>
 ```
 
-3. Ver detalles (nodo, recursos, razón si está en PD)
+4. Ver detalles (nodo, recursos, razón si está en PD)
 
 ```bash
 scontrol show job <JOBID> | grep 'JobName\|NumNodes\|NumCPUs\|TRES\|Nodes\|Reason\|Submit\|Start\|TimeLimit'
 ```
 
-4. Al finalizar, revisar histórico y uso
+5. Al finalizar, revisar histórico y uso
 
 ```bash
 sacct -j <JOBID> -o JobID,State,Elapsed,MaxRSS,TotalCPU,ExitCode
 ```
 
-5. Leer logs
+6. Leer logs
 
 ```bash
 less /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/logs/fastqc_demo-<JOBID>.out
+
 less /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/logs/fastqc_demo-<JOBID>.err
 ```
 
@@ -146,7 +172,7 @@ less /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-paralleli
 
 ¿En qué **partición** se ejecutó el trabajo y cuánto **tiempo** tardó?
 
-¿Qué **pico de RAM** muestra `MaxRSS` y qué **estado final** aparece en `sacct`?
+¿En qué estado se encuentra el trabajo?
 
 > Estados típicos: **PD** (PENDING), **R** (RUNNING), **CG** (COMPLETING), **CD** (COMPLETED), **F** (FAILED), **TO** (TIMEOUT), **CA** (CANCELLED), **NF** (NODE\_FAIL).
 
@@ -162,7 +188,6 @@ En este caso modificamos el script, lo guardamos como **`fastqc_failcmd.sbatch`*
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_fail
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -182,10 +207,10 @@ fastp \
 echo "[INFO] Finished at $(date)"
 ```
 
-Ejecuta y monitoriza:
+Ejecuta y monitoriza (desde la shell interactiva en `/scratch`):
 
 ```bash
-sbatch fastqc_failcmd.sbatch
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_failcmd.sbatch
 
 sacct -j <JOBID> -o JobID,State,Elapsed,ExitCode
 
@@ -216,7 +241,6 @@ Script: **`fastqc_overask.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_overask
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=530G                       # << imposible en este nodo
@@ -238,11 +262,11 @@ fastqc \
 echo "[INFO] Finished at $(date)"
 ```
 
-Monitoriza:
+Monitoriza (desde la shell interactiva en `/scratch`):
 
 ```bash
-sbatch fastqc_overask.sbatch
-squeue -j <JOBID> -o "%.18i %.10P %.20j %.2t %.10M %.6D %R"
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_overask.sbatch
+squeue --me
 scontrol show job <JOBID> | egrep 'Reason|Req|MinCPUs|TRES|Nodes|Partition|QOS'
 ```
 
@@ -272,7 +296,7 @@ Los **Job Arrays** permiten enviar un solo trabajo que se divide en **N tareas**
 
 ### Ejercicio 1 — Intro con Job Arrays
 
-Usaremos archivos tipo `virus1.fastq.gz`, `virus2.fastq.gz`...
+Usaremos archivos tipo `virus1_R1.fastq.gz`, `virus2_R2.fastq.gz`...
 Cada tarea del array procesará un par R1/R2.
 
 Script: **`array_demo.sbatch`**
@@ -280,9 +304,8 @@ Script: **`array_demo.sbatch`**
 ```bash
 #!/bin/bash
 #SBATCH --job-name=array_demo
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
-#SBATCH --array=1-2  <<<<< Es importante indicar las dimensiones del array
+#SBATCH --array=1-2
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=2G
 #SBATCH --time=00:05:00
@@ -308,65 +331,7 @@ echo "[INFO] JobID=${SLURM_JOBID}; Task=${SLURM_ARRAY_TASK_ID}; End=$(date)"
 
 ---
 
-### Ejercicio 2 — Job Array real (QC con lista)
-
-Aquí los ficheros no tienen numeración clara → usamos una lista (`filelist`).
-
-```bash
-ls /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/*{R1,1}.fastq.gz | sort > filelist_R1.txt
-ls /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/00-reads/*{R2,2}.fastq.gz | sort > filelist_R2.txt
-```
-> Explora el contenido de los archivos generados.
-
-Vamos a crear el script de sbatch que ejecutará el JOBARRAY
-
-Script: **`fastqc_array.sbatch`**
-
-```bash
-#!/bin/bash
-#SBATCH --job-name=fastqc_array
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
-#SBATCH --partition=short_idx
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=6G
-#SBATCH --array=1-10%2  <<<<< Es importante indicar las dimensiones del array
-#SBATCH --output=logs/%x-%A_%a.out
-#SBATCH --error=logs/%x-%A_%a.err
-
-module load FastQC/0.11.9-Java-11
-
-# Creamos la carpeta de resultados
-mkdir -p 02-fastqc-array-results
-
-# Construimos el array input a partir del archivo filelist
-INPUT_R1=$(sed -n "${SLURM_ARRAY_TASK_ID}p" filelist_R1.txt)
-INPUT_R2=$(sed -n "${SLURM_ARRAY_TASK_ID}p" filelist_R2.txt)
-
-# Creamos una carpeta de resultados para cada archivo
-OUTDIR="02-fastqc-array-results/fastqc_${SLURM_ARRAY_JOB_ID}"
-mkdir -p "$OUTDIR"
-
-# Ejecutamos el comando:
-fastqc -o "$OUTDIR" "$INPUT_R1" "$INPUT_R2"
-echo "echo [INFO] JobID=${SLURM_JOBID}; Task ${SLURM_ARRAY_TASK_ID} End: $(date)"
-```
-
-**PREGUNTAS**
-* ¿Cuántas tareas corren en paralelo (pista: `%`)?
-* ¿Podrías describir como este script construye el array utilizando los archivos filelist_R1.txt y filelist_R2.txt?
-* ¿Qué JOBID y TaskID aparecen?
-* ¿Puedes encontrar sus logs y resultados?
-
-
-**Tip**: automatiza el rango del array con:
-
-```bash
-sbatch --array=1-$(wc -l < filelist_R1.txt) fastqc_array.sbatch
-```
-
----
-
-### Ejercicio 3 — Job Array con lista de IDs (samples_id.txt)
+### Ejercicio 2 — Job Array con lista de IDs (samples_id.txt)
 
 En esta variante partimos de un fichero `samples_id.txt` ubicado en la raíz de `ANALYSIS/` que contiene, una por línea, los identificadores de muestra (por ejemplo, `sample01`, `sample02`, …). Cada tarea del array leerá el ID de muestra correspondiente y ejecutará FastQC sobre el par `R1/R2` de `00-reads/`.
 
@@ -380,7 +345,7 @@ virus1
 virus2
 ```
 
-Crea este archhivo dentro de la carpeta `ANALYSIS` con el nombre: `samples_id.txt`
+Crea este archivo dentro de la carpeta `ANALYSIS` con el nombre: `samples_id.txt`
 
 
 A continuación, vamos a crear el script sbatch **`fastqc_array_samplesid.sbatch`** dentro de la carpeta `ANALYSIS/07-scripting-and-parallelization`
@@ -388,7 +353,6 @@ A continuación, vamos a crear el script sbatch **`fastqc_array_samplesid.sbatch
 ```bash
 #!/bin/bash
 #SBATCH --job-name=fastqc_from_ids
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=6G
@@ -416,10 +380,13 @@ echo "[INFO] Sample=${SAMPLE} R1=${R1} R2=${R2}"
 Lanza el array ajustando el rango al número de líneas de `samples_id.txt`:
 
 ```bash
-sbatch --array=1-$(wc -l < /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/samples_id.txt) fastqc_array_samplesid.sbatch
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization \
+       --array=1-$(wc -l < /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/samples_id.txt) fastqc_array_samplesid.sbatch
 ```
 
-Los resultados se guardan en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/` y los logs por tarea en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/logs/`.
+Los resultados se guardan en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/`
+
+Mientras que los logs por tarea se guardan en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/02-fastqc-array-results/fastqc_from_ids_<ArrayJobID>/logs/`.
 
 ---
 
@@ -451,76 +418,17 @@ La idea es: **probar OpenMP y MPI** con comandos reales, ver en `squeue/sacct` c
   `scontrol show job <jobid> | egrep 'Nodes|NumCPUs|TRES|Reason|Start|RunTime'`,
   `sacct -j <jobid> -o JobID,JobName,State,Elapsed,MaxRSS,AllocCPUS,NodeList,TotalCPU`.
 
-* ¿Cómo decidir entre uno y otro?:
-  Si **cabe en un nodo** y el programa admite hilos/threads → **OpenMP**.
-  Si **no cabe en la RAM** de un nodo o el programa escala a multi-nodo → **MPI**.
-
 ---
 
-### Ejercicio 1 — OpenMP básico con **fastp** (multi-hilo/thread en un nodo)
+### Ejercicio 1 — OpenMP en software de ensamblado (**SPAdes**)
 
-#### Objetivo
-
-Vamos a exprimir la estrategia **OpenMP**. Para ello utilizaremos un programa bioinformático que se encarga de eliminar las secuencias **adaptadoras** generadas durante el proceso de secuenciación (plataforma Illumina). Es decir, recorta estos adaptadores dejando la lectura de cada secuencia **limpia**. Es una etapa de pre-procesado de archivos FASTQ antes del análisis en sí. Para este caso usaremos el programa [**fastp**](https://github.com/OpenGene/fastp), que permite usar varios threads/hilos en un único nodo.
-
-Como hemos mencionado anteriormente, para poder utilizar la estrategia **OpenMP** debemos configurar en nuestro script `sbatch` los parámetros de Slurm: **`--cpus-per-task`**, `--mem`, `--time`.
-
-Veamos cómo construir el script. Se muestra **`fastp_openmp.sbatch`**:
-
-```bash
-#!/bin/bash
-#SBATCH --job-name=fastp_openmp
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
-#SBATCH --partition=short_idx
-#SBATCH --cpus-per-task=4           # <- nº hilos/threads OpenMP
-#SBATCH --mem=16G
-#SBATCH --time=00:30:00
-#SBATCH --output=logs/%x-%j.out
-#SBATCH --error=logs/%x-%j.err
-
-module load fastp/0.20.0-GCC-8.3.0
-mkdir -p 03-openmp-fastp-results
-
-# Setup de variables
-R1=../00-reads/virus1_R1.fastq.gz
-R2=../00-reads/virus1_R2.fastq.gz
-OUTR1=03-openmp-fastp-results/virus1.clean.R1.fastq.gz
-OUTR2=03-openmp-fastp-results/virus1.clean.R2.fastq.gz
-
-# Ejecutamos el comando
-fastp -i "$R1" -I "$R2" -o "$OUTR1" -O "$OUTR2" \
-    --thread="$SLURM_CPUS_PER_TASK" \
-    --detect_adapter_for_pe
-```
-
-**Lanza y monitoriza**
-
-```bash
-sbatch fastp_openmp.sbatch
-squeue --me
-sacct -j <JOBID> -o JobID,AllocCPUS,State,Elapsed,MaxRSS,TotalCPU,NodeList
-scontrol show jobid <JOBID> 
-```
-
-**PREGUNTAS**
-
-* Cambia **`--cpus-per-task=1`** y relanza con otro nombre de reporte. ¿Qué cambia en **Elapsed**?
-* Vuelve a lanzar la tarea usando `--cpus-per-task 12` y `--cpus-per-task 32` → compara **Elapsed**.
-
-> Nota: algunos programas **no** aceleran por encima de cierto nº de hilos. Puede ser porque el propio software **limite** los threads efectivos en tu dataset, o por cuellos de botella de **E/S** (lectura/escritura).
-
----
-
-### Ejercicio 2 — OpenMP en software de ensamblado (**SPAdes**)
-
-Vamos a volver a utilizar la estrategia OpenMP, pero esta vez con el software de ensamblado [**SPAdes**](https://github.com/ablab/spades). Este software se utiliza para la **reconstrucción** de un genoma a partir de las lecturas procesadas. Es una etapa que demanda **bastantes más recursos** computacionales que fastp.
+Vamos a utilizar la estrategia OpenMP con el software de ensamblado [**SPAdes**](https://github.com/ablab/spades). Este software se utiliza para la **reconstrucción** de un genoma a partir de las lecturas procesadas. Es una etapa que demanda **bastantes más recursos**.
 
 Guarda como **`spades_openmp.sbatch`**:
 
 ```bash
 #!/bin/bash
 #SBATCH --job-name=spades_openmp
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
@@ -543,7 +451,7 @@ spades.py -1 "$R1" -2 "$R2" -o 04-openmp-spades-results/spades_sample01 \
 **Lanza y monitoriza**
 
 ```bash
-sbatch spades_openmp.sbatch
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization spades_openmp.sbatch
 squeue --me
 sacct -j <JOBID> -o JobID,AllocCPUS,State,Elapsed,MaxRSS,TotalCPU,NodeList
 scontrol show jobid <JOBID> 
@@ -557,7 +465,7 @@ scontrol show jobid <JOBID>
 
 ---
 
-### Ejercicio 3 — MPI con **RAxML**
+### Ejercicio 2 — MPI con **RAxML**
 
 #### Objetivo
 
@@ -603,7 +511,6 @@ Guarda como **`raxml_mpi.sbatch`**:
 ```bash
 #!/bin/bash
 #SBATCH --job-name=raxml_mpi
-#SBATCH --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 #SBATCH --partition=short_idx
 #SBATCH --nodes=2                 # <-- nº de nodos
 #SBATCH --ntasks=8                # total procesos MPI
@@ -637,7 +544,7 @@ mpirun -np "$SLURM_NTASKS" raxmlHPC \
 Lanza y monitoriza los trabajos que se ejecutan. 
 
 ```bash
-sbatch raxml_mpi.sbatch
+sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization raxml_mpi.sbatch
 watch squeue --me
 sacct -j <JOBID> -o JobID,JobName,State,Elapsed,AllocCPUS,NodeList
 ```
@@ -659,6 +566,15 @@ sacct -j <JOBID> -o JobID,JobName,State,Elapsed,AllocCPUS,NodeList
 
 
 ---
+
+### Sincronización final
+
+Cuando termines todos los ejercicios, devuelve los resultados a `/data`:
+
+```bash
+rsync -avh /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization \
+          /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/
+```
 
 ### Errores típicos y cómo detectarlos
 

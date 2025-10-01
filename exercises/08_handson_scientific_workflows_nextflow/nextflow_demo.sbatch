@@ -1,16 +1,13 @@
 #!/bin/bash
 #SBATCH --job-name=nf_demo
-#SBATCH --chdir=/scratch/hpc_course/HPC-COURSE-${USER}/ANALYSIS/10-scientific-workflows-nextflow
-#SBATCH --partition=short_idx
+#SBATCH --partition=middle_idx
 #SBATCH --time=12:00:00
-#SBATCH --cpus-per-task=1                 # Recursos SOLO para el controlador de Nextflow
+#SBATCH --cpus-per-task=2                 # Recursos SOLO para el controlador de Nextflow
 #SBATCH --mem=2G
-#SBATCH --output=logs/%x-%j.out
-#SBATCH --error=logs/%x-%j.err
 
 # Carga las dependencias para ejecutar Nextflow
 module purge
-module load Nextflow/25.04.6
+module load Nextflow/24.04.2
 module load singularity/3.7.1
 
 mkdir -p 01-nextflow-demo-results
