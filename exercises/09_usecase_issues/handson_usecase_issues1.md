@@ -736,7 +736,7 @@ nextflow run "$HOME/software/nfcore/fetchngs/1_12_0/main.nf" \
   -c ../DOC/nextflow.config \
   --input sra_ids.csv \
   --download_method sratools \
-  --outdir "$(date +%Y%m%d)_HPC-COURSE-FASTP_${USER}" -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES" \
+  --outdir "." -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES" \
   -resume
 SLURM
 ```
@@ -763,7 +763,8 @@ Realiza la monitorización del job y vigila los logs. Cuando termine, verifica q
 
 ```bash
 cd $(date +%Y%m%d)_HPC-COURSE-FASTP_${USER}/ANALYSIS/00-reads
-ln -s ../../RAW/*.fastq.gz .
+cat ../samples_id.txt | xargs -I % echo "ln -s ../../RAW/fastq/*_%_1.fastq.gz %_R1.fastq.gz" | bash
+cat ../samples_id.txt | xargs -I % echo "ln -s ../../RAW/fastq/*_%_2.fastq.gz %_R2.fastq.gz" | bash
 ```
 
 - Crea un `samples_id.txt`:
@@ -779,25 +780,6 @@ EOF
 ```
 
 1. Crear un script de sbatch para ejecutar fastp en la carpeta 01-fastp. Utiliza la imagen de singularity que te descargaste en la pŕactica 6.
-
-```bash
-#!/usr/bin/env bash
-#SBATCH --job-name=fastp
-#SBATCH --chdir="/scratch/hpc_course/$(date +%Y%m%d)_HPC-COURSE-FASTP_${USER}" -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES
-#SBATCH --partition=short_idx
-#SBATCH --time=04:00:00
-#SBATCH --cpus-per-task=2
-#SBATCH --mem=4G
-#SBATCH --output=$(date +%Y%m%d)_HPC-COURSE-FASTP_${USER}/RAW/logs/logs_%x-%j.log -> CAMBIAR POR RUTA COMPLETA SIN VARIABLES
-
-set -euo pipefail
-
-module load singularity
-
-# Ejecuta el pipeline descargado en $HOME/software/nfcore/fetchngs
-sample=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "../samples_id.txt")
-singularity exec ../06-software-management/singularity_images/fastp.img fastp -c 2 -i ../00-reads/${sample}_R1.fastq.gz -I ../00-reads/${sample}_R2.fastq.gz -o ../01-fastp/trimmed_${sample}_R1.fastq.gz -O ../01-fastp/trimmed_${sample}_R2.fastq.gz" 
-```
 
 2. Comprobaciones y resultados
 
