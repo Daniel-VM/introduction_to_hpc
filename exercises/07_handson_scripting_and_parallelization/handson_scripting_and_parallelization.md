@@ -535,8 +535,7 @@ El software que vamos a usar es [**RAxML**](https://cme.h-its.org/exelixis/web/s
 Vamos a crear un alineamiento pequeño (12 taxones × 60 sitios) en formato PHYLIP secuencial, suficiente para testear el paralelismo:
 
 ```bash
-scratch
-cd /scratch/hpc_course/*_HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
+srun --partition=short_idx --time=00:30:00 --cpus-per-task=2 --mem=4G --chdir /scratch/hpc_course/*_HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization --pty bash -l
 mkdir -p data
 cat > data/datos.phy << 'EOF'
 12 60
