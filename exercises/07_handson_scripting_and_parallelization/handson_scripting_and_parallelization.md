@@ -113,8 +113,8 @@ cat ../samples_id.txt | xargs -I % echo "ln -s ../../RAW/%_*2*.fastq.gz %_R2.fas
 
    ```bash
    srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 \
-     rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/ \
-             /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/
+     rsync -avh /data/courses/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization \
+     /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/
    ```
 
 A partir de ahora trabaja desde `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization` y mantén los nombres de archivo tal como figuran en el repositorio original.
@@ -131,7 +131,7 @@ Ejecutar el script tal cual, comprobar el nodo, los logs y el estado final.
 
 2. **Enviar** el trabajo
 
-Guarda como **`fastqc_demo.sbatch`**:
+Descargado como **`fastqc_demo.sbatch`**:
 
 ```bash
 #!/bin/bash
@@ -523,6 +523,8 @@ El software que vamos a usar es [**RAxML**](https://cme.h-its.org/exelixis/web/s
 Vamos a crear un alineamiento pequeño (12 taxones × 60 sitios) en formato PHYLIP secuencial, suficiente para testear el paralelismo:
 
 ```bash
+scratch
+cd /scratch/hpc_course/*_HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
 mkdir -p data
 cat > data/datos.phy << 'EOF'
 12 60
@@ -539,6 +541,7 @@ Taxon_0010  GAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGAGA
 Taxon_0011  CTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCTCT
 Taxon_0012  TTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAATTAA
 EOF
+exit
 ```
 Explicación del formato PHYLIP
 - 1ª línea: Ntaxa Nsitios (aquí 12 60).
