@@ -6,9 +6,11 @@ Bienvenido a la sesión práctica sobre la gestión de software en nuestro HPC. 
 
 - [Curso Práctico de Iniciación al uso del Entorno de Alta Computación](#curso-práctico-de-iniciación-al-uso-del-entorno-de-alta-computación)
   - [Práctica 6: Gestión de Software en HPC](#práctica-6-gestión-de-software-en-hpc)
+    - [Notas importantes](#notas-importantes)
   - [1. Permisos: PC personal vs HPC](#1-permisos-pc-personal-vs-hpc)
   - [2. Entornos Virtuales \& Gestores de Software](#2-entornos-virtuales--gestores-de-software)
-    - [2.1 Cómo compartir entornos virtuales entre usuarios del HPC](#21-cómo-compartir-entornos-virtuales-entre-usuarios-del-hpc)
+    - [(Extra) Cómo compartir entornos virtuales entre usuarios con micromamba](#extra-cómo-compartir-entornos-virtuales-entre-usuarios-con-micromamba)
+    - [2.2 Otros gestores: Easybuild](#22-otros-gestores-easybuild)
   - [3. Contenedores: Docker \& Singularity](#3-contenedores-docker--singularity)
     - [3.1 Descargar y ejecutar un contenedor de Singularity](#31-descargar-y-ejecutar-un-contenedor-de-singularity)
     - [3.2 Otros conceptos importantes sobre singularity](#32-otros-conceptos-importantes-sobre-singularity)
