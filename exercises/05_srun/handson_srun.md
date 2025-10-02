@@ -357,7 +357,7 @@ Por último vamos a efectuar un ciclo de trabajo completo en scratch.
 1. Cargar el módulo o activar el entorno.
 
 ```bash
-cd /scratch/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS/
+cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/
 # Modules y la gestión de software se desarrollará en la siguiente práctica
 module load FastQC/0.11.9-Java-11
 ```
@@ -365,7 +365,7 @@ module load FastQC/0.11.9-Java-11
 2. Ejecutar fastqc con srun guardando en RESULTS.
 
 ```bash
-srun --partition=short_idx --cpus-per-task=2 --mem=4G --time=00:15:00 --chdir /scratch/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS fastqc -t 2 -o 01-fastqc 00-reads/*.fastq.gz*
+srun --partition=short_idx --cpus-per-task=2 --mem=4G --time=00:15:00 --chdir /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS fastqc -t 2 -o 01-fastqc 00-reads/*.fastq.gz*
 ```
 
 3. Revisar salida.
@@ -379,7 +379,7 @@ ls 01-fastqc
 3. Para hacer este análisis hemos utilizado un único comando srun, es decir hemos analizado todas las muestras utilizando un único job, y se ha analizado una detrás de otra. Ahora vamos a lanzarlas todas a la vez en paralelo.
 
 ```bash
-cat samples_id.txt | xargs -I @@ echo "srun --chdir /scratch/hpc_course/*HPC-COURSE*${USER}*/ANALYSIS --partition=short_idx --job-name fastqc_@@ --cpus-per-task=2 --mem=4G --time=00:15:00 fastqc -t 2 -o 01-fastqc 00-reads/@@_R1.fastq.gz 00-reads/@@_R2.fastq.gz &" | bash
+cat samples_id.txt | xargs -I @@ echo "srun --chdir /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS --partition=short_idx --job-name fastqc_@@ --cpus-per-task=2 --mem=4G --time=00:15:00 fastqc -t 2 -o 01-fastqc 00-reads/@@_R1.fastq.gz 00-reads/@@_R2.fastq.gz &" | bash
 ```
 
 Lo puedes comprobar en otra terminal lanzando:
@@ -395,14 +395,14 @@ Una vez terminado el procesamiento tenemos que devolver resultados a almacenamie
 1. Copiar resultados a un directorio de proyecto en /data.
 
 ```bash
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /scratch/hpc_course/*HPC-COURSE*${USER}* /data/courses/hpc_course/
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rsync -avh /scratch/hpc_course/*HPC-COURSE_${USER} /data/courses/hpc_course/
 ```
 
 2. Limpiar temporal de forma segura.
 
 ```bash
-cd /data/courses/hpc_course/*HPC-COURSE*${USER}
-srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rm -rf /scratch/hpc_course/*HPC-COURSE*${USER}*
+cd /data/courses/hpc_course/*HPC-COURSE_${USER}
+srun --partition=short_idx --cpus-per-task=1 --mem=1G --time=00:10:00 rm -rf /scratch/hpc_course/*HPC-COURSE_${USER}
 ```
 
 - Confirmar que el espacio en /scratch disminuye y que los resultados están en /data
