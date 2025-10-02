@@ -543,6 +543,82 @@ Use "module keyword key1 key2 ..." to search for all possible modules matching a
 "
 ```
 
+Otra opción más dirigida es `module spider`. La principal diferencia con `module avail`es que `spider` te devuelve cada paquete de forma individualizada con una descripción y sus versiones disponibles, en vez de un listado genérico. Vamos a repetir la búsqueda de las versiones de python con esta opción:
+
+```bash
+module spider Python
+
+" Output
+----------------------------------------------------------------------------
+  Python:
+----------------------------------------------------------------------------
+    Description:
+      Python is a programming language that lets you work more quickly and
+      integrate your systems more effectively.
+
+     Versions:
+        Python/2.7.18-GCCcore-9.3.0
+        Python/2.7.18-GCCcore-10.2.0
+        Python/3.7.4-GCCcore-8.3.0
+        Python/3.8.2-GCCcore-9.3.0
+        Python/3.8.6-GCCcore-10.2.0
+        Python/3.9.5-GCCcore-10.3.0-bare
+        Python/3.9.5-GCCcore-10.3.0
+        Python/3.10.4-GCCcore-11.3.0-bare
+     Other possible modules matches:
+        bx-python
+
+----------------------------------------------------------------------------
+  To find other possible module matches execute:
+
+      $ module -r spider '.*Python.*'
+
+----------------------------------------------------------------------------
+  For detailed information about a specific "Python" package (including how to load the modules) use the module's full name.
+  Note that names that have a trailing (E) are extensions provided by other modules.
+  For example:
+
+     $ module spider Python/3.10.4-GCCcore-11.3.0-bare
+----------------------------------------------------------------------------
+"
+```
+
+Es importante mencionar que es **case-sensitive** por lo que no es lo mismo buscar `Python` que `python`. Como esta última opción nos enseñará todos los paquetes que contengan python en alguna parte de su nombre, podemos reducir el rango de búsqueda incluyendo el parámetro `-r`:
+
+```bash
+module -r spider Python
+
+" Output
+----------------------------------------------------------------------------
+  Python:
+----------------------------------------------------------------------------
+    Description:
+      Python is a programming language that lets you work more quickly and
+      integrate your systems more effectively.
+
+     Versions:
+        Python/2.7.18-GCCcore-9.3.0
+        Python/2.7.18-GCCcore-10.2.0
+        Python/3.7.4-GCCcore-8.3.0
+        Python/3.8.2-GCCcore-9.3.0
+        Python/3.8.6-GCCcore-10.2.0
+        Python/3.9.5-GCCcore-10.3.0-bare
+        Python/3.9.5-GCCcore-10.3.0
+        Python/3.10.4-GCCcore-11.3.0-bare
+
+----------------------------------------------------------------------------
+  For detailed information about a specific "Python" package (including how to load the modules) use the module's full name.
+  Note that names that have a trailing (E) are extensions provided by other modules.
+  For example:
+
+     $ module spider Python/3.10.4-GCCcore-11.3.0-bare
+----------------------------------------------------------------------------
+"
+```
+
+- **Prueba por tu cuenta** a lanzarlo ahora sin `-r`. ¿Qué diferencias ves?
+<br>
+
 - Si quieres comprobar **qué módulos están activos** en tu sesión, puedes ejecutar `module list`.
 Cuando termines de usar un módulo, puedes ejecutar `module unload <module_name>` para descargarlo de tu sesión, o `module purge` para descargar todos los módulos activos.
 
@@ -620,7 +696,7 @@ Si queremos simplemente descargar la imagen para tenerla accesible en local, pod
 
 ```bash
 cd /data/courses/hpc_course/*_HPC-COURSE_${USER}/ANALYSIS/
-mkdir -p 06-software-management/singularity_images
+mkdir -p 06-software-management/singularity_images 06-software-management/singularity_cache
 singularity pull 06-software-management/singularity_images/fastp.img https://depot.galaxyproject.org/singularity/fastp%3A1.0.1--heae3180_0
 ```
 
@@ -633,20 +709,20 @@ srun --partition=short_idx --cpus-per-task=1 --mem=2G --time=00:05:00 singularit
 ./singularity_images/fastp.img fastp -i ../00-reads/virus1_R1.fastq.gz -I ../00-reads/virus1_R2.fastq.gz -o trimmed_virus1_R1.fastq.gz -O trimmed_virus1_R2.fastq.gz
 ```
 
-Al hacer `--bind <PATH>`, lo que pongamos en `<PATH>` será accesible dentro del contenedor, con el nombre/ruta que le pongamos después de `:`. Por ejemplo en este caso `/scratch/hpc_course/<CARPETA_HPC_COURSE>/RAW` será accesible en el contenedor como `/reads`
+Al hacer `--bind <PATH>`, lo que pongamos en `<PATH>` será accesible dentro del contenedor. Por ejemplo en este caso `/scratch/hpc_course/<CARPETA_HPC_COURSE>` será accesible en el contenedor. 
 
 ### 3.2 Otros conceptos importantes sobre singularity
 
-- Nota: Al igual que lo explicado con micromamba, con singularity también es posible compartir ubicación de imagenes o containers.
 Singularity utiliza por defecto dos variables para el guardado de cache (imagenes guardadas al lanzar exec y run) y imagenes (pull). En este caso, podemos modificarlas por defecto configurando nuestro ``~/.bashrc``:
 
 ```bash
 # Añadiremos estas lineas a nuestro ~/.bashrc
-export SINGULARITY_CACHEDIR=/<shared_path>/containers/singularity/singularity_cache
-export SINGULARITY_PULLFOLDER=/<shared_path>/containers/singularity/singularity_image
+export SINGULARITY_CACHEDIR=/scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/singularity_cache
+export SINGULARITY_PULLFOLDER=/scratch/hpc_course/<CARPETA_HPC_COURSE>/ANALYSIS/06-software-management/singularity_images/
 ```
 
-Después, hacemos `source ~/.bashrc` para aplicar los cambios
+Después, hacemos `source ~/.bashrc` para aplicar los cambios y a partir de ahora nuestras imagenes serán descargadas ahi y singularity buscará automáticamente imágenes en guardadas en `SINGULARITY_CACHEDIR` antes de descargar nuevas.
+**Nota**: Al igual que lo explicado con micromamba, con singularity también es posible compartir ubicación de imagenes o containers. Si por ejemplo nos coordináramos entre usuarios para usar una misma carpeta compartida, podríamos tener todos acceso a las mismas imágenes de singularity.
 
 - Para uso únicamente interactivo dentro de una imagen, ejecuta:
 
