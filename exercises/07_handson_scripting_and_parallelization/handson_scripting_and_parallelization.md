@@ -149,6 +149,11 @@ Ejecutar el script tal cual, comprobar el nodo, los logs y el estado final.
 
 1. Sitúate en `/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization` (compruébalo con `pwd` o `ls`).
 
+```bash
+cd /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization
+pwd
+```
+
 2. **Enviar** el trabajo
 
 Descargado como **`fastqc_demo.sbatch`**:
@@ -186,6 +191,8 @@ Envía el trabajo:
 sbatch --chdir=/scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization fastqc_demo.sbatch
 ```
 
+> Nota: ejecutamos la directiva `--chdir` desde la línea de comandos, en lugar de dejarla en el script, para que bash expanda correctamente el patrón `*HPC-COURSE_${USER}`. Si lo prefieres, puedes volver a incluirla en el script de `sbatch` y sustituir `*HPC-COURSE_${USER}` por el nombre exacto de tu carpeta de trabajo.
+
 3. Monitorizar en cola
 
 ```bash
@@ -213,9 +220,13 @@ sacct -j <JOBID> -o JobID,State,Elapsed,MaxRSS,TotalCPU,ExitCode
 > • `Elapsed`: tiempo transcurrido real.
 > • `ExitCode`: código de salida devuelto por el script (0 indica éxito).
 
-6. Leer logs
+6. Leer logs y resultados:
 
 ```bash
+# Resultados disponibles en: 01-fastqc-demo-results/
+ll /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/01-fastqc-demo-results
+
+# Logs y errores disponibles en logs/
 less /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/logs/fastqc_demo-<JOBID>.out
 
 less /scratch/hpc_course/*HPC-COURSE_${USER}/ANALYSIS/07-scripting-and-parallelization/logs/fastqc_demo-<JOBID>.err
@@ -571,7 +582,7 @@ Guarda como **`raxml_mpi.sbatch`**:
 #SBATCH --nodes=2                 # <-- nº de nodos
 #SBATCH --ntasks=8                # total procesos MPI
 #SBATCH --ntasks-per-node=4       # <-- nº procesos MPI por nodo
-#SBATCH --mem=8G
+#SBATCH --mem-per-cpu=12G
 #SBATCH --time=00:30:00
 #SBATCH --output=logs/%x-%j.out
 #SBATCH --error=logs/%x-%j.err
