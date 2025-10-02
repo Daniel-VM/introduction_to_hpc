@@ -35,4 +35,4 @@ The material includes slides with theory concepts and practical exercises.
 
 ### Day 5
 
-- **Exercise 9:** [Practical cases and common issue](exercises/09_handson_usecase_issues/handson_usecase_issues1.md) -- [Download pdf](exercises/xxx.pdf)
+- **Exercise 9:** [Practical cases and common issue](exercises/09_usecase_issues/handson_usecase_issues1.md) -- [Download pdf](exercises/xxx.pdf)
