@@ -582,7 +582,7 @@ Guarda como **`raxml_mpi.sbatch`**:
 #SBATCH --nodes=2                 # <-- nº de nodos
 #SBATCH --ntasks=8                # total procesos MPI
 #SBATCH --ntasks-per-node=4       # <-- nº procesos MPI por nodo
-#SBATCH --mem-per-cpu=19G
+#SBATCH --mem-per-cpu=12G
 #SBATCH --time=00:30:00
 #SBATCH --output=logs/%x-%j.out
 #SBATCH --error=logs/%x-%j.err
