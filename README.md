@@ -23,7 +23,7 @@ The material includes slides with theory concepts and practical exercises.
 
 - **Talk 4:** [Running processes using a job scheduler (Slurm). Resource reservation, working directories, and genomic data storage protocols](slides/talk4_filesystems_slurm.pdf)
 - **Exercise 5:** [Running processes using a job scheduler (Slurm). Resource reservation, working directories, and genomic data storage protocols](exercises/05_srun/handson_srun.md) -- [Download pdf](exercises/xxx.pdf)
-- **Talk 5:** [Software installation in HPC. EasyBuild, Conda, Mamba. Introduction to container usage in HPC.](slides/xxxx.pdf)
+- **Talk 5:** [Software installation in HPC. EasyBuild, Conda, Mamba. Introduction to container usage in HPC.](slides/talk5_SoftwareManagement_and_ContainersinHPC.pdf)
 - **Exercise 6:** [Software installation in HPC. EasyBuild, Conda, Mamba. Introduction to container usage in HPC](exercises/06_software_management_hpc/handson_software_management.md) -- [Download pdf](exercises/xxxx.pdf)
   
 ### Day 4
